@@ -1,30 +1,36 @@
 'use client';
 
 import socket from './server/socket';
-import { SignIn } from "./components/signin";
 
 import { supabase } from './lib/supabase';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Landing from './sites/landing';
 
 export default function Home() {
     if (!supabase) throw new Error('Supabase client is not defined');
+
+    const [auth, setAuth] = useState({});
 
     useEffect(() => {
         async function getUserData() {
             if (!supabase) throw new Error('Supabase client is not defined'); // because of async function?
 
-            await supabase.auth.getUser()
-                .then((value) => {
-                    console.log(value);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-            };
+            const { data, error} = await supabase.auth.getSession();
+            if (error) throw new Error('Error while retrieving user data:', error);
+
+            console.log('Retrieved user data:', data);
+        };
+
         getUserData();
     }, []);
 
-    socket.connect();
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            setAuth(session.user);
+        } else if (event === 'SIGNED_OUT') {
+            setAuth({});
+        }
+    });
 
     socket.on('connect', () => {
         console.log('connected with server');
@@ -37,9 +43,7 @@ export default function Home() {
 
     return (
         <>
-            <div className='flex items-center justify-center h-screen w-screen'>
-                <SignIn />
-            </div>
+            <Landing auth={auth} />
         </>
     );
 }

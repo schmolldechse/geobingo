@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@supabase/supabase-js": "^2.41.1",
     "class-variance-authority": "^0.7.0",
@@ -19,7 +21,8 @@
     "react-dom": "^18",
     "socket.io-client": "^4.7.5",
     "tailwind-merge": "^2.2.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {
     "@types/node": "^20",

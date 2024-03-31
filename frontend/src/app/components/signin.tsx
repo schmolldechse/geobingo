@@ -16,7 +16,7 @@ export const SignIn = () => {
     return (
         <>
         <Button 
-            className='bg-[#653DA2] rounded-[10px] p-3 py-6 flex gap-3 items-center inline-flex hover:ring-4 hover:ring-[#522891] hover:bg-[#7E58C2]'
+            className='bg-[#653DA2] w-full rounded-[10px] p-3 py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#522891] hover:bg-[#653DA2]'
             onClick={handleSignIn}
         >
             <svg width="30px" height="30px" viewBox="0 0 16 16" fill="none">
