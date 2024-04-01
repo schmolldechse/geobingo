@@ -56,7 +56,7 @@
         <div class="min-w-[30%] flex flex-col gap-4 self-center">
             <User />
 
-            {#if Object.keys(geoBingo.player.auth).length === 0}
+            {#if Object.keys($geoBingo.player.auth).length === 0}
                 <p class="text-white italic self-center mb-2">or</p>
                 <SignIn />
             {/if}

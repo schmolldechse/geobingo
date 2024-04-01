@@ -29,7 +29,7 @@
             </p>
 
             <Button class="bg-transparent" on:click={handleLogout}>
-                <svg width="25" height="25" viewBox="0 0 48 48">
+                <svg width="25" height="25" viewBox="0 0 48 48"fill="none">
                     <path fill-opacity=".01" d="M0 0h48v48H0z" />
                     <path
                         d="M23.992 6H6v36h18m9-9 9-9-9-9m-17 8.992h26"
