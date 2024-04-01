@@ -15,9 +15,9 @@
 
 <div class="mx-[5%] items-center">
     <div class="flex gap-3 items-center justify-center">
-        {#if Object.keys(geoBingo.player.auth).length !== 0}
+        {#if Object.keys($geoBingo.player.auth).length !== 0}
             <img
-                src={geoBingo.player.picture}
+                src={$geoBingo.player.picture}
                 alt="avatar"
                 width={50}
                 height={50}
@@ -25,18 +25,18 @@
             />
 
             <p class="text-white text-lg font-medium">
-                {geoBingo.player.name}
+                {$geoBingo.player.name}
             </p>
 
-            <Button class="bg-transparent" onClick={handleLogout}>
+            <Button class="bg-transparent" on:click={handleLogout}>
                 <svg width="25" height="25" viewBox="0 0 48 48">
-                    <path fillOpacity=".01" d="M0 0h48v48H0z" />
+                    <path fill-opacity=".01" d="M0 0h48v48H0z" />
                     <path
                         d="M23.992 6H6v36h18m9-9 9-9-9-9m-17 8.992h26"
                         stroke="#fff"
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
                     />
                 </svg>
             </Button>
@@ -51,7 +51,7 @@
             </div>
 
             <p class="text-white text-lg font-medium">
-                Guest {geoBingo.player.name}
+                Guest {$geoBingo.player.name}
             </p>
         {/if}
     </div>

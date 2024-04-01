@@ -11,31 +11,32 @@
     onMount(async () => {
         if (!supabase) throw new Error("Supabase client is not defined"); // because of async function?
 
-        const { data: { user } } = await supabase.auth.getUser();
-        console.log('Retrieved user data:', user);
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+        console.log("Retrieved user data:", user);
     });
 
     supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-            getGeoBingo().refreshPlayer(session.user)
-        } else if (event === 'SIGNED_OUT') {
-            [
-                window.localStorage,
-                window.sessionStorage,
-            ].forEach((storage) => {
-                Object.entries(storage).forEach(([key]) => storage.removeItem(key));
-            })
-            
-            getGeoBingo().refreshPlayer(null)
+        if (event === "SIGNED_IN" && session) {
+            getGeoBingo().refreshPlayer(session.user);
+        } else if (event === "SIGNED_OUT") {
+            [window.localStorage, window.sessionStorage].forEach((storage) => {
+                Object.entries(storage).forEach(([key]) =>
+                    storage.removeItem(key),
+                );
+            });
+
+            getGeoBingo().refreshPlayer(null);
         }
     });
 
-    socket.on('connect', () => {
-        console.log('Connecting to server');
+    socket.on("connect", () => {
+        console.log("Connecting to server");
     });
 
-    socket.on('error', (error) => {
-        console.error('error while connecting to backend:', error);
+    socket.on("error", (error) => {
+        console.error("error while connecting to backend:", error);
     });
 </script>
 
