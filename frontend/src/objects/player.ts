@@ -1,4 +1,4 @@
-//import { socket } from '../server/socket.ts';
+import socket from "../server/socket";
 
 interface PlayerProps {
     name: string;
@@ -21,20 +21,16 @@ export class Player {
     }
 
     join(lobbyCode: string) {
-        /**
         if (!socket) throw new Error('Socket is not defined');
-        socket.emit('geobingo:joinLobby', lobbyCode, (response: any) => {
+        socket.emit('geobingo:joinLobby', { lobbyCode: lobbyCode }, (response: any) => {
             console.log('Response:', response);
         });
-        */
     }
 
     host() {
-        /**
         if (!socket) throw new Error('Socket is not defined');
-        socket.emit('geobingo:createLobby', (response: any) => {
+        socket.emit('geobingo:createLobby', { privateLobby: true }, (response: any) => {
             console.log('Response:', response);
         });
-        */
     }
 }

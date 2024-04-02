@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { supabase } from "$lib/supabaseClient";
     import { onMount } from "svelte";
     import socket from "../server/socket";
@@ -7,6 +7,8 @@
 
     if (!supabase) throw new Error("Supabase client is not defined");
     initializeGeoBingo(null);
+
+    let geoBingo = getGeoBingo();
 
     onMount(async () => {
         if (!supabase) throw new Error("Supabase client is not defined"); // because of async function?
@@ -19,7 +21,7 @@
 
     supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === "SIGNED_IN" && session) {
-            getGeoBingo().refreshPlayer(session.user);
+            geoBingo.refreshPlayer(session.user);
         } else if (event === "SIGNED_OUT") {
             [window.localStorage, window.sessionStorage].forEach((storage) => {
                 Object.entries(storage).forEach(([key]) =>
@@ -27,7 +29,7 @@
                 );
             });
 
-            getGeoBingo().refreshPlayer(null);
+            geoBingo.refreshPlayer(null);
         }
     });
 

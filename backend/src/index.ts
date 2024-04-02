@@ -1,5 +1,10 @@
 import { createServer } from "http";
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
+
+import { PlayerSocket } from "./socket/playersocket";
+
+import authHandler from "./handler/authhandler";
+import lobbyHandler from "./handler/lobbyhandler";
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -9,7 +14,10 @@ const io = new Server(httpServer, {
     }
 });
 
-const onConnection = (socket: Socket) => {
+const onConnection = (playerSocket: PlayerSocket) => {
+    authHandler(playerSocket);
+    lobbyHandler(playerSocket);
+
     console.log('Received connection');
 }
 
