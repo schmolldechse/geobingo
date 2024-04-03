@@ -4,6 +4,7 @@
     import socket from "../server/socket";
     import { getGeoBingo, initializeGeoBingo } from "$lib/geobingo";
     import Landing from "../ui/landing.svelte";
+    import Waiting from "../ui/game/waiting.svelte";
 
     if (!supabase) throw new Error("Supabase client is not defined");
     initializeGeoBingo(null);
@@ -42,4 +43,14 @@
     });
 </script>
 
-<Landing />
+{#if !$geoBingo.game}
+    <Landing />
+{:else if $geoBingo.game}
+    {#if $geoBingo.game.phase === 'waiting'}
+        <Waiting />
+    {:else if $geoBingo.game.phase === 'playing'}
+        <p>Playing</p>
+    {:else if $geoBingo.game.phase === 'score'}
+        <p>Score</p>
+    {/if}
+{/if}
