@@ -10,21 +10,21 @@
     };
 </script>
 
-<div class="p-5 space-y-[2%]">
+<div class="p-5 space-y-[2%] overflow-hidden h-screen">
     <Button class="bg-[#018ad3]" on:click={() => leaveGame()}>
         {" < "}Leave game
     </Button>
 
-    <div class="flex justify-between space-x-[1%]">
-        <div class="flex-1 bg-[#151951] rounded-[20px] p-4">
+    <div class="flex justify-between space-x-[1%] h-[calc(100vh-10rem)]">
+        <div class="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
             <h1 class="text-white font-bold text-3xl pb-4">Prompts</h1>
 
-            <div class="flex flex-col space-y-5">
+            <div class="flex flex-col space-y-5 ">
                 {#each $geoBingo.game.prompts as prompt, index (index)}
-                    <div class="flex items-center space-x-2 h-full">
+                    <div class="flex items-center space-x-4 h-full">
                         <input
                             type="text"
-                            class="flex-grow bg-[#151951] border-2 rounded-[8px] border-[#018ad3] text-white px-4"
+                            class="flex-grow bg-[#151951] border-2 rounded-[8px] border-[#018ad3] text-white px-4 h-10"
                             placeholder="Enter a prompt"
                             value={prompt}
                         />
@@ -46,6 +46,25 @@
                         </Button>
                     </div>
                 {/each}
+
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
+                <p>test</p>
             </div>
         </div>
 
