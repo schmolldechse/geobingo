@@ -31,7 +31,7 @@ type Lobby = {
     time: number;
 }
 
-let lobbies: Lobby[] = []; 
+export let lobbies: Lobby[] = []; 
 
 export default (playerSocket: PlayerSocket) => {
     const createLobby = (
@@ -97,8 +97,7 @@ export default (playerSocket: PlayerSocket) => {
             return lobbyPlayer.player?.id !== playerSocket.player?.id;
         });
         if (lobby.players.length === 0) {
-            console.log('Deleteting lobby with id ' + lobby.id + ' because no players are left');
-            lobbies = lobbies.filter(object => object.id !== lobby.id);
+            removeLobby(lobby);
         } else {
             let randomPlayer = lobby.players.find(player => player.id !== playerSocket.player?.id);
             lobby.host = randomPlayer || lobby.players[0];
@@ -119,24 +118,29 @@ export default (playerSocket: PlayerSocket) => {
     }
 
     createListener(playerSocket, 'geobingo', [createLobby, joinLobby, leaveLobby]);
+};
 
-    /**
+export const removeLobby = (lobby: Lobby) => {
+    console.log('Deleting lobby with id ' + lobby.id + ' because no players are left');
+    lobbies = lobbies.filter(object => object.id !== lobby.id);
+}
+
+/**
      * Sending an lobby update to all players in the lobby
      * @param lobby
      */
-    const updateLobby = (lobby: Lobby) => {
-        lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', { game: createSendingLobby(lobby) }));
-    }
+export const updateLobby = (lobby: Lobby) => {
+    lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', { game: createSendingLobby(lobby) }));
+}
 
-    /**
-     * @param lobby 
-     * @returns a lobby object without the playerSocket objects 
-     */
-    const createSendingLobby = (lobby: Lobby) => {
-        return { 
-            ...lobby,
-            players: lobby.players.map(playerSocket => playerSocket.player),
-            host: lobby.host.player
-        };
-    } 
-};
+/**
+ * @param lobby 
+ * @returns a lobby object without the playerSocket objects 
+ */
+const createSendingLobby = (lobby: Lobby) => {
+    return { 
+        ...lobby,
+        players: lobby.players.map(playerSocket => playerSocket.player),
+        host: lobby.host.player
+    };
+}

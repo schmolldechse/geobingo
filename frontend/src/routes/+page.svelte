@@ -42,22 +42,8 @@
         console.error("error while connecting to backend:", error);
     });
 
-    let handleTabClose: { (event: any): void; (this: Window, ev: BeforeUnloadEvent): any; (this: Window, ev: BeforeUnloadEvent): any; };
-
-    onMount(() => {
-        if (typeof window !== 'undefined') {
-            handleTabClose = (event) => {
-                if (!geoBingo.game) geoBingo.endGame();
-                socket.connect();
-            };
-            window.addEventListener('beforeunload', handleTabClose);
-        }
-    });
-
-    onDestroy(() => {
-        if (typeof window !== 'undefined') {
-            window.removeEventListener('beforeunload', handleTabClose);
-        }
+    socket.on('disconnect', (response: any) => {
+        console.log('Disconnected from server', response);
     });
 </script>
 
