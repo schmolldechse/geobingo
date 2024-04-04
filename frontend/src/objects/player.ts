@@ -50,8 +50,7 @@ export class Player {
             console.log('Response:', response);
             if (!response.success) return; // toast
 
-            getGeoBingo().game?.stopSocket();
-            getGeoBingo().game = undefined;
+            getGeoBingo().endGame();
             getGeoBingo().refresh();
         });
     }

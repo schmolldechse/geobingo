@@ -1,6 +1,7 @@
 import { WritableClass } from "../utils/writableclass";
 import { Player } from "./player";
 import socket from "../server/socket"; 
+import { getGeoBingo } from "$lib/geobingo";
 
 const gameEvents = [
     'geobingo:lobbyUpdate',
@@ -37,8 +38,8 @@ export class Game extends WritableClass implements GameProps {
         super();
         Object.assign(this, props);
 
-        socket.on('geoBingo:lobbyUpdate', (data: any) => {
-            console.log('Lobby update:', data);
+        socket.on('geobingo:lobbyUpdate', (response: any) => {
+            console.log('Lobby update:', response.game);
         });
     }
 
@@ -50,9 +51,6 @@ export class Game extends WritableClass implements GameProps {
     }
 
     stopSocket() {
-        gameEvents.forEach(event => {
-            socket.off(event);
-            console.log('removing:', event);
-        });
+        gameEvents.forEach(event => socket.off(event));
     }
 }

@@ -38,7 +38,7 @@ export class GeoBingo extends WritableClass {
 
     endGame() {
         if (!this.game) return; // toast
-        this.game.endGame();
+        this.game.stopSocket();
         this.game = undefined; 
     }
 

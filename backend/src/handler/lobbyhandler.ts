@@ -75,7 +75,6 @@ export default (playerSocket: PlayerSocket) => {
         lobby.players.push(playerSocket);
         updateLobby(lobby);
 
-        
         return callback({ success: true, game: createSendingLobby(lobby), message: 'Joining lobby' });
     }
 
@@ -115,7 +114,7 @@ export default (playerSocket: PlayerSocket) => {
      * @param lobby
      */
     const updateLobby = (lobby: Lobby) => {
-        lobby.players.forEach(player => player.emit('geoBingo:lobbyUpdate', createSendingLobby(lobby)));
+        lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', { game: createSendingLobby(lobby) }));
     }
 
     /**
