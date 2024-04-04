@@ -53,6 +53,20 @@ export class Game extends WritableClass implements GameProps {
         });
     }
 
+    addPrompt() {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:addPrompt', { lobbyCode: this.id }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
+    changePrompt(index: number, prompt: string) {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:changePrompt', { index: index, prompt: prompt, lobbyCode: this.id }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
     stopSocket() {
         gameEvents.forEach(event => socket.off(event));
     }

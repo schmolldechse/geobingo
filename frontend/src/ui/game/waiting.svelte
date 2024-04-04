@@ -13,7 +13,17 @@
     const removePrompt = (index: number) => {
         if (!geoBingo.game) throw new Error("Game is not defined");
         geoBingo.game.removePrompt(index);
-    }
+    };
+
+    const addPrompt = () => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
+        geoBingo.game.addPrompt();
+    };
+
+    const changePrompt = (index: number, prompt: string) => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
+        geoBingo.game.changePrompt(index, prompt);
+    };
 </script>
 
 <div class="p-5 space-y-[2%] overflow-hidden h-screen">
@@ -23,9 +33,17 @@
 
     <div class="flex justify-between space-x-[1%] h-[calc(100vh-12.5rem)]">
         <div class="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
-            <h1 class="text-white font-bold text-3xl pb-4">Prompts</h1>
+            <div class="flex flex-row">
+                <h1 class="text-white font-bold text-3xl pb-4">Prompts</h1>
+                <Button
+                    class="ml-auto bg-[#FFA500] hover:bg-[#FFA500] hover:opacity-80"
+                    on:click={() => addPrompt()}
+                >
+                    Add prompt
+                </Button>
+            </div>
 
-            <div class="flex flex-col space-y-5 ">
+            <div class="flex flex-col space-y-5">
                 {#each $geoBingo.game.prompts as prompt, index (index)}
                     <div class="flex items-center space-x-4 h-full">
                         <input
@@ -33,6 +51,7 @@
                             class="flex-grow bg-[#151951] border-2 rounded-[8px] border-[#018ad3] text-white px-4 h-10"
                             placeholder="Enter a prompt"
                             value={prompt}
+                            on:change={(event) => changePrompt(index, event.target.value)}
                         />
 
                         <Button
@@ -60,7 +79,7 @@
         <div class="flex-1 bg-[#151951] rounded-[20px]">
             <h1 class="text-white font-bold text-3xl pb-4">Players</h1>
 
-            <div class="flex flex-col space-y-5 ">
+            <div class="flex flex-col space-y-5">
                 {#each $geoBingo.game.players as player}
                     <div class="flex items-center space-x-4 h-full">
                         <p>{player.name}</p>
@@ -71,8 +90,6 @@
     </div>
 
     <div class="flex justify-center pb-5">
-        <Button class="bg-[#018ad3]">
-            Test
-        </Button>
+        <Button class="bg-[#018ad3]">Test</Button>
     </div>
 </div>
