@@ -110,14 +110,34 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Left lobby' });
     }
 
-    const removePrompt = () => (
+    const removePrompt = (
         data: any,
         callback: Function
     ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
 
+        if (typeof data.index !== 'number') return callback({ success: false, message: 'No prompt given' });
+        if (data.index < 0 || data.index >= prompts.length) return callback({ success: false, message: 'Invalid prompt' });
+        
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+        
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
+
+        if (!lobby.prompts[data.index]) return callback({ success: false, message: 'Prompt does not exist' });
+        lobby.prompts.splice(data.index, 1);
+
+        console.log('prompts:', lobby.prompts);
+
+        console.log('Removed prompt from lobby with id ' + lobby.id);
+
+        updateLobby(lobby);
+        return callback({ success: true, message: 'Removed prompt' });
     }
 
-    createListener(playerSocket, 'geobingo', [createLobby, joinLobby, leaveLobby]);
+    createListener(playerSocket, 'geobingo', [createLobby, joinLobby, leaveLobby, removePrompt]);
 };
 
 export const removeLobby = (lobby: Lobby) => {

@@ -1,6 +1,5 @@
 <script lang="ts">
     import Button from "$lib/components/ui/button/button.svelte";
-    import { pl } from "@faker-js/faker";
     import { getGeoBingo } from "../../lib/geobingo";
 
     let geoBingo = getGeoBingo();
