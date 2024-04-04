@@ -72,6 +72,9 @@ export default (playerSocket: PlayerSocket) => {
 
         if (lobby.players.some(lobbyPlayer => lobbyPlayer.player?.id === playerSocket.player?.id)) return callback({ success: false, message: 'Already in lobby' });
 
+        if (lobby.maxSize <= 0) return callback({ success: false, message: 'Lobbys max size has a invalid parameter' });
+        if (lobby.players.length >= lobby.maxSize) return callback({ success: false, message: 'Lobby is full' });
+
         lobby.players.push(playerSocket);
         updateLobby(lobby);
 
@@ -112,7 +115,7 @@ export default (playerSocket: PlayerSocket) => {
         data: any,
         callback: Function
     ) => {
-        
+
     }
 
     createListener(playerSocket, 'geobingo', [createLobby, joinLobby, leaveLobby]);
