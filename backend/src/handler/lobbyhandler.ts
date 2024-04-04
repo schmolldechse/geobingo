@@ -108,6 +108,13 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Left lobby' });
     }
 
+    const removePrompt = () => (
+        data: any,
+        callback: Function
+    ) => {
+        
+    }
+
     createListener(playerSocket, 'geobingo', [createLobby, joinLobby, leaveLobby]);
 
     /**

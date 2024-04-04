@@ -1,5 +1,6 @@
 <script lang="ts">
     import Button from "$lib/components/ui/button/button.svelte";
+    import { pl } from "@faker-js/faker";
     import { getGeoBingo } from "../../lib/geobingo";
 
     let geoBingo = getGeoBingo();
@@ -57,7 +58,17 @@
         </div>
 
         <div class="flex-1 bg-[#151951] rounded-[20px]">Container 2</div>
-        <div class="flex-1 bg-[#151951] rounded-[20px]">Container 2</div>
+        <div class="flex-1 bg-[#151951] rounded-[20px]">
+            <h1 class="text-white font-bold text-3xl pb-4">Players</h1>
+
+            <div class="flex flex-col space-y-5 ">
+                {#each $geoBingo.game.players as player}
+                    <div class="flex items-center space-x-4 h-full">
+                        <p>{player.name}</p>
+                    </div>
+                {/each}
+            </div>
+        </div>
     </div>
 
     <div class="flex justify-center pb-5">

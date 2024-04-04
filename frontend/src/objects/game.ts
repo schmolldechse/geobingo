@@ -42,9 +42,7 @@ export class Game extends WritableClass implements GameProps {
             const gameProps = JSON.parse(JSON.stringify(response.game));
             Object.assign(this, gameProps);
 
-            this.refresh();
-
-            console.log('Game:', getGeoBingo().game);
+            getGeoBingo().refresh();
         });
     }
 

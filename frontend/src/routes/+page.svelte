@@ -1,6 +1,6 @@
 <script lang="ts">
     import { supabase } from "$lib/supabaseClient";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import socket from "../server/socket";
     import { getGeoBingo, initializeGeoBingo } from "$lib/geobingo";
     import Landing from "../ui/landing.svelte";
@@ -41,16 +41,34 @@
     socket.on("error", (error) => {
         console.error("error while connecting to backend:", error);
     });
+
+    let handleTabClose: { (event: any): void; (this: Window, ev: BeforeUnloadEvent): any; (this: Window, ev: BeforeUnloadEvent): any; };
+
+    onMount(() => {
+        if (typeof window !== 'undefined') {
+            handleTabClose = (event) => {
+                if (!geoBingo.game) geoBingo.endGame();
+                socket.connect();
+            };
+            window.addEventListener('beforeunload', handleTabClose);
+        }
+    });
+
+    onDestroy(() => {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('beforeunload', handleTabClose);
+        }
+    });
 </script>
 
 {#if !$geoBingo.game}
     <Landing />
 {:else if $geoBingo.game}
-    {#if $geoBingo.game.phase === 'waiting'}
+    {#if $geoBingo.game.phase === "waiting"}
         <Waiting />
-    {:else if $geoBingo.game.phase === 'playing'}
+    {:else if $geoBingo.game.phase === "playing"}
         <p>Playing</p>
-    {:else if $geoBingo.game.phase === 'score'}
+    {:else if $geoBingo.game.phase === "score"}
         <p>Score</p>
     {/if}
 {/if}
