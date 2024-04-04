@@ -1,4 +1,4 @@
-import { Player } from "../objects/player"; 
+import { Player } from "../objects/player";
 import { prompts } from "../objects/prompts";
 import { PlayerSocket, createListener } from "../socket/playersocket";
 
@@ -31,7 +31,7 @@ type Lobby = {
     time: number;
 }
 
-export let lobbies: Lobby[] = []; 
+export let lobbies: Lobby[] = [];
 
 export default (playerSocket: PlayerSocket) => {
     const createLobby = (
@@ -57,7 +57,7 @@ export default (playerSocket: PlayerSocket) => {
         lobbies.push(lobby);
 
         console.log('Created lobby with id:', lobbyId);
-        return callback({ success: true, game: createSendingLobby(lobby), message: 'Created lobby' }); 
+        return callback({ success: true, game: createSendingLobby(lobby), message: 'Created lobby' });
     }
 
     const joinLobby = (
@@ -66,7 +66,7 @@ export default (playerSocket: PlayerSocket) => {
     ) => {
         if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
-        
+
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
@@ -83,7 +83,7 @@ export default (playerSocket: PlayerSocket) => {
 
     const leaveLobby = (
         data: any,
-        callback: Function 
+        callback: Function
     ) => {
         if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
@@ -118,9 +118,9 @@ export default (playerSocket: PlayerSocket) => {
 
         if (typeof data.index !== 'number') return callback({ success: false, message: 'No prompt given' });
         if (data.index < 0 || data.index >= prompts.length) return callback({ success: false, message: 'Invalid prompt' });
-        
+
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
-        
+
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
@@ -145,7 +145,7 @@ export default (playerSocket: PlayerSocket) => {
 
         if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
         lobby.prompts.push(getRandomPrompt());
-        
+
         updateLobby(lobby);
         return callback({ success: true, message: 'Added prompt' });
     }
@@ -176,12 +176,12 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Changed prompt' });
     }
 
-    createListener(playerSocket, 'geobingo', 
+    createListener(playerSocket, 'geobingo',
         [
-            createLobby, 
+            createLobby,
             joinLobby,
-            leaveLobby, 
-            removePrompt, 
+            leaveLobby,
+            removePrompt,
             addPrompt,
             changePrompt
         ]
@@ -194,9 +194,9 @@ export const removeLobby = (lobby: Lobby) => {
 }
 
 /**
-     * Sending an lobby update to all players in the lobby
-     * @param lobby
-     */
+ * Sending an lobby update to all players in the lobby
+ * @param lobby
+ */
 export const updateLobby = (lobby: Lobby) => {
     console.log('Sending update to all players in lobby with id ' + lobby.id);
     lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', { game: createSendingLobby(lobby) }));
@@ -207,7 +207,7 @@ export const updateLobby = (lobby: Lobby) => {
  * @returns a lobby object without the playerSocket objects 
  */
 const createSendingLobby = (lobby: Lobby) => {
-    return { 
+    return {
         ...lobby,
         players: lobby.players.map(playerSocket => playerSocket.player),
         host: lobby.host.player
