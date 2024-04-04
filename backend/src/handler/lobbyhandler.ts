@@ -70,7 +70,7 @@ export default (playerSocket: PlayerSocket) => {
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
-        if (lobby.players.some(player => player.id === playerSocket.player?.id)) return callback({ success: false, message: 'Already in lobby' });
+        if (lobby.players.some(lobbyPlayer => lobbyPlayer.player?.id === playerSocket.player?.id)) return callback({ success: false, message: 'Already in lobby' });
 
         lobby.players.push(playerSocket);
         updateLobby(lobby);
@@ -99,6 +99,7 @@ export default (playerSocket: PlayerSocket) => {
         } else {
             let randomPlayer = lobby.players.find(player => player.id !== playerSocket.player?.id);
             lobby.host = randomPlayer || lobby.players[0];
+            console.log('Lobbys host is now ' + lobby.host.player?.name);
 
             console.log('Updating lobby with id ' + lobby.id);
             updateLobby(lobby);
