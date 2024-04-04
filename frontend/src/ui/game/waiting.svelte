@@ -1,13 +1,19 @@
-<script>
+<script lang="ts">
     import Button from "$lib/components/ui/button/button.svelte";
     import { getGeoBingo } from "../../lib/geobingo";
 
     let geoBingo = getGeoBingo();
 
     const leaveGame = () => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
         if (!geoBingo.player) throw new Error("Player is not defined");
         geoBingo.player.leave();
     };
+
+    const removePrompt = (index: number) => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
+        geoBingo.game.removePrompt(index);
+    }
 </script>
 
 <div class="p-5 space-y-[2%] overflow-hidden h-screen">
@@ -15,7 +21,7 @@
         {" < "}Leave game
     </Button>
 
-    <div class="flex justify-between space-x-[1%] h-[calc(100vh-10rem)]">
+    <div class="flex justify-between space-x-[1%] h-[calc(100vh-12.5rem)]">
         <div class="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
             <h1 class="text-white font-bold text-3xl pb-4">Prompts</h1>
 
@@ -31,6 +37,7 @@
 
                         <Button
                             class="bg-red-500 hover:bg-red-500 hover:opacity-80"
+                            on:click={() => removePrompt(index)}
                         >
                             <svg
                                 width="24px"
@@ -46,29 +53,16 @@
                         </Button>
                     </div>
                 {/each}
-
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
-                <p>test</p>
             </div>
         </div>
 
         <div class="flex-1 bg-[#151951] rounded-[20px]">Container 2</div>
         <div class="flex-1 bg-[#151951] rounded-[20px]">Container 2</div>
+    </div>
+
+    <div class="flex justify-center pb-5">
+        <Button class="bg-[#018ad3]">
+            Test
+        </Button>
     </div>
 </div>

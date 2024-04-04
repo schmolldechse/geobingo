@@ -3,6 +3,7 @@ import { Player } from "./player";
 import socket from "../server/socket"; 
 
 const gameEvents = [
+    'geobingo:lobbyUpdate',
     'game:changePlayerSize',
     'game:changeTime',
     'game:kickPlayer',
@@ -18,6 +19,8 @@ interface GameProps {
     privateLobby: boolean;
     phase: 'waiting' | 'playing' | 'score';
     prompts: string[];
+    maxSize: number;
+    time: number;
 }
 
 export class Game extends WritableClass implements GameProps {
@@ -27,13 +30,29 @@ export class Game extends WritableClass implements GameProps {
     privateLobby!: boolean;
     phase!: 'waiting' | 'playing' | 'score';
     prompts!: string[];
+    maxSize!: number;
+    time!: number;
 
     constructor(props: GameProps) {
         super();
         Object.assign(this, props);
+
+        socket.on('geoBingo:lobbyUpdate', (data: any) => {
+            console.log('Lobby update:', data);
+        });
+    }
+
+    removePrompt(index: number) {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:removePrompt', { index: index }, (response: any) => {
+            console.log('Response:', response);
+        });
     }
 
     stopSocket() {
-        gameEvents.forEach(event => socket.off(event));
+        gameEvents.forEach(event => {
+            socket.off(event);
+            console.log('removing:', event);
+        });
     }
 }

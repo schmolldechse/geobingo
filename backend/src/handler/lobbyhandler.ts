@@ -22,11 +22,13 @@ function getRandomPrompt() {
 
 type Lobby = {
     id: string;
-    players: Player[];
-    host: Player;
+    players: PlayerSocket[];
+    host: PlayerSocket;
     privateLobby: boolean;
     phase: 'waiting' | 'playing' | 'score';
     prompts: string[];
+    maxSize: number;
+    time: number;
 }
 
 let lobbies: Lobby[] = []; 
@@ -44,16 +46,18 @@ export default (playerSocket: PlayerSocket) => {
 
         let lobby: Lobby = {
             id: lobbyId,
-            players: [playerSocket.player],
-            host: playerSocket.player,
+            players: [playerSocket],
+            host: playerSocket,
             privateLobby: data.privateLobby,
             phase: 'waiting',
-            prompts: new Array(8).fill(null).map(() => getRandomPrompt())
+            prompts: new Array(8).fill(null).map(() => getRandomPrompt()),
+            maxSize: 10,
+            time: 10
         }
         lobbies.push(lobby);
 
         console.log('Created lobby with id:', lobbyId);
-        return callback({ success: true, game: lobby }); 
+        return callback({ success: true, game: createSendingLobby(lobby), message: 'Created lobby' }); 
     }
 
     const joinLobby = (
@@ -66,28 +70,63 @@ export default (playerSocket: PlayerSocket) => {
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
-        return callback({ success: true, message: 'Joining lobby' });
+        if (lobby.players.some(player => player.id === playerSocket.player?.id)) return callback({ success: false, message: 'Already in lobby' });
+
+        lobby.players.push(playerSocket);
+        updateLobby(lobby);
+
+        
+        return callback({ success: true, game: createSendingLobby(lobby), message: 'Joining lobby' });
     }
 
     const leaveLobby = (
         data: any,
         callback: Function 
     ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
 
-        const lobby = lobbies.find(lobby => lobby.players.some(player => player.id === playerSocket.player?.id));
+        const lobby = lobbies.find(lobby => lobby.players.some(lobbyPlayer => { // lobbyPlayer is a PlayerSocket
+            return lobbyPlayer.player?.id === playerSocket.player?.id;
+        }));
         if (!lobby) return callback({ success: false, message: 'Not in a lobby' });
 
-        // update for each player in the lobby
-
-        lobby.players = lobby.players.filter(player => player.id !== playerSocket.player?.id);
+        lobby.players = lobby.players.filter(lobbyPlayer => { // lobbyPlayer is a PlayerSocket
+            return lobbyPlayer.player?.id !== playerSocket.player?.id;
+        });
         if (lobby.players.length === 0) {
             console.log('Deleteting lobby with id ' + lobby.id + ' because no players are left');
-            lobbies = lobbies.filter(l => l.id !== lobby.id);
+            lobbies = lobbies.filter(object => object.id !== lobby.id);
+        } else {
+            let randomPlayer = lobby.players.find(player => player.id !== playerSocket.player?.id);
+            lobby.host = randomPlayer || lobby.players[0];
+
+            console.log('Updating lobby with id ' + lobby.id);
+            updateLobby(lobby);
         }
 
         return callback({ success: true, message: 'Left lobby' });
     }
 
     createListener(playerSocket, 'geobingo', [createLobby, joinLobby, leaveLobby]);
+
+    /**
+     * Sending an lobby update to all players in the lobby
+     * @param lobby
+     */
+    const updateLobby = (lobby: Lobby) => {
+        lobby.players.forEach(player => player.emit('geoBingo:lobbyUpdate', createSendingLobby(lobby)));
+    }
+
+    /**
+     * @param lobby 
+     * @returns a lobby object without the playerSocket objects 
+     */
+    const createSendingLobby = (lobby: Lobby) => {
+        return { 
+            ...lobby,
+            players: lobby.players.map(playerSocket => playerSocket.player),
+            host: lobby.host.player
+        };
+    } 
 };

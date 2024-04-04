@@ -26,6 +26,10 @@ export class Player {
         if (!socket) throw new Error('Socket is not defined');
         socket.emit('geobingo:joinLobby', { lobbyCode: lobbyCode }, (response: any) => {
             console.log('Response:', response);
+            if (response.game) {
+                getGeoBingo().game = new Game(response.game);
+                getGeoBingo().refresh();
+            }
         });
     }
 
@@ -42,9 +46,9 @@ export class Player {
 
     leave() {
         if (!socket) throw new Error('Socket is not defined');
-        socket.emit('geobingo:leaveLobby', {}, (response: any) => {
+        socket.emit('geobingo:leaveLobby', { }, (response: any) => {
             console.log('Response:', response);
-            if (!response.success) // toast
+            if (!response.success) return; // toast
 
             getGeoBingo().game?.stopSocket();
             getGeoBingo().game = undefined;
