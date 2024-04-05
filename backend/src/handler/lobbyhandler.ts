@@ -156,7 +156,7 @@ export default (playerSocket: PlayerSocket) => {
     ) => {
         if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
 
-        if (typeof data.index !== 'number') return callback({ success: false, message: 'No prompt given' });
+        if (typeof data.index !== 'number') return callback({ success: false, message: 'No prompt index given' });
         if (data.index < 0 || data.index >= prompts.length) return callback({ success: false, message: 'Invalid prompt' });
 
         if (typeof data.prompt !== 'string') return callback({ success: false, message: 'No prompt given' });
@@ -176,6 +176,37 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Changed prompt' });
     }
 
+    const editLobby = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!data.changing) return callback({ success: false, message: 'No changes given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (data.changing.maxSize) {
+            if (typeof data.changing.maxSize !== 'number') return callback({ success: false, message: 'Invalid parameter' });
+            if (data.changing.maxSize < 1 || data.changing.maxSize > 100) return callback({ success: false, message: 'Parameter is out of bounds' });
+            
+            lobby.maxSize = data.changing.maxSize;
+        }
+
+        if (data.changing.time) {
+            if (typeof data.changing.time !== 'number') return callback({ success: false, message: 'Invalid parameter' });
+            if (data.changing.time < 1 || data.changing.time > 60) return callback({ success: false, message: 'Parameter is out of bounds' });
+            
+            lobby.time = data.changing.time;
+        }
+
+        updateLobby(lobby);
+        return callback({ success: true, message: 'Updated lobby' });
+    }
+
     createListener(playerSocket, 'geobingo',
         [
             createLobby,
@@ -183,7 +214,8 @@ export default (playerSocket: PlayerSocket) => {
             leaveLobby,
             removePrompt,
             addPrompt,
-            changePrompt
+            changePrompt,
+            editLobby
         ]
     );
 };

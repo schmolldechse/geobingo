@@ -25,6 +25,9 @@
         if (prompt.length === 0) removePrompt(index);
         else geoBingo.game.changePrompt(index, prompt);
     };
+
+    let maxSize = $geoBingo.game?.maxSize;
+    let time = $geoBingo.game?.time;
 </script>
 
 <div class="p-5 space-y-[2%] overflow-hidden h-screen">
@@ -49,14 +52,18 @@
 
             <div class="flex flex-col space-y-5">
                 {#each $geoBingo.game.prompts as prompt, index (index)}
-                    <div class="flex items-center space-x-4 h-full">
+                    <div
+                        class="relative flex-grow flex items-center space-x-4 h-full"
+                    >
                         <input
                             type="text"
                             class="flex-grow bg-[#151951] border-2 rounded-[8px] border-[#018ad3] text-white px-4 h-10 disabled:cursor-not-allowed"
                             placeholder="Enter a prompt"
                             value={prompt}
-                            disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
-                            on:change={(event) => changePrompt(index, event.target.value)}
+                            disabled={$geoBingo.game.host.id !==
+                                $geoBingo.player.id}
+                            on:change={(event) =>
+                                changePrompt(index, event.target.value)}
                         />
 
                         {#if $geoBingo.game.host.id === $geoBingo.player.id}
@@ -84,6 +91,48 @@
 
         <div class="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
             <h1 class="text-white font-bold text-3xl pb-4">Settings</h1>
+
+            <div class="space-y-[-10px]">
+                <p class="text-white font-bold text-lg pb-4">Players</p>
+                <div class="relative flex space-x-3 items-center">
+                    <input
+                        type="range"
+                        max="100"
+                        min="1"
+                        bind:value={$geoBingo.game.maxSize}
+                        on:input={(e) => (maxSize = parseInt(e.target.value))}
+                        on:mouseup={(e) => {
+                            $geoBingo.game?.editLobby({
+                                maxSize: parseInt(e.target.value),
+                            });
+                        }}
+                        class="w-full"
+                    />
+
+                    <p class="text-white font-bold">{maxSize}</p>
+                </div>
+            </div>
+
+            <div class="space-y-[-10px] pt-4">
+                <p class="text-white font-bold text-lg pb-4">Time (min)</p>
+                <div class="relative flex space-x-3 items-center">
+                    <input
+                        type="range"
+                        max="60"
+                        min="1"
+                        bind:value={$geoBingo.game.time}
+                        on:input={(e) => (time = parseInt(e.target.value))}
+                        on:mouseup={(e) => {
+                            $geoBingo.game?.editLobby({
+                                time: parseInt(e.target.value),
+                            });
+                        }}
+                        class="w-full"
+                    />
+
+                    <p class="text-white font-bold">{time}</p>
+                </div>
+            </div>
         </div>
 
         <div class="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
@@ -100,6 +149,9 @@
     </div>
 
     <div class="flex justify-center pb-5">
-        <Button class="bg-[#018ad3]">Test</Button>
+        <Button
+            class="bg-green-600 text-black font-bold text-lg hover:bg-green-600 hover:opacity-80"
+            >Start game</Button
+        >
     </div>
 </div>

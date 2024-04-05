@@ -67,6 +67,17 @@ export class Game extends WritableClass implements GameProps {
         });
     }
 
+    /**
+     * changing is a json object with the properties to change
+     * @param changing 
+     */
+    editLobby(changing: any) {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:editLobby', { lobbyCode: this.id, changing: changing }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
     stopSocket() {
         gameEvents.forEach(event => socket.off(event));
     }

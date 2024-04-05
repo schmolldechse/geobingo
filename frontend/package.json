@@ -28,7 +28,6 @@
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
     "@supabase/supabase-js": "^2.41.1",
-    "bits-ui": "^0.21.1",
     "clsx": "^2.1.0",
     "dotenv": "^16.4.5",
     "socket.io-client": "^4.7.5",
