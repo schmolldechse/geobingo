@@ -189,22 +189,71 @@ export default (playerSocket: PlayerSocket) => {
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
+        if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
+
         if (data.changing.maxSize) {
             if (typeof data.changing.maxSize !== 'number') return callback({ success: false, message: 'Invalid parameter' });
             if (data.changing.maxSize < 1 || data.changing.maxSize > 100) return callback({ success: false, message: 'Parameter is out of bounds' });
-            
+
             lobby.maxSize = data.changing.maxSize;
         }
 
         if (data.changing.time) {
             if (typeof data.changing.time !== 'number') return callback({ success: false, message: 'Invalid parameter' });
             if (data.changing.time < 1 || data.changing.time > 60) return callback({ success: false, message: 'Parameter is out of bounds' });
-            
+
             lobby.time = data.changing.time;
         }
 
         updateLobby(lobby);
         return callback({ success: true, message: 'Updated lobby' });
+    }
+
+    const kickPlayer = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
+        const player = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id === data.playerId);
+        if (!player) return callback({ success: false, message: 'Player not in lobby' });
+
+        player.emit('geobingo:message', { message: 'You were kicked' });
+
+        lobby.players = lobby.players.filter(lobbyPlayer => lobbyPlayer.player?.id !== data.playerId);
+        updateLobby(lobby);
+
+        return callback({ success: true, message: 'Kicked player' });
+    }
+
+    const makeHost = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
+        const newHost = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id === data.playerId);
+        if (!newHost) return callback({ success: false, message: 'Player not in lobby' });
+
+        newHost.emit('geobingo:message', { message: 'You are the new host now' });
+
+        lobby.host = newHost;
+        updateLobby(lobby);
+
+        console.log('Lobbys host is now ' + lobby.host.player?.name);
+        return callback({ success: true, message: 'Changed host role' })
     }
 
     createListener(playerSocket, 'geobingo',
@@ -215,7 +264,9 @@ export default (playerSocket: PlayerSocket) => {
             removePrompt,
             addPrompt,
             changePrompt,
-            editLobby
+            editLobby,
+            kickPlayer,
+            makeHost
         ]
     );
 };

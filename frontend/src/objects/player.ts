@@ -6,6 +6,7 @@ interface PlayerProps {
     name: string;
     id: string;
     picture: string;
+    points?: number;
     auth: any;
 }
 
@@ -13,6 +14,7 @@ export class Player {
     name: string;
     id: string;
     picture: string;
+    points?: number;
     auth: any;
 
     constructor({ name, id, picture, auth }: PlayerProps) {
@@ -20,6 +22,10 @@ export class Player {
         this.id = id;
         this.picture = picture;
         this.auth = auth;
+
+        socket.on('geobingo:message', (response: any) => {
+            console.log('Message:', response.message);
+        });
     }
 
     join(lobbyCode: string) {

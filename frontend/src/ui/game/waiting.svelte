@@ -26,11 +26,23 @@
         else geoBingo.game.changePrompt(index, prompt);
     };
 
+    const kickPlayer = (playerId: string) => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
+        geoBingo.game.kickPlayer(playerId);
+    };
+
+    const makeHost = (playerId: string) => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
+        geoBingo.game.makeHost(playerId);
+    };
+
     let maxSize = $geoBingo.game?.maxSize;
     let time = $geoBingo.game?.time;
+
+    let hoveringPlayer = null;
 </script>
 
-<div class="p-5 space-y-[2%] overflow-hidden h-screen">
+<div class="p-5 space-y-[2%] overflow-hidden h-screen mx-4">
     <Button class="bg-[#018ad3]" on:click={() => leaveGame()}>
         {" < "}Leave game
     </Button>
@@ -50,7 +62,7 @@
                 {/if}
             </div>
 
-            <div class="flex flex-col space-y-5">
+            <div class="flex flex-col space-y-5 mt-2">
                 {#each $geoBingo.game.prompts as prompt, index (index)}
                     <div
                         class="relative flex-grow flex items-center space-x-4 h-full"
@@ -109,7 +121,7 @@
                         class="w-full"
                     />
 
-                    <p class="text-white font-bold">{maxSize}</p>
+                    <p class="text-white font-bold">{$geoBingo.game.maxSize}</p>
                 </div>
             </div>
 
@@ -130,7 +142,7 @@
                         class="w-full"
                     />
 
-                    <p class="text-white font-bold">{time}</p>
+                    <p class="text-white font-bold">{$geoBingo.game.time}</p>
                 </div>
             </div>
         </div>
@@ -139,9 +151,87 @@
             <h1 class="text-white font-bold text-3xl pb-4">Players</h1>
 
             <div class="flex flex-col space-y-5">
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 {#each $geoBingo.game.players as player}
-                    <div class="flex items-center space-x-4 h-full">
-                        <p>{player.name}</p>
+                    <div
+                        class="flex items-center space-x-4 h-full"
+                        on:mouseover={() => (hoveringPlayer = player.id)}
+                        on:mouseleave={() => (hoveringPlayer = null)}
+                    >
+                        {#if player.picture.length > 0}
+                            <!-- svelte-ignore a11y-img-redundant-alt -->
+                            <img
+                                src={player.picture}
+                                class="w-[50px] h-[50px] rounded-full"
+                                alt="player picture"
+                            />
+                        {:else if player.picture.length === 0}
+                            <svg height="50px" width="50px">
+                                <circle cx="25" cy="17.81" r="6.58" />
+                                <path
+                                    d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
+                                />
+                            </svg>
+                        {/if}
+
+                        <p class="text-white font-bold text-base">
+                            {player.name}
+                        </p>
+
+                        {#if hoveringPlayer == player.id && $geoBingo.game.host.id === $geoBingo.player.id && player.id !== $geoBingo.player.id && player.id !== $geoBingo.game?.host.id}
+                            <div class="ml-auto flex items-center">
+                                <Button
+                                    class="bg-transparent hover:opacity-80"
+                                    onclick={() => kickPlayer(player.id)}
+                                >
+                                    <svg
+                                        width="30"
+                                        height="300"
+                                        viewBox="0 0 36 36"
+                                        fill="darkred"
+                                    >
+                                        <path
+                                            class="clr-i-outline clr-i-outline-path-1"
+                                            d="m19.61 18 4.86-4.86a1 1 0 0 0-1.41-1.41l-4.86 4.81-4.89-4.89a1 1 0 0 0-1.41 1.41L16.78 18 12 22.72a1 1 0 1 0 1.41 1.41l4.77-4.77 4.74 4.74a1 1 0 0 0 1.41-1.41Z"
+                                        />
+                                        <path
+                                            class="clr-i-outline clr-i-outline-path-2"
+                                            d="M18 34a16 16 0 1 1 16-16 16 16 0 0 1-16 16m0-30a14 14 0 1 0 14 14A14 14 0 0 0 18 4"
+                                        />
+                                        <path fill="none" d="M0 0h36v36H0z" />
+                                    </svg>
+                                </Button>
+
+                                <Button
+                                    class="bg-transparent hover:opacity-80"
+                                    onclick={() => makeHost(player.id)}
+                                >
+                                    <svg
+                                        width="30"
+                                        height="30"
+                                        viewBox="-2 -4 24 24"
+                                        preserveAspectRatio="xMinYMin"
+                                        class="jam jam-crown"
+                                        fill="orange"
+                                    >
+                                        <path
+                                            d="M2.776 5.106 3.648 11h12.736l.867-5.98-3.493 3.02-3.755-4.827-3.909 4.811zm10.038-1.537-.078.067.141.014 1.167 1.499 1.437-1.242.14.014-.062-.082 2.413-2.086a1 1 0 0 1 1.643.9L18.115 13H1.922L.399 2.7a1 1 0 0 1 1.65-.898L4.35 3.827l-.05.06.109-.008 1.444 1.27 1.212-1.493.109-.009-.06-.052L9.245.976a1 1 0 0 1 1.565.017zM2 14h16v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"
+                                        />
+                                    </svg>
+                                </Button>
+                            </div>
+                        {/if}
+
+                        {#if player.points ?? 0 > 0}
+                            <div
+                                class="ml-auto bg-gray-600 p-1 rounded-full px-3"
+                            >
+                                <p class="text-white font-bold">
+                                    {player.points}
+                                </p>
+                            </div>
+                        {/if}
                     </div>
                 {/each}
             </div>

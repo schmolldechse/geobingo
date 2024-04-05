@@ -105,9 +105,9 @@
                 {/if}
             </div>
 
-            <Separator class="bg-gray-600 h-[2px] rounded-[5px]" />
+            <Separator class="bg-gray-600 w-[75%] h-[2px] self-center rounded-[5px]" />
 
-            <div class="grid gap-2">
+            <div class="grid gap-2 w-[75%] self-center">
                 <p class="font-base font-medium">Enter a lobby code</p>
                 <input 
                     class="w-full rounded-lg h-10 p-3 text-black" 
@@ -121,7 +121,7 @@
                 </button>
             </div>
 
-            <div class="flex flex-col justify-center space-y-1">
+            <div class="flex flex-col justify-center space-y-1 w-[75%] self-center">
                 <p class="font-base font-medium">or create a lobby</p>
                 <button
                     class="w-full bg-[#41BBF5] rounded-lg h-10 text-black text-lg font-medium hover:opacity-90 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#18465C] hover:bg-[#41BBF5]"

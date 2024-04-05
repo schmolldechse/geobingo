@@ -10,9 +10,9 @@
     };
 </script>
 
-<div class="mx-4 flex flex-row space-x-8">
+<div class="mx-4 flex flex-col space-y-2 items-center">
     <Button
-        class="bg-[#653DA2] w-full rounded-[10px] p-3 py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#522891] hover:bg-[#653DA2]"
+        class="bg-[#653DA2] w-[75%] rounded-[10px] py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#522891] hover:bg-[#653DA2]"
         on:click={() => handleSignIn("twitch")}
     >
         <svg width="30px" height="30px" viewBox="0 0 16 16" fill="none">
@@ -24,11 +24,11 @@
             </g>
         </svg>
 
-        <p class="text-black text-lg">Continue with Twitch</p>
+        <p class="text-black text-base">Continue with Twitch</p>
     </Button>
 
     <Button
-        class="bg-white w-full rounded-[10px] p-3 py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-blue-400 hover:bg-white"
+        class="bg-white w-[75%] rounded-[10px] p-3 py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-blue-400 hover:bg-white"
         on:click={() => handleSignIn("google")}
     >
         <svg
@@ -51,6 +51,6 @@
             /></svg
         >
 
-        <p class="text-black text-lg">Continue with Google</p>
+        <p class="text-black text-base">Continue with Google</p>
     </Button>
 </div>
