@@ -224,7 +224,7 @@ export default (playerSocket: PlayerSocket) => {
         const player = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id === data.playerId);
         if (!player) return callback({ success: false, message: 'Player not in lobby' });
 
-        player.emit('geobingo:message', { message: 'You were kicked' });
+        player.emit('geobingo:important', { kicked: true, message: 'You were kicked' });
 
         lobby.players = lobby.players.filter(lobbyPlayer => lobbyPlayer.player?.id !== data.playerId);
         updateLobby(lobby);
@@ -247,7 +247,7 @@ export default (playerSocket: PlayerSocket) => {
         const newHost = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id === data.playerId);
         if (!newHost) return callback({ success: false, message: 'Player not in lobby' });
 
-        newHost.emit('geobingo:message', { message: 'You are the new host now' });
+        newHost.emit('geobingo:important', { message: 'You are the new host now' });
 
         lobby.host = newHost;
         updateLobby(lobby);

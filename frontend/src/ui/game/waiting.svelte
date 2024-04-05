@@ -28,11 +28,13 @@
 
     const kickPlayer = (playerId: string) => {
         if (!geoBingo.game) throw new Error("Game is not defined");
+        console.log('test kickPlayer');
         geoBingo.game.kickPlayer(playerId);
     };
 
     const makeHost = (playerId: string) => {
         if (!geoBingo.game) throw new Error("Game is not defined");
+        console.log('test makeHost');
         geoBingo.game.makeHost(playerId);
     };
 
@@ -183,7 +185,7 @@
                             <div class="ml-auto flex items-center">
                                 <Button
                                     class="bg-transparent hover:opacity-80"
-                                    onclick={() => kickPlayer(player.id)}
+                                    on:click={() => kickPlayer(player.id)}
                                 >
                                     <svg
                                         width="30"
@@ -205,7 +207,7 @@
 
                                 <Button
                                     class="bg-transparent hover:opacity-80"
-                                    onclick={() => makeHost(player.id)}
+                                    on:click={() => makeHost(player.id)}
                                 >
                                     <svg
                                         width="30"

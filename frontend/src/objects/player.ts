@@ -22,10 +22,6 @@ export class Player {
         this.id = id;
         this.picture = picture;
         this.auth = auth;
-
-        socket.on('geobingo:message', (response: any) => {
-            console.log('Message:', response.message);
-        });
     }
 
     join(lobbyCode: string) {
@@ -58,6 +54,18 @@ export class Player {
 
             getGeoBingo().endGame();
             getGeoBingo().refresh();
+        });
+    }
+
+    initMessageListener() {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.on('geobingo:important', (response: any) => {
+            if (response.kicked) {
+                getGeoBingo().endGame();
+                getGeoBingo().refresh();
+            }
+            
+            console.log('Message:', response.message);
         });
     }
 }

@@ -36,6 +36,7 @@
 
     socket.on("connect", () => {
         console.log("Connecting to server");
+        geoBingo.player?.initMessageListener();
     });
 
     socket.on("error", (error) => {
