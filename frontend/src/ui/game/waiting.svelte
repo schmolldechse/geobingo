@@ -74,8 +74,7 @@
                             class="flex-grow bg-[#151951] border-2 rounded-[8px] border-[#018ad3] text-white px-4 h-10 disabled:cursor-not-allowed"
                             placeholder="Enter a prompt"
                             value={prompt}
-                            disabled={$geoBingo.game.host.id !==
-                                $geoBingo.player.id}
+                            disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
                             on:change={(event) =>
                                 changePrompt(index, event.target.value)}
                         />
@@ -121,7 +120,7 @@
                             });
                         }}
                         disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
-                        class="w-full"
+                        class="w-full disabled:cursor-not-allowed"
                     />
 
                     <p class="text-white font-bold">{$geoBingo.game.maxSize}</p>
@@ -143,7 +142,7 @@
                             });
                         }}
                         disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
-                        class="w-full"
+                        class="w-full disabled:cursor-not-allowed"
                     />
 
                     <p class="text-white font-bold">{$geoBingo.game.time}</p>
