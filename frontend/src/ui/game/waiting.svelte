@@ -28,13 +28,11 @@
 
     const kickPlayer = (playerId: string) => {
         if (!geoBingo.game) throw new Error("Game is not defined");
-        console.log('test kickPlayer');
         geoBingo.game.kickPlayer(playerId);
     };
 
     const makeHost = (playerId: string) => {
         if (!geoBingo.game) throw new Error("Game is not defined");
-        console.log('test makeHost');
         geoBingo.game.makeHost(playerId);
     };
 

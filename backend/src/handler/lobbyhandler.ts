@@ -101,9 +101,8 @@ export default (playerSocket: PlayerSocket) => {
         } else {
             let randomPlayer = lobby.players.find(player => player.id !== playerSocket.player?.id);
             lobby.host = randomPlayer || lobby.players[0];
-            console.log('Lobbys host is now ' + lobby.host.player?.name);
+            console.log('New host of lobby ' + lobby.id + ' is now ' + lobby.host.player?.name);
 
-            console.log('Updating lobby with id ' + lobby.id);
             updateLobby(lobby);
         }
 
@@ -281,7 +280,7 @@ export const removeLobby = (lobby: Lobby) => {
  * @param lobby
  */
 export const updateLobby = (lobby: Lobby) => {
-    console.log('Sending update to all players in lobby with id ' + lobby.id);
+    console.log('Sending update in lobby with id ' + lobby.id);
     lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', { game: createSendingLobby(lobby) }));
 }
 
