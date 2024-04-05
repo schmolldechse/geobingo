@@ -43,8 +43,20 @@
         console.error("error while connecting to backend:", error);
     });
 
-    socket.on('disconnect', (response: any) => {
-        console.log('Disconnected from server', response);
+    socket.on("disconnect", (response: any) => {
+        console.log("Disconnected from server", response);
+    });
+
+    /**
+     * Joining lobby by url parameter
+     * example: http://DOMAIN/?lobbyCode=0VkI46
+    */
+    onMount(() => {
+        let urlParameter = new URLSearchParams(window.location.search);
+        let lobbyCode = urlParameter.get("lobbyCode");
+
+        if (!lobbyCode) return;
+        geoBingo.player?.join(lobbyCode);
     });
 </script>
 
