@@ -120,6 +120,7 @@
                                 maxSize: parseInt(e.target.value),
                             });
                         }}
+                        disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
                         class="w-full"
                     />
 
@@ -141,6 +142,7 @@
                                 time: parseInt(e.target.value),
                             });
                         }}
+                        disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
                         class="w-full"
                     />
 
