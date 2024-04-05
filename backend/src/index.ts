@@ -37,7 +37,7 @@ const onConnection = (playerSocket: PlayerSocket) => {
             removeLobby(lobby);
             return;
         } else {
-            let randomPlayer = lobby.players.find(player => player.id !== playerSocket.player?.id);
+            let randomPlayer = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id !== playerSocket.player?.id);
             lobby.host = randomPlayer || lobby.players[0];
             console.log('New host of lobby ' + lobby.id + ' is now ' + lobby.host.player?.name);
         }
