@@ -70,7 +70,7 @@ export default function Waiting() {
                         </div>
 
                         <div className="flex flex-col space-y-5 mt-2">
-                            {context.geoBingo.game.prompts.forEach((prompt, index) => (
+                            {context.geoBingo.game?.prompts.map((prompt, index) => (
                                 <div key={index}
                                     className="relative flex-grow flex items-center space-x-4 h-full"
                                 >
@@ -100,7 +100,7 @@ export default function Waiting() {
                                                 />
                                             </svg>
                                         </Button>
-                                    ) && null}
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -190,28 +190,28 @@ export default function Waiting() {
                         <h1 className="text-white font-bold text-3xl pb-4">Players</h1>
 
                         <div className="flex flex-col space-y-5">
-                            {context.geoBingo.game.players.forEach((player, index) => (
+                            {context.geoBingo.game.players.map((player, index) => (
                                 <div key={index}
                                     className="flex items-center space-x-4 h-full"
                                     onMouseOver={() => (hoveringPlayer = player.id)}
                                     onMouseLeave={() => (hoveringPlayer = null)}
                                 >
-                                    {player.picture.length > 0 && (
+                                    {player.picture.length > 0 ? (
                                         <img
                                             src={player.picture}
                                             className="w-[50px] h-[50px] rounded-full"
                                             alt="player picture"
                                         />
-                                    ) && (
-                                            <svg height="50px" width="50px">
-                                                <circle cx="25" cy="17.81" r="6.58" />
-                                                <path
-                                                    d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
-                                                />
-                                            </svg>
-                                        )}
+                                    ) : (
+                                        <svg height="50px" width="50px">
+                                            <circle cx="25" cy="17.81" r="6.58" />
+                                            <path
+                                                d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
+                                            />
+                                        </svg>
+                                    )}
 
-                                    < p className="text-white font-bold text-base">
+                                    <p className="text-white font-bold text-base">
                                         {player.name}
                                     </p>
 
@@ -259,7 +259,7 @@ export default function Waiting() {
                                         </div>
                                     )}
 
-                                    {player.points && player.points > 0 && (
+                                    {Number(player.points) > 0 && (
                                         <div
                                             className="ml-auto bg-gray-600 p-1 rounded-full px-3"
                                         >

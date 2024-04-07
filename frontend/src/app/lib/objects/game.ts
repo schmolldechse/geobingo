@@ -32,11 +32,6 @@ export class Game implements GameProps {
 
     constructor(props: GameProps) {
         Object.assign(this, props);
-
-        socket.on('geobingo:lobbyUpdate', (response: any) => {
-            const gameProps = JSON.parse(JSON.stringify(response.game));
-            Object.assign(this, gameProps);
-        });
     }
 
     removePrompt(index: number) {

@@ -76,6 +76,11 @@ export default function GeoBingo() {
         console.log("Disconnected from server", response);
     });
 
+    socket.on('geobingo:lobbyUpdate', (response: any) => {
+        const gameProps = JSON.parse(JSON.stringify(response.game));
+        context.geoBingo.setGame(gameProps);
+    });
+
     return (
         <>
             {context.geoBingo.game === undefined && (<Landing />)}
