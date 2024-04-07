@@ -5,11 +5,6 @@ import { getGeoBingo } from "$lib/geobingo";
 
 const gameEvents = [
     'geobingo:lobbyUpdate',
-    'game:changePlayerSize',
-    'game:changeTime',
-    'game:kickPlayer',
-    'game:makeHost',
-    'game:leaveGame'
     // weitere
 ]
 
@@ -22,6 +17,8 @@ interface GameProps {
     prompts: string[];
     maxSize: number;
     time: number;
+    startingAt?: Date;
+    endingAt?: Date;
 }
 
 export class Game extends WritableClass implements GameProps {
@@ -33,6 +30,8 @@ export class Game extends WritableClass implements GameProps {
     prompts!: string[];
     maxSize!: number;
     time!: number;
+    startingAt?: Date;
+    endingAt?: Date;
 
     constructor(props: GameProps) {
         super();
@@ -78,6 +77,16 @@ export class Game extends WritableClass implements GameProps {
         if (!socket) throw new Error('Socket is not defined');
         socket.emit('geobingo:makeHost', { lobbyCode: this.id, playerId: id }, (response: any) => {
             console.log('Response:', response);
+        });
+    }
+
+    startGame() {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:startGame', { lobbyCode: this.id }, (response: any) => {
+            console.log('Response:', response);
+            if (!response.succes) return; // TODO: toast
+
+
         });
     }
 

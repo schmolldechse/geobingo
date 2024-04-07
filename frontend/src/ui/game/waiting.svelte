@@ -36,6 +36,11 @@
         geoBingo.game.makeHost(playerId);
     };
 
+    const startGame = () => {
+        if (!geoBingo.game) throw new Error("Game is not defined");
+        geoBingo.game.startGame();
+    };
+
     let maxSize = $geoBingo.game?.maxSize;
     let time = $geoBingo.game?.time;
 
@@ -52,7 +57,7 @@
             <div class="flex flex-row">
                 <h1 class="text-white font-bold text-3xl pb-4">Prompts</h1>
 
-                {#if $geoBingo.game.host.id === $geoBingo.player.id}
+                {#if $geoBingo.game?.host.id === $geoBingo.player.id}
                     <Button
                         class="ml-auto bg-[#FFA500] hover:bg-[#FFA500] hover:opacity-80"
                         on:click={() => addPrompt()}
@@ -72,7 +77,8 @@
                             class="flex-grow bg-[#151951] border-2 rounded-[8px] border-[#018ad3] text-white px-4 h-10 disabled:cursor-not-allowed"
                             placeholder="Enter a prompt"
                             value={prompt}
-                            disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
+                            disabled={$geoBingo.game.host.id !==
+                                $geoBingo.player.id}
                             on:change={(event) =>
                                 changePrompt(index, event.target.value)}
                         />
@@ -117,7 +123,8 @@
                                 maxSize: parseInt(e.target.value),
                             });
                         }}
-                        disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
+                        disabled={$geoBingo.game.host.id !==
+                            $geoBingo.player.id}
                         class="w-full disabled:cursor-not-allowed"
                     />
 
@@ -139,11 +146,44 @@
                                 time: parseInt(e.target.value),
                             });
                         }}
-                        disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
+                        disabled={$geoBingo.game.host.id !==
+                            $geoBingo.player.id}
                         class="w-full disabled:cursor-not-allowed"
                     />
 
                     <p class="text-white font-bold">{$geoBingo.game.time}</p>
+                </div>
+            </div>
+
+            <div class="pt-4 space-y-2">
+                <p class="text-white font-bold text-lg">Share your lobby code</p>
+                
+                <div class="flex items-center space-x-4">
+                    <input
+                        disabled={true}
+                        value={"https://" +
+                            window.location.hostname +
+                            "/?lobbyCode=" +
+                            geoBingo.game?.id}
+                        class="w-full rounded-lg p-2 text-white font-bold outline outline-2 outline-red-500"
+                    />
+                <Button>
+                    <svg
+                        width="30px"
+                        height="30px"
+                        viewBox="0 0 24 24"
+                        fill="darkgray"
+                    >
+                        <path
+                            d="M5.962 2.513a.75.75 0 01-.475.949l-.816.272a.25.25 0 00-.171.237V21.25c0 .138.112.25.25.25h14.5a.25.25 0 00.25-.25V3.97a.25.25 0 00-.17-.236l-.817-.272a.75.75 0 01.474-1.424l.816.273A1.75 1.75 0 0121 3.97v17.28A1.75 1.75 0 0119.25 23H4.75A1.75 1.75 0 013 21.25V3.97a1.75 1.75 0 011.197-1.66l.816-.272a.75.75 0 01.949.475z"
+                        >
+                        </path>
+                        <path
+                            d="M7 1.75C7 .784 7.784 0 8.75 0h6.5C16.216 0 17 .784 17 1.75v1.5A1.75 1.75 0 0115.25 5h-6.5A1.75 1.75 0 017 3.25v-1.5zm1.75-.25a.25.25 0 00-.25.25v1.5c0 .138.112.25.25.25h6.5a.25.25 0 00.25-.25v-1.5a.25.25 0 00-.25-.25h-6.5z"
+                        >
+                        </path>
+                    </svg>
+                </Button>
                 </div>
             </div>
         </div>
@@ -242,7 +282,10 @@
     <div class="flex justify-center pb-5">
         <Button
             class="bg-green-600 text-black font-bold text-lg hover:bg-green-600 hover:opacity-80"
-            >Start game</Button
+            on:click={() => startGame()}
+            disabled={$geoBingo.game.host.id !== $geoBingo.player.id}
         >
+            Start game
+        </Button>
     </div>
 </div>

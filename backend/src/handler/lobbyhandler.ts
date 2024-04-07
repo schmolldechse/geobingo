@@ -1,6 +1,7 @@
-import { Player } from "../objects/player";
 import { prompts } from "../objects/prompts";
 import { PlayerSocket, createListener } from "../socket/playersocket";
+import { format } from 'date-fns-tz';
+import { add } from 'date-fns';
 
 function generateLobbyId() {
     const length = 6;
@@ -29,6 +30,8 @@ type Lobby = {
     prompts: string[];
     maxSize: number;
     time: number;
+    startingAt?: string;
+    endingAt?: string;
 }
 
 export let lobbies: Lobby[] = [];
@@ -255,6 +258,33 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Changed host role' })
     }
 
+    const startGame = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
+
+        if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
+
+        let startingAt = new Date();
+        startingAt.setSeconds(startingAt.getSeconds() + 15); // +15s for preparation
+
+        lobby.startingAt = format(startingAt, 'yyyy-MM-dd HH:mm:ss', { timeZone: 'Europe/Berlin' });
+        lobby.endingAt = format(add(startingAt, { minutes: lobby.time }), 'yyy-MM-dd HH:mm:ss', { timeZone: 'Europe/Berlin' });
+
+        lobby.phase = 'playing';
+        updateLobby(lobby);
+
+        return callback({ success: true, message: 'Started game' });
+    }
+
     createListener(playerSocket, 'geobingo',
         [
             createLobby,
@@ -265,7 +295,8 @@ export default (playerSocket: PlayerSocket) => {
             changePrompt,
             editLobby,
             kickPlayer,
-            makeHost
+            makeHost,
+            startGame
         ]
     );
 };

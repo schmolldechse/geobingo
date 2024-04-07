@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.0.0",
     "node-schedule": "^2.1.1",
     "socket.io": "^4.7.5"
   },
