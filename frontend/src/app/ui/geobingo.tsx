@@ -1,30 +1,10 @@
 import { useContext, useEffect } from "react"
 import { GeoBingoContext } from "../context/GeoBingoContext";
-import { faker } from "@faker-js/faker/locale/de";
 import socket from "../lib/server/socket";
 import { supabase } from "../lib/supabaseClient";
 import { Player } from "../lib/objects/player";
 import Landing from "./landing";
 import Waiting from "./ingame/waiting";
-
-const names = [
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve',
-    'Frank',
-    'Grace',
-    'Heidi',
-    'Ivan',
-    'Judy',
-    'Mallory',
-    'Oscar',
-    'Peggy',
-    'Trent',
-    'Walter',
-    'Zoe'
-];
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -39,6 +19,26 @@ export default function GeoBingo() {
 
     useEffect(() => {
         fetchUser();
+
+        socket.on("connect", () => {
+            console.log("Connecting to server");
+            context.geoBingo.player?.initMessageListener();
+        });
+    
+        socket.on("error", (error) => {
+            console.error("error while connecting to backend:", error);
+        });
+    
+        socket.on("disconnect", (response) => {
+            console.log("Disconnected from server", response);
+        });
+    
+        socket.on('geobingo:lobbyUpdate', (response: any) => {
+            console.log('Lobby update:', response);
+    
+            const gameProps = JSON.parse(JSON.stringify(response.game));
+            context.geoBingo.setGame(gameProps);
+        });
 
         let urlParameter = new URLSearchParams(window.location.search);
         let lobbyCode = urlParameter.get("lobbyCode");
@@ -59,26 +59,8 @@ export default function GeoBingo() {
                 );
             });
 
-            context.geoBingo.setPlayer(null);
+            context.geoBingo.setPlayer(new Player(null));
         }
-    });
-
-    socket.on("connect", () => {
-        console.log("Connecting to server");
-        context.geoBingo.player?.initMessageListener();
-    });
-
-    socket.on("error", (error) => {
-        console.error("error while connecting to backend:", error);
-    });
-
-    socket.on("disconnect", (response) => {
-        console.log("Disconnected from server", response);
-    });
-
-    socket.on('geobingo:lobbyUpdate', (response: any) => {
-        const gameProps = JSON.parse(JSON.stringify(response.game));
-        context.geoBingo.setGame(gameProps);
     });
 
     return (

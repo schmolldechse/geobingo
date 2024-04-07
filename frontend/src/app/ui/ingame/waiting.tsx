@@ -1,51 +1,80 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
+import { Player } from "@/app/lib/objects/player";
+import socket from "@/app/lib/server/socket";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 export default function Waiting() {
     const context = useContext(GeoBingoContext);
+    const [hoveringPlayer, setHoveringPlayer] = useState(null);
+    const [time, setTime] = useState(context.geoBingo.game?.time || 10);
+    const [maxSize, setMaxSize] = useState(context.geoBingo.game?.maxSize || 20);
+
+    if (!socket) throw new Error('Socket is not defined');
 
     const leaveGame = () => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
         if (!context.geoBingo.player) throw new Error("Player is not defined");
-        context.geoBingo.player.leave();
+        context.geoBingo.player.leave((response: any) => {
+            if (response.success) context.geoBingo.setGame(undefined);
+        });
     };
 
     const removePrompt = (index: number) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
-        context.geoBingo.game.removePrompt(index);
+        socket.emit('geobingo:removePrompt', { index: index, lobbyCode: context.geoBingo.game.id }, (response: any) => {
+            console.log('Response:', response);
+        });
     };
 
     const addPrompt = () => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
-        context.geoBingo.game.addPrompt();
+        socket.emit('geobingo:addPrompt', { lobbyCode: context.geoBingo.game.id }, (response: any) => {
+            console.log('Response:', response);
+        });
     };
 
     const changePrompt = (index: number, prompt: string) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
         if (prompt.length === 0) removePrompt(index);
-        else context.geoBingo.game.changePrompt(index, prompt);
+        else {
+            socket.emit('geobingo:changePrompt', { lobbyCode: context.geoBingo.game.id, index: index, prompt: prompt }, (response: any) => {
+                console.log('Response:', response);
+            });
+        }
     };
 
     const kickPlayer = (playerId: string) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
-        context.geoBingo.game.kickPlayer(playerId);
+        socket.emit('geobingo:kickPlayer', { lobbyCode: context.geoBingo.game.id, playerId: playerId }, (response: any) => {
+            console.log('Response:', response);
+        });
     };
 
     const makeHost = (playerId: string) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
-        context.geoBingo.game.makeHost(playerId);
+        socket.emit('geobingo:makeHost', { lobbyCode: context.geoBingo.game.id, playerId: playerId }, (response: any) => {
+            console.log('Response:', response);
+        });
     };
 
     const startGame = () => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
-        context.geoBingo.game.startGame();
+        socket.emit('geobingo:startGame', { lobbyCode: context.geoBingo.game.id }, (response: any) => {
+            console.log('Response:', response);
+        });
     };
 
-    let maxSize = context.geoBingo.game?.maxSize;
-    let time = context.geoBingo.game?.time;
-
-    let hoveringPlayer = null;
+    /**
+     * changing is a json object with the properties to change
+     * @param changing 
+     */
+    const editLobby = (changing: any) => {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:editLobby', { lobbyCode: context.geoBingo.game.id, changing: changing }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
 
     return (
         <>
@@ -58,15 +87,14 @@ export default function Waiting() {
                     <div className="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
                         <div className="flex flex-row">
                             <h1 className="text-white font-bold text-3xl pb-4">Prompts</h1>
-
-                            {context.geoBingo.game?.host.id === context.geoBingo.player.id && (
+                            {context.geoBingo.game.host.id === context.geoBingo.player.id && (
                                 <Button
                                     className="ml-auto bg-[#FFA500] hover:bg-[#FFA500] hover:opacity-80"
                                     onClick={() => addPrompt()}
                                 >
                                     Add prompt
                                 </Button>
-                            ) && null}
+                            )}
                         </div>
 
                         <div className="flex flex-col space-y-5 mt-2">
@@ -116,18 +144,19 @@ export default function Waiting() {
                                     type="range"
                                     max="100"
                                     min="1"
-                                    value={context.geoBingo.game.maxSize}
+                                    value={maxSize}
                                     onMouseUp={(e) => {
-                                        context.geoBingo.game?.editLobby({
-                                            maxSize: parseInt(e.target.value),
-                                        });
+                                        editLobby({ maxSize: maxSize });
                                     }}
-                                    onInput={(e) => { maxSize = parseInt(e.target.value) }}
+                                    onChange={(e) => {
+                                        const newValue = parseInt(e.currentTarget.value);
+                                        setMaxSize(newValue);
+                                    }}
                                     disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
                                     className="w-full disabled:cursor-not-allowed"
                                 />
 
-                                <p className="text-white font-bold">{context.geoBingo.game.maxSize}</p>
+                                <p className="text-white font-bold">{maxSize}</p>
                             </div>
                         </div>
 
@@ -138,18 +167,19 @@ export default function Waiting() {
                                     type="range"
                                     max="60"
                                     min="1"
-                                    value={context.geoBingo.game.time}
-                                    onInput={(e) => (time = parseInt(e.target.value))}
+                                    value={time}
                                     onMouseUp={(e) => {
-                                        context.geoBingo.game?.editLobby({
-                                            time: parseInt(e.target.value),
-                                        });
+                                        editLobby({ time: time });
+                                    }} 
+                                    onChange={(e) => {
+                                        const newValue = parseInt(e.currentTarget.value);
+                                        setTime(newValue);
                                     }}
                                     disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
                                     className="w-full disabled:cursor-not-allowed"
                                 />
 
-                                <p className="text-white font-bold">{context.geoBingo.game.time}</p>
+                                <p className="text-white font-bold">{time}</p>
                             </div>
                         </div>
 
@@ -190,11 +220,11 @@ export default function Waiting() {
                         <h1 className="text-white font-bold text-3xl pb-4">Players</h1>
 
                         <div className="flex flex-col space-y-5">
-                            {context.geoBingo.game.players.map((player, index) => (
+                            {context.geoBingo.game.players.map((player: Player, index) => (
                                 <div key={index}
                                     className="flex items-center space-x-4 h-full"
-                                    onMouseOver={() => (hoveringPlayer = player.id)}
-                                    onMouseLeave={() => (hoveringPlayer = null)}
+                                    onMouseEnter={() => setHoveringPlayer(player.id)}
+                                    onMouseLeave={() => setHoveringPlayer(null)}
                                 >
                                     {player.picture.length > 0 ? (
                                         <img
@@ -215,7 +245,7 @@ export default function Waiting() {
                                         {player.name}
                                     </p>
 
-                                    {hoveringPlayer == player.id && context.geoBingo.game.host.id === context.geoBingo.player.id && player.id !== context.geoBingo.player.id && player.id !== context.geoBingo.game?.host.id && (
+                                    {hoveringPlayer == player.id && context.geoBingo.game.host.id === context.geoBingo.player.id && player.id !== context.geoBingo.player.id && (
                                         <div className="ml-auto flex items-center">
                                             <Button
                                                 className="bg-transparent hover:opacity-80"

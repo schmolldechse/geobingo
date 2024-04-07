@@ -18,14 +18,14 @@ export default function User() {
             <div className="flex gap-3 items-center justify-center">
                 {context.geoBingo.player?.auth.length > 0 ? (
                     <>
-                        <img src={context.geoBingo.player.picture}
+                        <img src={context.geoBingo.player?.picture}
                             alt="avatar"
                             width={50}
                             height={50}
                             className="rounded-full" />
 
                         <p className="text-white text-lg font-medium">
-                            {context.geoBingo.player.name}
+                            {context.geoBingo.player?.name}
                         </p>
 
                         <Button className="bg-transparent" onClick={handleLogout}>
@@ -53,7 +53,7 @@ export default function User() {
                         </div>
 
                         <p className="text-white text-lg font-medium">
-                            {context.geoBingo.player.name}
+                            Guest {context.geoBingo.player?.name}
                         </p>
                     </>
                 )}
