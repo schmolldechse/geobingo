@@ -49,7 +49,7 @@ export default function Waiting() {
 
     return (
         <>
-            <div className="p-5 space-y-[2%] overflow-hidden h-screen mx-4">
+            <div className="bg-gray-900 p-5 space-y-[2%] overflow-hidden w-screen h-screen">
                 <Button className="bg-[#018ad3]" onClick={() => leaveGame()}>
                     {" < "}Leave game
                 </Button>
@@ -273,16 +273,16 @@ export default function Waiting() {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex justify-center pb-5">
-                <Button
-                    className="bg-green-600 text-black font-bold text-lg hover:bg-green-600 hover:opacity-80"
-                    onClick={() => startGame()}
-                    disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
-                >
-                    Start game
-                </Button>
+                <div className="flex justify-center pb-5">
+                    <Button
+                        className="bg-green-600 text-black font-bold text-lg hover:bg-green-600 hover:opacity-80"
+                        onClick={() => startGame()}
+                        disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
+                    >
+                        Start game
+                    </Button>
+                </div>
             </div>
         </>
     )
