@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Player } from "../lib/objects/player";
 import Landing from "./landing";
 import Waiting from "./ingame/waiting";
+import Ingame from "./ingame/playing";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -67,7 +68,18 @@ export default function GeoBingo() {
         <>
             {context.geoBingo.game === undefined && (<Landing />)}
             {context.geoBingo.game !== undefined && (
-                <Waiting />
+                (() => {
+                    switch (context.geoBingo.game.phase) {
+                        case 'waiting':
+                            return <Waiting />;
+                        case 'playing':
+                            return <Ingame />;
+                        case 'score':
+                            return <p>lol2</p>;
+                        default:
+                            return <p className="text-white">Where did you land?!?!!?</p>
+                    }
+                })()
             )}
         </>
     )
