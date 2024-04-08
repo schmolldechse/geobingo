@@ -81,6 +81,8 @@ export default (playerSocket: PlayerSocket) => {
         if (lobby.maxSize <= 0) return callback({ success: false, message: 'Lobbys max size has a invalid parameter' });
         if (lobby.players.length >= lobby.maxSize) return callback({ success: false, message: 'Lobby is full' });
 
+        if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
+
         lobby.players.push(playerSocket);
         updateLobby(lobby);
 
