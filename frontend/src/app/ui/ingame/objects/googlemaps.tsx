@@ -1,7 +1,8 @@
 import { Loader } from "@googlemaps/js-api-loader";
+import React from "react";
 import { useEffect, useRef } from "react";
 
-export default function GoogleMaps() {
+const GoogleMaps = () => {
     const mapRef = useRef<HTMLDivElement>(null);
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API) throw new Error('Google Maps API Key not set');
 
@@ -34,3 +35,5 @@ export default function GoogleMaps() {
         <div className="h-screen" ref={mapRef} />
     )
 }
+
+export default React.memo(GoogleMaps);
