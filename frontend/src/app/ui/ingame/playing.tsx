@@ -41,6 +41,9 @@ export default function Ingame() {
                 {state === 'playing' && (
                     <div className="relative">
                         <GoogleMaps />
+                        <div className="absolute top-0 left-1/2 mt-4">
+                            <Timer />
+                        </div>
                     </div>
                 )}
             </div>
