@@ -1,4 +1,5 @@
 import socket from "../server/socket";
+import { Capture } from "./capture";
 import { Player } from "./player";
 import { Prompt } from "./prompt";
 
@@ -18,18 +19,13 @@ export class Game {
     startingAt?: Date;
     endingAt?: Date;
 
-    constructor(data: any, player: Player) {
+    constructor(data: any) {
         this.id = data.id;
         this.players = data.players;
         this.host = data.host;
         this.privateLobby = data.privateLobby;
         this.phase = data.phase;
-        this.prompts = data.prompts.map(prompt => new Prompt(
-            prompt.name,
-            player,
-            false,
-            { lat: 0, lng: 0 }
-        ));
+        this.prompts = data.prompts.map((prompt: any) => new Prompt(prompt.name, prompt.capture));
         this.maxSize = data.maxSize;
         this.time = data.time;
         this.startingAt = data.startingAt;
@@ -50,7 +46,7 @@ export class Game {
         });
     };
 
-    changePrompt = (index: number, prompt: any) => {
+    changePrompt = (index: number, prompt: string) => {
         if (!socket) throw new Error("Game is not defined");
         socket.emit('geobingo:changePrompt', { lobbyCode: this.id, index: index, prompt: prompt }, (response: any) => {
             console.log('Response:', response);

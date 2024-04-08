@@ -18,14 +18,14 @@ export default function Landing() {
     const handleJoinLobby = () => {
         if (!context.geoBingo.player) throw new Error('Player is not defined');
         context.geoBingo.player.join(lobbyCode, (response: any) => {
-            if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
+            if (response.success) context.geoBingo.setGame(new Game(response.game));
         });
     }
 
     const handleCreateLobby = () => {
         if (!context.geoBingo.player) throw new Error('Player is not defined');
         context.geoBingo.player.host((response: any) => {
-            if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
+            if (response.success) context.geoBingo.setGame(new Game(response.game));
         });
     }
 

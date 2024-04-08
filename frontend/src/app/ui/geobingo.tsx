@@ -34,11 +34,11 @@ export default function GeoBingo() {
         socket.on("disconnect", (response) => {
             console.log("Disconnected from server", response);
         });
-    
+
         socket.on('geobingo:lobbyUpdate', (response: any) => {
-            console.log('Lobby update:', response);
+            console.log('Lobby update:', response.game);
     
-            context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
+            context.geoBingo.setGame(new Game(response.game));
         });
 
         let urlParameter = new URLSearchParams(window.location.search);
@@ -46,7 +46,7 @@ export default function GeoBingo() {
 
         if (!lobbyCode) return;
         context.geoBingo.player.join(lobbyCode, (response: any) => {
-            if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
+            if (response.success) context.geoBingo.setGame(new Game(response.game));
         });
     }, []);
 

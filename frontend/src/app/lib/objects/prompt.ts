@@ -1,15 +1,11 @@
-import { Player } from "./player";
+import { Capture } from './capture';
 
 export class Prompt {
     name: string;
-    player: Player;
-    found: boolean;
-    coordinates: { lat: number, lng: number };
+    capture?: Capture;
 
-    constructor(name: string, player: Player, found: boolean, coordinates: { lat: number, lng: number }) {
+    constructor(name: string, capture?: Capture) {
         this.name = name;
-        this.player = player;
-        this.found = found;
-        this.coordinates = coordinates;
+        this.capture = capture;
     }
 }

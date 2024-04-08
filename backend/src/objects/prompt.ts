@@ -1,4 +1,4 @@
-import { Player } from "./player";
+import { Capture } from "./capture";
 
 export const prompts = [
     'Lamborghini',
@@ -41,9 +41,7 @@ export const prompts = [
 
 export class Prompt {
     name!: string;
-    player?: Player;
-    found?: boolean;
-    coordinates?: { lat: number, lng: number };
+    captures?: Capture[];
 
     constructor(name: string) {
         this.name = name;

@@ -9,12 +9,13 @@ export const GeoBingoProvider = ({ children }) => {
 
     const [player, setPlayer] = useState(null);
     const [game, setGame] = useState(undefined);
+    const [map, setMap] = useState(undefined);
 
     useEffect(() => {
         setPlayer(new Player(null));
     }, []);
 
-    const geoBingo = { player, setPlayer, game, setGame };
+    const geoBingo = { player, setPlayer, game, setGame, map, setMap };
 
     return (
         <GeoBingoContext.Provider value={{ geoBingo }}>

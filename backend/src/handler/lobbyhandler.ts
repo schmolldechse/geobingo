@@ -1,8 +1,7 @@
-import { prompts } from "../objects/prompt";
 import { PlayerSocket, createListener } from "../socket/playersocket";
 import { format } from 'date-fns-tz';
 import { add } from 'date-fns';
-import { Prompt } from "../objects/prompt";
+import { Prompt, prompts } from "../objects/prompt";
 
 function generateLobbyId() {
     const length = 6;
@@ -177,6 +176,8 @@ export default (playerSocket: PlayerSocket) => {
 
         if (!lobby.prompts[data.index]) return callback({ success: false, message: 'Prompt does not exist' });
 
+        if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
+
         lobby.prompts[data.index] = data.prompt;
 
         updateLobby(lobby);
@@ -258,7 +259,7 @@ export default (playerSocket: PlayerSocket) => {
 
         lobby.host = newHost;
         updateLobby(lobby);
-
+        
         console.log('Lobbys host is now ' + lobby.host.player?.name);
         return callback({ success: true, message: 'Changed host role' })
     }
