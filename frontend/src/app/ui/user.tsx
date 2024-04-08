@@ -16,7 +16,7 @@ export default function User() {
     return (
         <>
             <div className="flex gap-3 items-center justify-center">
-                {context.geoBingo.player?.auth.length > 0 ? (
+                {Object.keys(context.geoBingo.player?.auth || {}).length !== 0 ? (
                     <>
                         <img src={context.geoBingo.player?.picture}
                             alt="avatar"
