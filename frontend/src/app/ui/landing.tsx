@@ -99,7 +99,7 @@ export default function Landing() {
                     <div>
                         <User />
 
-                        {context.geoBingo.player?.auth.length === 0 && (
+                        {Object.keys(context.geoBingo.player?.auth || {}).length === 0 && (
                             <>
                                 <p className="italic text-center mb-2">or</p>
                                 <SignIn />
