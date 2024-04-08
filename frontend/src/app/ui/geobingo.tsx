@@ -6,6 +6,7 @@ import { Player } from "../lib/objects/player";
 import Landing from "./landing";
 import Waiting from "./ingame/waiting";
 import Ingame from "./ingame/playing";
+import { Game } from "../lib/objects/game";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -37,8 +38,7 @@ export default function GeoBingo() {
         socket.on('geobingo:lobbyUpdate', (response: any) => {
             console.log('Lobby update:', response);
     
-            const gameProps = JSON.parse(JSON.stringify(response.game));
-            context.geoBingo.setGame(gameProps);
+            context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
         });
 
         let urlParameter = new URLSearchParams(window.location.search);
@@ -46,7 +46,7 @@ export default function GeoBingo() {
 
         if (!lobbyCode) return;
         context.geoBingo.player.join(lobbyCode, (response: any) => {
-            if (response.success) context.geoBingo.setGame(response.game);
+            if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
         });
     }, []);
 

@@ -1,3 +1,5 @@
+import { Player } from "./player";
+
 export const prompts = [
     'Lamborghini',
     'Porsche',
@@ -36,3 +38,14 @@ export const prompts = [
     'ICE',
     'Street musician'
 ]
+
+export class Prompt {
+    name!: string;
+    player?: Player;
+    found?: boolean;
+    coordinates?: { lat: number, lng: number };
+
+    constructor(name: string) {
+        this.name = name;
+    }
+}

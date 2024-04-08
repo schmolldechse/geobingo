@@ -3,6 +3,7 @@ import { GeoBingoContext } from "../context/GeoBingoContext";
 import User from "./user";
 import SignIn from "./signin";
 import { Separator } from "@/components/ui/separator";
+import { Game } from "../lib/objects/game";
 
 const messages = [
     'Choose prompts for the Street View search',
@@ -17,14 +18,14 @@ export default function Landing() {
     const handleJoinLobby = () => {
         if (!context.geoBingo.player) throw new Error('Player is not defined');
         context.geoBingo.player.join(lobbyCode, (response: any) => {
-            if (response.success) context.geoBingo.setGame(response.game);
+            if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
         });
     }
 
     const handleCreateLobby = () => {
         if (!context.geoBingo.player) throw new Error('Player is not defined');
         context.geoBingo.player.host((response: any) => {
-            if (response.success) context.geoBingo.setGame(response.game);
+            if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
         });
     }
 

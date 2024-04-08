@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import Loading from "../loading";
 import GoogleMaps from "./objects/googlemaps";
 import Timer from "./objects/timer";
+import Prompts from "./objects/prompts";
 
 export default function Ingame() {
     const context = useContext(GeoBingoContext);
@@ -31,7 +32,7 @@ export default function Ingame() {
                     <div className="flex flex-col items-center justify-center h-screen space-y-2">
                         <Loading />
                         {difference <= 5 && (
-                            <p className="text-4xl text-center text-white">
+                            <p className="text-4xl text-center text-white font-bold">
                                 Starting in {difference} second{difference > 1 ? 's' : ''} ...
                             </p>
                         )}
@@ -43,6 +44,9 @@ export default function Ingame() {
                         <GoogleMaps />
                         <div className="absolute top-0 left-1/2 mt-4">
                             <Timer />
+                        </div>
+                        <div className="absolute top-1/2 left-0 transform -translate-y-1/2">
+                            <Prompts />
                         </div>
                     </div>
                 )}

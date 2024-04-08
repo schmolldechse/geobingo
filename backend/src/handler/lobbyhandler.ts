@@ -1,7 +1,8 @@
-import { prompts } from "../objects/prompts";
+import { prompts } from "../objects/prompt";
 import { PlayerSocket, createListener } from "../socket/playersocket";
 import { format } from 'date-fns-tz';
 import { add } from 'date-fns';
+import { Prompt } from "../objects/prompt";
 
 function generateLobbyId() {
     const length = 6;
@@ -27,7 +28,7 @@ type Lobby = {
     host: PlayerSocket;
     privateLobby: boolean;
     phase: 'waiting' | 'playing' | 'score';
-    prompts: string[];
+    prompts: Prompt[];
     maxSize: number;
     time: number;
     startingAt?: string;
@@ -53,7 +54,9 @@ export default (playerSocket: PlayerSocket) => {
             host: playerSocket,
             privateLobby: data.privateLobby,
             phase: 'waiting',
-            prompts: new Array(8).fill(null).map(() => getRandomPrompt()),
+            prompts: new Array(8).fill(null).map(() => ({
+                name: getRandomPrompt()
+            })),
             maxSize: 10,
             time: 10
         }
@@ -146,7 +149,7 @@ export default (playerSocket: PlayerSocket) => {
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
         if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
-        lobby.prompts.push(getRandomPrompt());
+        lobby.prompts.push(new Prompt(getRandomPrompt()));
 
         updateLobby(lobby);
         return callback({ success: true, message: 'Added prompt' });
