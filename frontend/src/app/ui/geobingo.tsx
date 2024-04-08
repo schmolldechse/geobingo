@@ -40,7 +40,9 @@ export default function GeoBingo() {
     
             context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
         });
+    }, []);
 
+    setTimeout(() => {
         let urlParameter = new URLSearchParams(window.location.search);
         let lobbyCode = urlParameter.get("lobbyCode");
 
@@ -48,7 +50,7 @@ export default function GeoBingo() {
         context.geoBingo.player.join(lobbyCode, (response: any) => {
             if (response.success) context.geoBingo.setGame(new Game(response.game, context.geoBingo.player));
         });
-    }, []);
+    }, 150);
 
     supabase.auth.onAuthStateChange((event, session) => {
         if (event === "SIGNED_IN" && session) {
