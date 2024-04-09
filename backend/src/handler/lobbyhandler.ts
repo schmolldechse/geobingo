@@ -83,8 +83,8 @@ export default (playerSocket: PlayerSocket) => {
         if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
 
         lobby.players.push(playerSocket);
-        updateLobby(lobby);
 
+        updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player) });
         return callback({ success: true, game: createSendingLobby(lobby), message: 'Joining lobby' });
     }
 
@@ -110,7 +110,7 @@ export default (playerSocket: PlayerSocket) => {
             lobby.host = randomPlayer || lobby.players[0];
             console.log('New host of lobby ' + lobby.id + ' is now ' + lobby.host.player?.name);
 
-            updateLobby(lobby);
+            updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player), host: lobby.host.player })
         }
 
         return callback({ success: true, message: 'Left lobby' });
@@ -135,7 +135,7 @@ export default (playerSocket: PlayerSocket) => {
         if (!lobby.prompts[data.index]) return callback({ success: false, message: 'Prompt does not exist' });
         lobby.prompts.splice(data.index, 1);
 
-        updateLobby(lobby);
+        updateLobby(lobby, { prompts: lobby.prompts });
         return callback({ success: true, message: 'Removed prompt' });
     }
 
@@ -152,7 +152,7 @@ export default (playerSocket: PlayerSocket) => {
         if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
         lobby.prompts.push(new Prompt(getRandomPrompt()));
 
-        updateLobby(lobby);
+        updateLobby(lobby, { prompts: lobby.prompts });
         return callback({ success: true, message: 'Added prompt' });
     }
 
@@ -180,7 +180,7 @@ export default (playerSocket: PlayerSocket) => {
 
         lobby.prompts[data.index] = data.prompt;
 
-        updateLobby(lobby);
+        updateLobby(lobby, { prompts: lobby.prompts });
         return callback({ success: true, message: 'Changed prompt' });
     }
 
@@ -213,7 +213,7 @@ export default (playerSocket: PlayerSocket) => {
             lobby.time = data.changing.time;
         }
 
-        updateLobby(lobby);
+        updateLobby(lobby, { maxSize: lobby.maxSize, time: lobby.time });
         return callback({ success: true, message: 'Updated lobby' });
     }
 
@@ -235,8 +235,8 @@ export default (playerSocket: PlayerSocket) => {
         player.emit('geobingo:important', { kicked: true, message: 'You were kicked' });
 
         lobby.players = lobby.players.filter(lobbyPlayer => lobbyPlayer.player?.id !== data.playerId);
-        updateLobby(lobby);
 
+        updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player) });
         return callback({ success: true, message: 'Kicked player' });
     }
 
@@ -258,8 +258,8 @@ export default (playerSocket: PlayerSocket) => {
         newHost.emit('geobingo:important', { message: 'You are the new host now' });
 
         lobby.host = newHost;
-        updateLobby(lobby);
         
+        updateLobby(lobby, { host: lobby.host.player });
         console.log('Lobbys host is now ' + lobby.host.player?.name);
         return callback({ success: true, message: 'Changed host role' })
     }
@@ -286,8 +286,8 @@ export default (playerSocket: PlayerSocket) => {
         lobby.endingAt = format(add(startingAt, { minutes: lobby.time }), 'yyy-MM-dd HH:mm:ss', { timeZone: 'Europe/Berlin' });
 
         lobby.phase = 'playing';
-        updateLobby(lobby);
 
+        updateLobby(lobby, { startingAt: lobby.startingAt, endingAt: lobby.endingAt, phase: lobby.phase });
         return callback({ success: true, message: 'Started game' });
     }
 
@@ -313,12 +313,12 @@ export const removeLobby = (lobby: Lobby) => {
 }
 
 /**
- * Sending an lobby update to all players in the lobby
+ * Sending an lobby update to all players in the lobby with the properties given in "update"
  * @param lobby
  */
-export const updateLobby = (lobby: Lobby) => {
+export const updateLobby = (lobby: Lobby, update: any) => {
     console.log('Sending update in lobby with id ' + lobby.id);
-    lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', { game: createSendingLobby(lobby) }));
+    lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', update ));
 }
 
 /**

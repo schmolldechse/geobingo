@@ -26,19 +26,13 @@ export default function GeoBingo() {
             console.log("Connecting to server");
             context.geoBingo.player?.initMessageListener();
         });
-    
+
         socket.on("error", (error) => {
             console.error("error while connecting to backend:", error);
         });
-    
+
         socket.on("disconnect", (response) => {
             console.log("Disconnected from server", response);
-        });
-
-        socket.on('geobingo:lobbyUpdate', (response: any) => {
-            console.log('Lobby update:', response.game);
-    
-            context.geoBingo.setGame(new Game(response.game));
         });
 
         let urlParameter = new URLSearchParams(window.location.search);
