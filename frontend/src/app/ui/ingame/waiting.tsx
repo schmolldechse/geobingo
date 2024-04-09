@@ -3,13 +3,21 @@ import { Player } from "@/app/lib/objects/player";
 import { Prompt } from "@/app/lib/objects/prompt";
 import socket from "@/app/lib/server/socket";
 import { Button } from "@/components/ui/button";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function Waiting() {
     const context = useContext(GeoBingoContext);
     const [hoveringPlayer, setHoveringPlayer] = useState(null);
     const [time, setTime] = useState(context.geoBingo.game?.time || 10);
     const [maxSize, setMaxSize] = useState(context.geoBingo.game?.maxSize || 20);
+
+    /**
+     * updating time & maxSize from incoming "lobbyUpdate" socket event
+     */
+    useEffect(() => {
+        setTime(context.geoBingo.game?.time || 10);
+        setMaxSize(context.geoBingo.game?.maxSize || 20);
+    }, [context.geoBingo.game.time, context.geoBingo.game.maxSize]);
 
     if (!socket) throw new Error('Socket is not defined');
 
