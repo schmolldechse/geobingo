@@ -43,13 +43,4 @@ export class Player {
             callback(response);
         });
     }
-
-    initMessageListener() {
-        if (!socket) throw new Error('Socket is not defined');
-        socket.on('geobingo:important', (response: any) => {
-            if (response.kicked) return; // todo: toast
-            
-            console.log('Message:', response.message);
-        });
-    }
 }

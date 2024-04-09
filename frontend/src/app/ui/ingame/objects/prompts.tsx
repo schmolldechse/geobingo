@@ -1,12 +1,22 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
 import { Capture } from "@/app/lib/objects/capture";
 import { Prompt } from "@/app/lib/objects/prompt";
-import React from "react";
+import React, { useEffect } from "react";
 import { useContext } from "react";
 import { toast } from "sonner";
 
 export default function Prompts() {
     const context = useContext(GeoBingoContext);
+
+    /**
+     * listening for changes in the prompts array
+     */
+    useEffect(() => {
+        console.log('Captures:', context.geoBingo.game?.prompts.filter((prompt: Prompt) => prompt.capture?.found).length, '/', context.geoBingo.game?.prompts.length);
+
+        const promptsCaptured = context.geoBingo.game?.prompts.filter((prompt: Prompt) => prompt.capture?.found);
+        context.geoBingo.game?.uploadCaptures(promptsCaptured);
+    }, [context.geoBingo.game?.prompts]);
 
     const savePrompt = (name: string) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");

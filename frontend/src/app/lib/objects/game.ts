@@ -74,6 +74,13 @@ export class Game {
         });
     }
 
+    uploadCaptures = (prompts: Prompt[]) => {
+        if (!socket) throw new Error("Game is not defined");
+        socket.emit('geobingo:uploadCaptures', { lobbyCode: this.id, prompts: prompts }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
     /**
      * changing is a json object with the properties to change
      * @param changing 

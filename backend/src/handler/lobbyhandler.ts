@@ -2,6 +2,7 @@ import { PlayerSocket, createListener } from "../socket/playersocket";
 import { format } from 'date-fns-tz';
 import { add } from 'date-fns';
 import { Prompt, prompts } from "../objects/prompt";
+import { Capture } from "../objects/capture";
 
 function generateLobbyId() {
     const length = 6;
@@ -292,6 +293,59 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Started game' });
     }
 
+    /**
+     * retrieves the prompts that the player captured and uploads them to the server
+     * @param data prompts array
+     * @param callback 
+     */
+    const uploadCaptures = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+        
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.phase !== 'playing') return callback({ success: false, message: 'Game did not start yet' });
+        
+        // reset the captures found by "playerSocket.player.id"
+        lobby.prompts.forEach((prompt: Prompt) => {
+            if (!prompt.captures) return;
+            prompt.captures = prompt.captures.filter((capture: Capture) => capture.playerId !== playerSocket.player?.id)
+        });
+
+        if (data.prompts.length === 0) return callback({ success: false, message: 'No prompts given to upload' });
+
+        // fetching prompts that the player captured
+        data.prompts.forEach((prompt: any) => {
+            if (!prompt.capture) return;
+            
+            // find prompt object from "lobby.prompts" by incoming prompt data with property "prompt.name"
+            const lobbyPrompt = lobby.prompts.find((lobbyPrompt: Prompt) => lobbyPrompt.name === prompt.name);
+            if (!lobbyPrompt) return;
+            if (!lobbyPrompt.captures) lobbyPrompt.captures = [];
+
+            // create a new capture object
+            const capture = new Capture();
+            capture.playerId = playerSocket.player?.id;
+            capture.found = prompt.capture.found;
+
+            capture.panorama = prompt.capture.panorama;
+            capture.pov = prompt.capture.pov;
+            capture.coordinates = prompt.capture.coordinates;
+
+            // add the capture object to the (backend-)prompt object
+            lobbyPrompt.captures.push(capture);
+        });
+
+        console.log('prompts:', lobby.prompts);
+
+        return callback({ success: true, message: 'Uploaded captures' });
+    }
+
     createListener(playerSocket, 'geobingo',
         [
             createLobby,
@@ -303,7 +357,8 @@ export default (playerSocket: PlayerSocket) => {
             editLobby,
             kickPlayer,
             makeHost,
-            startGame
+            startGame,
+            uploadCaptures
         ]
     );
 };
