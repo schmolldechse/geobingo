@@ -7,6 +7,7 @@ import Landing from "./landing";
 import Waiting from "./ingame/waiting";
 import Ingame from "./ingame/playing";
 import { Game } from "../lib/objects/game";
+import { Toaster } from "sonner";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -75,6 +76,8 @@ export default function GeoBingo() {
                     }
                 })()
             )}
+
+            <Toaster className="z-50" />
         </>
     )
 }

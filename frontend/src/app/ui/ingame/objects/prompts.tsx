@@ -3,6 +3,7 @@ import { Capture } from "@/app/lib/objects/capture";
 import { Prompt } from "@/app/lib/objects/prompt";
 import React from "react";
 import { useContext } from "react";
+import { toast } from "sonner";
 
 export default function Prompts() {
     const context = useContext(GeoBingoContext);
@@ -10,7 +11,17 @@ export default function Prompts() {
     const savePrompt = (name: string) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
 
-        if (!context.geoBingo.map.streetView.getVisible()) throw new Error("You must be in Street View to save a capture");
+        if (!context.geoBingo.map.streetView.getVisible()) {
+            toast.warning("You must be in street view to capture a prompt", {
+                style: {
+                    background: 'rgb(44, 6, 8)',
+                    borderWidth: '0.5px',
+                    borderColor: 'rgb(76, 4, 9)',
+                    color: 'rgb(254, 158, 161)'
+                }
+            });
+            return;
+        }
 
         const newPrompts = context.geoBingo.game?.prompts.map((prompt: Prompt) => {
             if (prompt.name !== name) return prompt;
@@ -23,7 +34,7 @@ export default function Prompts() {
             newCapture.panorama = context.geoBingo.map.streetView.pano;
             newCapture.pov = context.geoBingo.map.streetView.pov;
             newCapture.coordinates = { lat: context.geoBingo.map.streetView.position.lat(), lng: context.geoBingo.map.streetView.position.lng() };
-            
+
             return { ...prompt, capture: newCapture };
         });
 
@@ -35,7 +46,7 @@ export default function Prompts() {
             <div className="bg-gray-900 py-4 text-center inline-block rounded-r-lg">
                 {context.geoBingo.game?.prompts.map((prompt: Prompt, index) => (
                     <React.Fragment key={index}>
-                        <div 
+                        <div
                             className={`flex flex-row justify-between items-center space-x-8 px-2 m-2 rounded-lg hover:bg-[#018ad3] hover:opacity-80 ${prompt.capture?.found ? 'bg-green-700' : ''}`}
                             onClick={() => savePrompt(prompt.name)}
                         >
