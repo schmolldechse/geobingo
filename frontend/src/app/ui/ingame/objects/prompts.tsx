@@ -36,7 +36,7 @@ export default function Prompts() {
                 {context.geoBingo.game?.prompts.map((prompt: Prompt, index) => (
                     <React.Fragment key={index}>
                         <div 
-                            className={`flex flex-row justify-between items-center space-x-8 px-2 m-2 rounded-lg hover:bg-[#018ad3] hover:opacity-80 ${prompt.capture?.found ? 'bg-red-500' : ''}`}
+                            className={`flex flex-row justify-between items-center space-x-8 px-2 m-2 rounded-lg hover:bg-[#018ad3] hover:opacity-80 ${prompt.capture?.found ? 'bg-green-700' : ''}`}
                             onClick={() => savePrompt(prompt.name)}
                         >
                             <svg width="20" height="20" viewBox="0 0 52 52">

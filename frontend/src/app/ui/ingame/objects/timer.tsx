@@ -31,7 +31,7 @@ export default function Timer() {
 
     return (
         <>
-        <div className="bg-gray-900 px-8 py-2 text-center inline-block rounded-[10px]">
+        <div className="bg-gray-900 min-w-[150px] px-8 py-2 text-center inline-block rounded-[10px]">
             <p className={`${textColor} font-bold text-2xl`}>{formattedTimeRemaining}</p>
         </div>
         </>
