@@ -82,6 +82,13 @@ export class Game {
         });
     }
 
+    handleVote = (prompt: string, captureId: string, points: number) => {
+        if (!socket) throw new Error("Game is not defined");
+        socket.emit('geobingo:handleVote', { lobbyCode: this.id, prompt: prompt, captureId: captureId, points: points }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
     /**
      * changing is a json object with the properties to change
      * @param changing 

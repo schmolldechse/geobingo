@@ -4,6 +4,7 @@ import { add } from 'date-fns';
 import { Prompt, prompts } from "../objects/prompt";
 import { Capture } from "../objects/capture";
 import { v4 as uuidv4 } from 'uuid';
+import { Vote } from "../objects/vote";
 
 function generateLobbyId() {
     const length = 6;
@@ -358,6 +359,33 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Uploaded captures' });
     }
 
+    const handleVote = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+        
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.phase !== 'voting') return callback({ success: false, message: 'Voting phase did not start yet' });
+
+        const prompt = lobby.prompts.find((prompt: Prompt) => prompt.name === data.prompt);
+        if (!prompt) return callback({ success: false, message: 'Prompt not found' });
+
+        const capture = prompt.captures?.find((capture: Capture) => capture.uniqueId === data.captureId);
+        if (!capture) return callback({ success: false, message: 'Capture not found' });
+        if (!capture.votes) capture.votes = [];
+
+        // reset vote from player, if he's changing mind
+        capture.votes = capture.votes.filter((vote: Vote) => vote.votedPlayerId !== playerSocket.player.id);
+        capture.votes.push({ votedPlayerId: playerSocket.player.id, points: data.points });
+
+        return callback({ success: true, message: 'Voted' });
+    }
+
     createListener(playerSocket, 'geobingo',
         [
             createLobby,
@@ -370,7 +398,8 @@ export default (playerSocket: PlayerSocket) => {
             kickPlayer,
             makeHost,
             startGame,
-            uploadCaptures
+            uploadCaptures,
+            handleVote
         ]
     );
 };

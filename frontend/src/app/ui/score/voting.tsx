@@ -7,6 +7,7 @@ export default function Voting() {
     const context = useContext(GeoBingoContext);
 
     const [timeLeft, setTimeLeft] = useState(context.geoBingo.game.votingTime || 15);
+    const [selected, setSelected] = useState<"like" | "dislike">(null);
 
     /**
      * displaying the captures
@@ -41,6 +42,7 @@ export default function Voting() {
             captureIndex = (captureIndex + 1) % captures.length;
 
             setTimeLeft(context.geoBingo.game.votingTime || 15);
+            setSelected(null);
         }, (context.geoBingo.game.votingTime || 15) * 1000);
 
         return () => clearInterval(intervalId);
@@ -56,6 +58,16 @@ export default function Voting() {
 
         return () => clearInterval(timerIntervalId);
     }, []);
+
+    /**
+     * handle vote
+     */
+    const handleVote = (type: 'like' | 'dislike', points: number) => {
+        if (!context.geoBingo.game) throw new Error("Game is not defined");
+
+        setSelected(type);
+        context.geoBingo.game.handleVote(currentCapture.prompt, currentCapture.capture.id, points);
+    }
 
     return (
         <>
@@ -93,18 +105,24 @@ export default function Voting() {
                             </div>
 
                             <div className="flex justify-center items-end mt-auto space-x-8">
-                                <Button className="space-x-2 bg-green-700 p-[1.5rem] hover:bg-green-700 hover:opacity-80">
+                                <Button
+                                    className={`space-x-2 ${selected === 'like' ? 'bg-green-700' : 'bg-transparent'} p-[1.5rem] hover:bg-green-700 hover:opacity-80`}
+                                    onClick={() => handleVote('like', 3)}
+                                >
                                     <svg width="40px" height="40px" viewBox="0 0 48 48">
                                         <path fill="#F44336" d="M34 9c-4.2 0-7.9 2.1-10 5.4C21.9 11.1 18.2 9 14 9 7.4 9 2 14.4 2 21c0 11.9 22 24 22 24s22-12 22-24c0-6.6-5.4-12-12-12" />
                                     </svg>
                                     <p className="font-bold text-2xl text-black">Like</p>
                                 </Button>
 
-                                <Button className="space-x-2 bg-red-700 p-[1.5rem] hover:bg-red-700 hover:opacity-80">
+                                <Button
+                                    className={`space-x-2 ${selected === 'dislike' ? 'bg-red-700' : 'bg-transparent'} p-[1.5rem] hover:bg-red-700 hover:opacity-80`}
+                                    onClick={() => handleVote('dislike', 1)}
+                                >
                                     <p className="font-bold text-2xl text-black">Dislike</p>
                                     <svg width="40px" height="40px" viewBox="0 0 48 48">
-                                        <path fill="#F44336" d="M34 9c-4.2 0-7.9 2.1-10 5.4C21.9 11.1 18.2 9 14 9 7.4 9 2 14.4 2 21c0 11.9 22 24 22 24s22-12 22-24c0-6.6-5.4-12-12-12"/>
-                                        <path fill="black" d="m3.56 6.393 2.828-2.829L44.36 41.536l-2.829 2.828z"/>
+                                        <path fill="#F44336" d="M34 9c-4.2 0-7.9 2.1-10 5.4C21.9 11.1 18.2 9 14 9 7.4 9 2 14.4 2 21c0 11.9 22 24 22 24s22-12 22-24c0-6.6-5.4-12-12-12" />
+                                        <path fill="black" d="m3.56 6.393 2.828-2.829L44.36 41.536l-2.829 2.828z" />
                                     </svg>
                                 </Button>
                             </div>

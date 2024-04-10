@@ -1,5 +1,5 @@
 import { Player } from "./player";
-import { Votes } from "./votes";
+import { Vote } from "./vote";
 
 export class Capture {
     player: Player; // player who captured
@@ -8,5 +8,5 @@ export class Capture {
     panorama: string;
     pov: { heading: number, pitch: number, zoom: number }
     coordinates: { lat: number, lng: number };
-    votes?: Votes[];
+    votes?: Vote[];
 }
