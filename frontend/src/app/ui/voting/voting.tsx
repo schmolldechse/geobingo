@@ -38,8 +38,7 @@ export default function Voting() {
             */
 
             setCurrentCapture(captures[captureIndex]);
-            //captureIndex++;
-            captureIndex = (captureIndex + 1) % captures.length;
+            captureIndex++;
 
             setTimeLeft(context.geoBingo.game.votingTime || 15);
             setSelected(null);
