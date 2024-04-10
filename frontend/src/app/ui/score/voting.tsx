@@ -101,13 +101,20 @@ export default function Voting() {
                                     </svg>
                                 )}
 
-                                <p className="text-white font-medium text-xl">{currentCapture.capture.player.name}</p>
+                                <p className="text-white font-medium text-xl">
+                                    {currentCapture.capture.player.id === context.geoBingo.player.id ? (
+                                        currentCapture.capture.player.name + ' (you)'
+                                    ) : (
+                                        currentCapture.capture.player.name
+                                    )}
+                                </p>
                             </div>
 
                             <div className="flex justify-center items-end mt-auto space-x-8">
                                 <Button
                                     className={`space-x-2 ${selected === 'like' ? 'bg-green-700' : 'bg-transparent'} p-[1.5rem] hover:bg-green-700 hover:opacity-80`}
                                     onClick={() => handleVote('like', 3)}
+                                    disabled={currentCapture.capture.player.id === context.geoBingo.player.id}
                                 >
                                     <svg width="40px" height="40px" viewBox="0 0 48 48">
                                         <path fill="#F44336" d="M34 9c-4.2 0-7.9 2.1-10 5.4C21.9 11.1 18.2 9 14 9 7.4 9 2 14.4 2 21c0 11.9 22 24 22 24s22-12 22-24c0-6.6-5.4-12-12-12" />
@@ -118,6 +125,7 @@ export default function Voting() {
                                 <Button
                                     className={`space-x-2 ${selected === 'dislike' ? 'bg-red-700' : 'bg-transparent'} p-[1.5rem] hover:bg-red-700 hover:opacity-80`}
                                     onClick={() => handleVote('dislike', 1)}
+                                    disabled={currentCapture.capture.player.id === context.geoBingo.player.id}
                                 >
                                     <p className="font-bold text-2xl text-black">Dislike</p>
                                     <svg width="40px" height="40px" viewBox="0 0 48 48">
