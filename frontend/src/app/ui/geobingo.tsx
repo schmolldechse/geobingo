@@ -8,7 +8,7 @@ import Waiting from "./waiting/waiting";
 import Ingame from "./ingame/playing";
 import { Game } from "../lib/objects/game";
 import { Toaster } from "sonner";
-import Voting from "./score/voting";
+import Voting from "./voting/voting";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
