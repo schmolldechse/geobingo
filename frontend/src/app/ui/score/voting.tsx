@@ -66,7 +66,7 @@ export default function Voting() {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
 
         setSelected(type);
-        context.geoBingo.game.handleVote(currentCapture.prompt, currentCapture.capture.id, points);
+        context.geoBingo.game.handleVote(currentCapture.prompt, currentCapture.capture.uniqueId, points);
     }
 
     return (
