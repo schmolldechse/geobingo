@@ -7,7 +7,7 @@ export class Player {
     id: string;
     picture: string;
     auth: any;
-    points?: number;
+    points: number;
 
     constructor(auth: any) {
         faker.seed(123); // ?????

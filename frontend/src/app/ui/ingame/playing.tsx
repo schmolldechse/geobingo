@@ -1,7 +1,7 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
 import { useContext, useEffect, useState } from "react";
 import Loading from "../loading";
-import GoogleMaps from "./objects/googlemaps";
+import GoogleMaps from "../objects/googlemaps";
 import Timer from "./objects/timer";
 import Prompts from "./objects/prompts";
 
@@ -41,7 +41,7 @@ export default function Ingame() {
 
                 {state === 'playing' && (
                     <div className="relative">
-                        <GoogleMaps />
+                        <GoogleMaps className="h-screen" />
                         <div className="absolute top-0 left-1/2 mt-4 z-50">
                             <Timer />
                         </div>

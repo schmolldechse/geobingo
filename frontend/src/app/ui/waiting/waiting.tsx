@@ -4,12 +4,18 @@ import { Prompt } from "@/app/lib/objects/prompt";
 import socket from "@/app/lib/server/socket";
 import { Button } from "@/components/ui/button";
 import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Waiting() {
     const context = useContext(GeoBingoContext);
+
+    const [blur, setBlur] = useState(true);
+
     const [hoveringPlayer, setHoveringPlayer] = useState(null);
+
     const [time, setTime] = useState(context.geoBingo.game?.time || 10);
     const [maxSize, setMaxSize] = useState(context.geoBingo.game?.maxSize || 20);
+    const [votingTime, setVotingTime] = useState(context.geoBingo.game?.votingTime || 15);
 
     /**
      * updating time & maxSize from incoming "lobbyUpdate" socket event
@@ -17,7 +23,8 @@ export default function Waiting() {
     useEffect(() => {
         setTime(context.geoBingo.game?.time || 10);
         setMaxSize(context.geoBingo.game?.maxSize || 20);
-    }, [context.geoBingo.game.time, context.geoBingo.game.maxSize]);
+        setVotingTime(context.geoBingo.game?.votingTime || 15);
+    }, [context.geoBingo.game.time, context.geoBingo.game.maxSize, context.geoBingo.game.votingTime]);
 
     if (!socket) throw new Error('Socket is not defined');
 
@@ -154,7 +161,7 @@ export default function Waiting() {
                                     value={time}
                                     onMouseUp={(e) => {
                                         context.geoBingo.game.editLobby({ time: time });
-                                    }} 
+                                    }}
                                     onChange={(e) => {
                                         const newValue = parseInt(e.currentTarget.value);
                                         setTime(newValue);
@@ -167,46 +174,81 @@ export default function Waiting() {
                             </div>
                         </div>
 
+                        <div className="space-y-[-10px] pt-4">
+                            <p className="text-white font-bold text-lg pb-4">Voting time per prompt (sec)</p>
+                            <div className="relative flex space-x-3 items-center">
+                                <input
+                                    type="range"
+                                    max="60"
+                                    min="10"
+                                    value={votingTime}
+                                    onMouseUp={(e) => {
+                                        context.geoBingo.game.editLobby({ votingTime: votingTime });
+                                    }}
+                                    onChange={(e) => {
+                                        const newValue = parseInt(e.currentTarget.value);
+                                        setVotingTime(newValue);
+                                    }}
+                                    disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
+                                    className="w-full disabled:cursor-not-allowed"
+                                />
+
+                                <p className="text-white font-bold">{votingTime}</p>
+                            </div>
+                        </div>
+
                         <div className="pt-4 space-y-2">
                             <p className="text-white font-bold text-lg">Share your lobby code</p>
 
                             <div className="flex items-center space-x-4">
                                 <input
-                                    disabled={true}
+                                    readOnly
+                                    onDoubleClick={(e) => {
+                                        navigator.clipboard.writeText((e.target as HTMLInputElement).value)
+                                            .then(() => {
+                                                toast.success('Copied to clipboard', {
+                                                    style: {
+                                                        background: 'rgb(1, 31, 16)',
+                                                        borderWidth: '0.5px',
+                                                        borderColor: 'rgb(2, 62, 30)',
+                                                        color: 'rgb(93, 244, 169)'
+                                                    },
+                                                    duration: 3000
+                                                });
+                                            });
+                                    }}
                                     value={"https://" +
                                         window.location.hostname +
                                         "/?lobbyCode=" +
                                         context.geoBingo.game?.id}
-                                    className="w-full rounded-lg p-2 text-white font-bold outline outline-2 outline-red-500"
+                                    className={`select-none bg-[#151951] w-full rounded-lg p-2 text-white font-bold outline outline-2 outline-[#018ad3] ${blur ? 'blur-sm' : ''}`}
                                 />
-                                <Button>
-                                    <svg
-                                        width="30px"
-                                        height="30px"
-                                        viewBox="0 0 24 24"
-                                        fill="darkgray"
-                                    >
-                                        <path
-                                            d="M5.962 2.513a.75.75 0 01-.475.949l-.816.272a.25.25 0 00-.171.237V21.25c0 .138.112.25.25.25h14.5a.25.25 0 00.25-.25V3.97a.25.25 0 00-.17-.236l-.817-.272a.75.75 0 01.474-1.424l.816.273A1.75 1.75 0 0121 3.97v17.28A1.75 1.75 0 0119.25 23H4.75A1.75 1.75 0 013 21.25V3.97a1.75 1.75 0 011.197-1.66l.816-.272a.75.75 0 01.949.475z"
-                                        >
-                                        </path>
-                                        <path
-                                            d="M7 1.75C7 .784 7.784 0 8.75 0h6.5C16.216 0 17 .784 17 1.75v1.5A1.75 1.75 0 0115.25 5h-6.5A1.75 1.75 0 017 3.25v-1.5zm1.75-.25a.25.25 0 00-.25.25v1.5c0 .138.112.25.25.25h6.5a.25.25 0 00.25-.25v-1.5a.25.25 0 00-.25-.25h-6.5z"
-                                        >
-                                        </path>
-                                    </svg>
+                                <Button
+                                    onClick={() => setBlur(!blur)}
+                                    className="bg-red-500 hover:bg-red-500 hover:opacity-80"
+                                >
+                                    {blur ? (
+                                        <svg width="25px" height="25px" viewBox="0 0 24 24" fill="none">
+                                            <path d="M9.764 5.295A8.6 8.6 0 0 1 12 5c3.757 0 6.564 2.44 8.233 4.44a3.96 3.96 0 0 1 0 5.12q-.289.346-.621.704M12.5 9.04a3 3 0 0 1 2.459 2.459M3 3l18 18m-9.5-6.041A3 3 0 0 1 9.17 13M4.35 8.778q-.312.336-.582.661a3.96 3.96 0 0 0 0 5.122C5.435 16.56 8.242 19 12 19a8.6 8.6 0 0 0 2.274-.306" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    ) : (
+                                        <svg width="25px" height="25px" viewBox="0 0 24 24" fill="none">
+                                            <path d="M21.257 10.962c.474.62.474 1.457 0 2.076C19.764 14.987 16.182 19 12 19s-7.764-4.013-9.257-5.962a1.69 1.69 0 0 1 0-2.076C4.236 9.013 7.818 5 12 5s7.764 4.013 9.257 5.962" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <circle cx="12" cy="12" r="3" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    )}
                                 </Button>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex-1 bg-[#151951] rounded-[20px] p-4 overflow-auto">
-                        <h1 className="text-white font-bold text-3xl pb-4">Players</h1>
+                        <h1 className="text-white font-bold text-3xl pb-4">Players {context.geoBingo.game?.players.length} / {maxSize}</h1>
 
                         <div className="flex flex-col space-y-5">
                             {context.geoBingo.game.players.map((player: Player, index) => (
                                 <div key={index}
-                                    className="flex items-center space-x-4 h-full"
+                                    className="flex items-center h-full"
                                     onMouseEnter={() => setHoveringPlayer(player.id)}
                                     onMouseLeave={() => setHoveringPlayer(null)}
                                 >
@@ -229,7 +271,7 @@ export default function Waiting() {
                                         {player.name}
                                     </p>
 
-                                    {hoveringPlayer == player.id && context.geoBingo.game.host.id === context.geoBingo.player.id && player.id !== context.geoBingo.player.id && (
+                                    {hoveringPlayer == player.id && context.geoBingo.game.host.id === context.geoBingo.player.id && player.id !== context.geoBingo.player.id ? (
                                         <div className="ml-auto flex items-center">
                                             <Button
                                                 className="bg-transparent hover:opacity-80"
@@ -271,14 +313,12 @@ export default function Waiting() {
                                                 </svg>
                                             </Button>
                                         </div>
-                                    )}
-
-                                    {Number(player.points) > 0 && (
+                                    ) : (
                                         <div
-                                            className="ml-auto bg-gray-600 p-1 rounded-full px-3"
+                                            className="bg-gray-600 p-1 rounded-full px-3 ml-auto mr-3"
                                         >
                                             <p className="text-white font-bold">
-                                                {player.points}
+                                                {Number(player.points)}
                                             </p>
                                         </div>
                                     )}

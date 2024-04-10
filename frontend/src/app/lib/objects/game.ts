@@ -1,5 +1,4 @@
 import socket from "../server/socket";
-import { Capture } from "./capture";
 import { Player } from "./player";
 import { Prompt } from "./prompt";
 
@@ -12,10 +11,11 @@ export class Game {
     players!: Player[];
     host!: Player;
     privateLobby!: boolean;
-    phase!: 'waiting' | 'playing' | 'score';
+    phase!: 'waiting' | 'playing' | 'voting' | 'score';
     prompts!: Prompt[];
     maxSize!: number;
     time!: number;
+    votingTime!: number;
     startingAt?: Date;
     endingAt?: Date;
 
@@ -28,6 +28,7 @@ export class Game {
         this.prompts = data.prompts.map((prompt: any) => new Prompt(prompt.name, prompt.capture));
         this.maxSize = data.maxSize;
         this.time = data.time;
+        this.votingTime = data.votingTime;
         this.startingAt = data.startingAt;
         this.endingAt = data.endingAt;
     }

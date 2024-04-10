@@ -2,7 +2,12 @@ import { GeoBingoContext } from "@/app/context/GeoBingoContext";
 import { Loader } from "@googlemaps/js-api-loader";
 import React, { useContext, useEffect, useRef } from "react";
 
-const GoogleMaps = () => {
+interface GoogleMapsProps {
+    className: string;
+    streetView?: boolean;
+}
+
+const GoogleMaps: React.FC<GoogleMapsProps> = ({ className, streetView }) => {
     const context = useContext(GeoBingoContext);
 
     const mapRef = useRef<HTMLDivElement>(null);
@@ -30,14 +35,29 @@ const GoogleMaps = () => {
 
             const map = new Map(mapRef.current as HTMLDivElement, mapOptions);
 
+            if (streetView) {
+                const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
+                    position: position,
+                    pov: {
+                        heading: 0,
+                        pitch: 0,
+                    },
+                    zoom: 1,
+                    visible: true,
+                };
+
+                const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, panoramaOptions);
+                map.setStreetView(panorama);
+            }
+
             context.geoBingo.setMap(map);
         }
         initMap();
     }, []);
 
     return (
-        <div className="h-screen" ref={mapRef} />
+        <div className={className} ref={mapRef} />
     )
 }
 
-export default React.memo(GoogleMaps);
+export default GoogleMaps;

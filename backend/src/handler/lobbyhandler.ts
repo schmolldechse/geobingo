@@ -3,6 +3,7 @@ import { format } from 'date-fns-tz';
 import { add } from 'date-fns';
 import { Prompt, prompts } from "../objects/prompt";
 import { Capture } from "../objects/capture";
+import { v4 as uuidv4 } from 'uuid';
 
 function generateLobbyId() {
     const length = 6;
@@ -27,10 +28,11 @@ type Lobby = {
     players: PlayerSocket[];
     host: PlayerSocket;
     privateLobby: boolean;
-    phase: 'waiting' | 'playing' | 'score';
+    phase: 'waiting' | 'playing' | 'voting' | 'score';
     prompts: Prompt[];
     maxSize: number;
     time: number;
+    votingTime: number; // per prompt
     startingAt?: string;
     endingAt?: string;
 }
@@ -58,7 +60,8 @@ export default (playerSocket: PlayerSocket) => {
                 name: getRandomPrompt()
             })),
             maxSize: 10,
-            time: 10
+            time: 10,
+            votingTime: 15,
         }
         lobbies.push(lobby);
 
@@ -203,19 +206,26 @@ export default (playerSocket: PlayerSocket) => {
 
         if (data.changing.maxSize) {
             if (typeof data.changing.maxSize !== 'number') return callback({ success: false, message: 'Invalid parameter' });
-            if (data.changing.maxSize < 1 || data.changing.maxSize > 100) return callback({ success: false, message: 'Parameter is out of bounds' });
+            if (data.changing.maxSize < 1 || data.changing.maxSize > 100) return callback({ success: false, message: `Parameter of 'maxSize' is out of bounds` });
 
             lobby.maxSize = data.changing.maxSize;
         }
 
         if (data.changing.time) {
             if (typeof data.changing.time !== 'number') return callback({ success: false, message: 'Invalid parameter' });
-            if (data.changing.time < 1 || data.changing.time > 60) return callback({ success: false, message: 'Parameter is out of bounds' });
+            if (data.changing.time < 1 || data.changing.time > 60) return callback({ success: false, message: `Parameter of 'time' is out of bounds` });
 
             lobby.time = data.changing.time;
         }
 
-        updateLobby(lobby, { maxSize: lobby.maxSize, time: lobby.time });
+        if (data.changing.votingTime) {
+            if (typeof data.changing.votingTime !== 'number') return callback({ success: false, message: 'Invalid parameter' });
+            if (data.changing.votingTime < 10 || data.changing.votingTime > 60) return callback({ success: false, message: `Parameter of 'votingTime' is out of bounds` });
+
+            lobby.votingTime = data.changing.votingTime;
+        }
+
+        updateLobby(lobby, { maxSize: lobby.maxSize, time: lobby.time, votingTime: lobby.votingTime });
         return callback({ success: true, message: 'Updated lobby' });
     }
 
@@ -289,6 +299,7 @@ export default (playerSocket: PlayerSocket) => {
 
         lobby.phase = 'playing';
 
+        startLobbyTimer(lobby);
         updateLobby(lobby, { startingAt: lobby.startingAt, endingAt: lobby.endingAt, phase: lobby.phase });
         return callback({ success: true, message: 'Started game' });
     }
@@ -311,10 +322,10 @@ export default (playerSocket: PlayerSocket) => {
 
         if (lobby.phase !== 'playing') return callback({ success: false, message: 'Game did not start yet' });
         
-        // reset the captures found by "playerSocket.player.id"
+        // reset the captures found by "playerSocket.player"
         lobby.prompts.forEach((prompt: Prompt) => {
             if (!prompt.captures) return;
-            prompt.captures = prompt.captures.filter((capture: Capture) => capture.playerId !== playerSocket.player?.id)
+            prompt.captures = prompt.captures.filter((capture: Capture) => capture.player !== playerSocket.player)
         });
 
         if (data.prompts.length === 0) return callback({ success: false, message: 'No prompts given to upload' });
@@ -328,9 +339,10 @@ export default (playerSocket: PlayerSocket) => {
             if (!lobbyPrompt) return;
             if (!lobbyPrompt.captures) lobbyPrompt.captures = [];
 
-            // create a new capture object
+            // create a new capture object | there won't be any votes yet
             const capture = new Capture();
-            capture.playerId = playerSocket.player?.id;
+            capture.player = playerSocket.player;
+            capture.uniqueId = uuidv4();
             capture.found = prompt.capture.found;
 
             capture.panorama = prompt.capture.panorama;
@@ -387,4 +399,26 @@ const createSendingLobby = (lobby: Lobby) => {
         players: lobby.players.map(playerSocket => playerSocket.player),
         host: lobby.host.player
     };
+}
+
+const startLobbyTimer = (lobby: Lobby) => {
+    console.log('Lobby with id ' + lobby.id + ' started');
+
+    let intervalId = setInterval(() => {
+        const current = new Date();
+
+        if (lobby.phase !== 'playing') clearInterval(intervalId);
+
+        if (current >= new Date(lobby.endingAt)) {
+            lobby.phase = 'voting';
+            lobby.startingAt = undefined;
+            lobby.endingAt = undefined;
+
+            updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, startingAt: lobby.startingAt, endingAt: lobby.endingAt});
+
+            clearInterval(intervalId);
+
+            console.log('Lobby with id ' + lobby.id + ' ended. Switching to voting phase');
+        }
+    }, 1000);
 }

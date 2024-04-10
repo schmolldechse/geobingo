@@ -4,10 +4,11 @@ import socket from "../lib/server/socket";
 import { supabase } from "../lib/supabaseClient";
 import { Player } from "../lib/objects/player";
 import Landing from "./landing";
-import Waiting from "./ingame/waiting";
+import Waiting from "./waiting/waiting";
 import Ingame from "./ingame/playing";
 import { Game } from "../lib/objects/game";
 import { Toaster } from "sonner";
+import Voting from "./score/voting";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -69,8 +70,8 @@ export default function GeoBingo() {
                             return <Waiting />;
                         case 'playing':
                             return <Ingame />;
-                        case 'score':
-                            return <p>lol2</p>;
+                        case 'voting':
+                            return <Voting />
                         default:
                             return <p className="text-white">Where did you land?!?!!?</p>
                     }
