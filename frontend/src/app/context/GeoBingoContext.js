@@ -54,7 +54,7 @@ export const GeoBingoProvider = ({ children }) => {
                     color: 'rgb(93, 244, 169)'
                 }
             });
-        }
+        };
 
         socket.on('geobingo:lobbyUpdate', handleLobbyUpdate);
         socket.on('geobingo:important', handleImportantMessage);

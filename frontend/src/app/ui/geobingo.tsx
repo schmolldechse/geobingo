@@ -6,7 +6,6 @@ import { Player } from "../lib/objects/player";
 import Landing from "./landing";
 import Waiting from "./waiting/waiting";
 import Ingame from "./ingame/playing";
-import { Game } from "../lib/objects/game";
 import { Toaster } from "sonner";
 import Voting from "./voting/voting";
 import Score from "./score/score";
@@ -27,7 +26,6 @@ export default function GeoBingo() {
 
         socket.on("connect", () => {
             console.log("Connecting to server");
-            context.geoBingo.player?.initMessageListener();
         });
 
         socket.on("error", (error) => {
@@ -36,14 +34,6 @@ export default function GeoBingo() {
 
         socket.on("disconnect", (response) => {
             console.log("Disconnected from server", response);
-        });
-
-        let urlParameter = new URLSearchParams(window.location.search);
-        let lobbyCode = urlParameter.get("lobbyCode");
-
-        if (!lobbyCode) return;
-        context.geoBingo.player.join(lobbyCode, (response: any) => {
-            if (response.success) context.geoBingo.setGame(new Game(response.game));
         });
     }, []);
 
