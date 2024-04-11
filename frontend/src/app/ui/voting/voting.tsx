@@ -29,13 +29,14 @@ export default function Voting() {
         let captureIndex = 1;
 
         const intervalId = setInterval(() => {
-            /**
             if (captureIndex == captures.length) {
-                console.log('done!');
+                const copy = { ...context.geoBingo.game, phase: 'score' };
+                context.geoBingo.setGame(copy);
+                context.geoBingo.game.finishVote();
+
                 clearInterval(intervalId);
                 return;
             }
-            */
 
             setCurrentCapture(captures[captureIndex]);
             captureIndex++;
@@ -112,7 +113,7 @@ export default function Voting() {
                             <div className="flex justify-center items-end mt-auto space-x-8">
                                 <Button
                                     className={`space-x-2 ${selected === 'like' ? 'bg-green-700' : 'bg-transparent'} p-[1.5rem] hover:bg-green-700 hover:opacity-80`}
-                                    onClick={() => handleVote('like', 3)}
+                                    onClick={() => handleVote('like', 1)}
                                     disabled={currentCapture.capture.player.id === context.geoBingo.player.id}
                                 >
                                     <svg width="40px" height="40px" viewBox="0 0 48 48">
@@ -123,7 +124,7 @@ export default function Voting() {
 
                                 <Button
                                     className={`space-x-2 ${selected === 'dislike' ? 'bg-red-700' : 'bg-transparent'} p-[1.5rem] hover:bg-red-700 hover:opacity-80`}
-                                    onClick={() => handleVote('dislike', 1)}
+                                    onClick={() => handleVote('dislike', 0)}
                                     disabled={currentCapture.capture.player.id === context.geoBingo.player.id}
                                 >
                                     <p className="font-bold text-2xl text-black">Dislike</p>

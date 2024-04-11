@@ -36,6 +36,7 @@ type Lobby = {
     votingTime: number; // per prompt
     startingAt?: string;
     endingAt?: string;
+    votingPlayers?: string[];
 }
 
 export let lobbies: Lobby[] = [];
@@ -171,7 +172,7 @@ export default (playerSocket: PlayerSocket) => {
         if (typeof data.index !== 'number') return callback({ success: false, message: 'No prompt index given' });
         if (data.index < 0 || data.index >= prompts.length) return callback({ success: false, message: 'Invalid prompt' });
 
-        if (typeof data.prompt !== 'string') return callback({ success: false, message: 'No prompt given' });
+        if (typeof data.promptName !== 'string') return callback({ success: false, message: 'No prompt given' });
 
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
 
@@ -184,7 +185,7 @@ export default (playerSocket: PlayerSocket) => {
 
         if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
 
-        lobby.prompts[data.index] = data.prompt;
+        lobby.prompts[data.index].name = data.promptName;
 
         updateLobby(lobby, { prompts: lobby.prompts });
         return callback({ success: true, message: 'Changed prompt' });
@@ -354,8 +355,6 @@ export default (playerSocket: PlayerSocket) => {
             lobbyPrompt.captures.push(capture);
         });
 
-        console.log('prompts:', lobby.prompts);
-
         return callback({ success: true, message: 'Uploaded captures' });
     }
 
@@ -386,6 +385,51 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Voted' });
     }
 
+    /**
+     * gets called if a players finishes his votings
+     */
+    const finishVote = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        const voting = lobby.votingPlayers.find(playerId => playerId === playerSocket.player.id);
+        if (!voting) return callback({ success: false, message: 'Already finished voting' });
+
+        // update the amount of players who are still voting
+        const votingPlayers = lobby.votingPlayers.filter(playerId => playerId !== playerSocket.player.id);
+        lobby.votingPlayers = votingPlayers;
+
+        updateLobby(lobby, { votingPlayers: votingPlayers });
+        if (votingPlayers.length === 0) { 
+            // collect points of each capture and give them to their creator
+            lobby.prompts.forEach((prompt: Prompt) => {
+                prompt.captures?.forEach((capture: Capture) => {
+                    if (!capture.votes) return;
+                    const points = capture.votes?.reduce((total: number, vote: Vote) => total + vote.points, 0) || 0;
+
+                    const lobbyPlayer = lobby.players.find(playerSocket => playerSocket.player.id === capture.player.id);
+                    if (!lobbyPlayer) {
+                        console.log('Could not find player from capture ' + capture.uniqueId);
+                        return;
+                    }
+
+                    lobbyPlayer.player.points += points;
+                })
+            });
+
+            updateLobby(lobby, { phase: 'score', players: lobby.players.map(playerSocket => playerSocket.player) });
+        }
+
+        return callback({ success: true, message: 'Finished voting' });
+    }
+
     createListener(playerSocket, 'geobingo',
         [
             createLobby,
@@ -399,7 +443,8 @@ export default (playerSocket: PlayerSocket) => {
             makeHost,
             startGame,
             uploadCaptures,
-            handleVote
+            handleVote,
+            finishVote
         ]
     );
 };
@@ -438,12 +483,15 @@ const startLobbyTimer = (lobby: Lobby) => {
 
         if (lobby.phase !== 'playing') clearInterval(intervalId);
 
-        if (current >= new Date(lobby.endingAt)) {
+        if (current.getTime() >= new Date(lobby.endingAt).getTime()) {
             lobby.phase = 'voting';
             lobby.startingAt = undefined;
             lobby.endingAt = undefined;
 
-            updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, startingAt: lobby.startingAt, endingAt: lobby.endingAt});
+            // add voting property to each player
+            lobby.votingPlayers = lobby.players.map(playerSocket => playerSocket.player.id);
+
+            updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, startingAt: lobby.startingAt, endingAt: lobby.endingAt, votingPlayers: lobby.votingPlayers });
 
             clearInterval(intervalId);
 

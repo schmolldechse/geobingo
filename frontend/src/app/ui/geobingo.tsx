@@ -9,6 +9,7 @@ import Ingame from "./ingame/playing";
 import { Game } from "../lib/objects/game";
 import { Toaster } from "sonner";
 import Voting from "./voting/voting";
+import Score from "./score/score";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -71,9 +72,11 @@ export default function GeoBingo() {
                         case 'playing':
                             return <Ingame />;
                         case 'voting':
-                            return <Voting />
+                            return <Voting />;
+                        case 'score':
+                            return <Score />;
                         default:
-                            return <p className="text-white">Where did you land?!?!!?</p>
+                            return <p className="text-white">Where did you land?!?!!?</p>;
                     }
                 })()
             )}

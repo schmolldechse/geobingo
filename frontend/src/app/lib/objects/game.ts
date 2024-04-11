@@ -18,6 +18,7 @@ export class Game {
     votingTime!: number;
     startingAt?: Date;
     endingAt?: Date;
+    votingPlayers?: string[];
 
     constructor(data: any) {
         this.id = data.id;
@@ -47,9 +48,9 @@ export class Game {
         });
     };
 
-    changePrompt = (index: number, prompt: string) => {
+    changePrompt = (index: number, promptName: string) => {
         if (!socket) throw new Error("Game is not defined");
-        socket.emit('geobingo:changePrompt', { lobbyCode: this.id, index: index, prompt: prompt }, (response: any) => {
+        socket.emit('geobingo:changePrompt', { lobbyCode: this.id, index: index, promptName: promptName }, (response: any) => {
             console.log('Response:', response);
         });
     }
@@ -85,6 +86,13 @@ export class Game {
     handleVote = (prompt: string, captureId: string, points: number) => {
         if (!socket) throw new Error("Game is not defined");
         socket.emit('geobingo:handleVote', { lobbyCode: this.id, prompt: prompt, captureId: captureId, points: points }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
+    finishVote = () => {
+        if (!socket) throw new Error("Game is not defined");
+        socket.emit('geobingo:finishVote', { lobbyCode: this.id }, (response: any) => {
             console.log('Response:', response);
         });
     }

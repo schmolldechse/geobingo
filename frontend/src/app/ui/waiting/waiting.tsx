@@ -48,8 +48,7 @@ export default function Waiting() {
 
     const changePrompt = (index: number, prompt: string) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
-        if (prompt.length === 0) removePrompt(index);
-        else context.geoBingo.game.changePrompt(index, prompt);
+        context.geoBingo.game.changePrompt(index, prompt);
     };
 
     const kickPlayer = (playerId: string) => {
@@ -99,7 +98,10 @@ export default function Waiting() {
                                         placeholder="Enter a prompt"
                                         value={prompt.name}
                                         disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
-                                        onChange={(event) => changePrompt(index, event.target.value)}
+                                        onChange={(event) => changePrompt(index, (event.target as HTMLInputElement).value)}
+                                        onKeyDown={(event) => {
+                                            if (event.keyCode === 13 && (event.target as HTMLInputElement).value.length === 0) removePrompt(index);
+                                        }}
                                     />
 
                                     {context.geoBingo.game.host.id === context.geoBingo.player.id && (

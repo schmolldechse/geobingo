@@ -16,6 +16,7 @@ export class Player {
         this.id = (auth ? auth.id : uuidv4());
         this.picture = (auth ? auth.user_metadata.picture : '');
         this.auth = (auth ? auth : {});
+        this.points = 0;
 
         socket.emit('geobingo:initAuth', { player: this }, (response: any) => {  });
     }
