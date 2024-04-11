@@ -38,6 +38,9 @@ export default function Landing() {
         if (!lobbyCode) return;
         setJoined(true);
 
+        urlParameter.delete("lobbyCode");
+        window.history.replaceState({}, document.title, window.location.pathname + '?' + urlParameter.toString());
+        
         context.geoBingo.player.join(lobbyCode, (response) => {
             if (response.success) context.geoBingo.setGame(new Game(response.game));
         });
