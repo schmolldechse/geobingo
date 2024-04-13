@@ -8,7 +8,6 @@ import Voting from "./voting/voting";
 import Score from "./score/score";
 import { Player } from "../lib/objects/player";
 import { useSession } from "next-auth/react";
-import { ring } from 'ldrs';
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -19,9 +18,16 @@ export default function GeoBingo() {
         else if (status === 'unauthenticated') context.geoBingo.setPlayer(new Player(true, null, null, null));
     }, [status]);
 
-    ring.register();
+    // initialize ldrs library async because of window initialization
+    useEffect(() => {
+        async function getLoader() {
+            const { ring } = await import('ldrs');
+            ring.register();
+        }
+        getLoader();
+    })
 
-    if (status === 'loading' || context.geoBingo === null) {
+    if (status === 'loading' || context === null || context.geoBingo === null) {
         return (
             <div className="bg-gray-900 h-screen w-screen p-24 overflow-hidden">
                 <div className="flex justify-center items-center h-full">
