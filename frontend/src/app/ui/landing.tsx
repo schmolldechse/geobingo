@@ -28,12 +28,12 @@ export default function Landing() {
 
         urlParameter.delete("lobbyCode");
         window.history.replaceState({}, document.title, window.location.pathname + '?' + urlParameter.toString());
-        
+
         context.geoBingo.player.join(lobbyCode, (response) => {
             if (response.success) context.geoBingo.setGame(new Game(response.game));
         });
         setJoined(false);
-    }, [context.geoBingo.player]);
+    }, []);
 
     const handleJoinLobby = () => {
         if (!context.geoBingo.player) throw new Error('Player is not defined');
@@ -50,11 +50,11 @@ export default function Landing() {
     }
 
     return (
-        <div className="bg-gray-900 h-screen w-screen flex flex-col justify-between lg:p-24 p-24 flex-grow">
-            <div className="min-h-[600px] grid text-white gap-6 lg:grid-cols-2 bg-[#151951] p-2 lg:p-2 rounded-[20px]">
-                <div className="px-4 md:px-6 flex flex-col justify-center space-y-4">
+        <div className="bg-gray-900 min-h-screen w-screen sm:p-8 lg:p-24 overflow-y-scroll flex items-center justify-center">
+            <div className="bg-[#151951] rounded-[2em] p-4 flex flex-col lg:flex-row overflow-x-auto">
+                <div className="mx-4 w-full lg:w-1/2">
                     <div className="flex flex-row items-center">
-                        <svg height="200px" width="200px" viewBox="0 0 64 64">
+                        <svg height={200} width={200} viewBox="0 0 64 64">
                             <path
                                 d="M28.3 7.24c-7.07 0-13.41 3.07-17.78 7.95 6.79 2.15 11.22 5.51 10.93 8.33-.17 1.62-1.73 3.15-3.12 3.88-5.87 3.07-8.64 2.29-9.2 4.2-.34 1.14 1.9 3.52 5.17 3.78 1.59.13 4.32.36 7.62-1.04 7.22-3.06 11.71 1.94-.57 10.58 0 0-9.29 3.69-.47 8.86 2.34.77 4.83 1.19 7.43 1.19 13.18 0 23.87-10.68 23.87-23.87S41.48 7.24 28.3 7.24Z"
                                 fill="#3767B1"
@@ -84,71 +84,68 @@ export default function Landing() {
                                 d="m39.6 39.53 20.03 17.25L64 50.02 40.58 38.58z"
                             />
                         </svg>
-
-                        <h1 className="text-5xl font-medium italic">GEOBINGO</h1>
+                        <h1 className="text-white text-5xl font-medium italic">GEOBINGO</h1>
                     </div>
 
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-bold tracking-tighter sm:text-3xl">
-                            Ready to play geobingo?
-                        </h1>
-                        <p className="max-w-[500px] text-gray-500 md:text-base/relaxed lg:text-sm/releaxed xl:text-base/relaxed text-2xl font-medium">
-                            Compete against friends in a multiplayer game, searching for prompts within Google Street View
-                        </p>
+                        <h1 className="text-white text-3xl font-bold tracking-tighter">Ready to play geobingo?</h1>
+                        <p className="text-gray-500 font-medium sm:text-lg">Compete against friends in a multiplayer game, searching for prompts within Google Street View</p>
                     </div>
 
-                    <ul className="flex flex-col gap-2 py-6">
+                    <div className="gap-2 py-6">
                         {messages.map((message, index) => (
-                            <li key={index} className="flex flex-row items-center">
-                                <svg
-                                    fill="#fff"
-                                    width="24px"
-                                    height="24px"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        d="M21.582 5.543a1 1 0 0 1 0 1.414l-11.33 11.33a1 1 0 0 1-1.407.006l-6.546-6.429a1 1 0 1 1 1.402-1.427l5.838 5.735 10.629-10.63a1 1 0 0 1 1.414 0"
-                                    />
-                                </svg>
-                                <p>{message}</p>
-                            </li>
+                            <>
+                                <div className="flex flex-row">
+                                    <svg
+                                        fill="#fff"
+                                        width="24px"
+                                        height="24px"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            d="M21.582 5.543a1 1 0 0 1 0 1.414l-11.33 11.33a1 1 0 0 1-1.407.006l-6.546-6.429a1 1 0 1 1 1.402-1.427l5.838 5.735 10.629-10.63a1 1 0 0 1 1.414 0"
+                                        />
+                                    </svg>
+                                    <p className="text-white font-medium">{message}</p>
+                                </div>
+                            </>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
-                <div className="px-4 md:px-6 flex flex-col justify-center space-y-4">
+                <div className="flex flex-col justify-center px-4 w-full lg:w-1/2 space-y-4">
                     <div>
                         <User />
 
-                        {Object.keys(context.geoBingo.player?.auth || {}).length === 0 && (
+                        {context.geoBingo.player.guest && (
                             <>
-                                <p className="italic text-center mb-2">or</p>
+                                <p className="text-white text-center mb-2">or</p>
                                 <SignIn />
                             </>
                         )}
                     </div>
 
-                    <Separator className="bg-gray-600 w-[75%] h-[2px] self-center rounded-[5px]" />
+                    <Separator className="bg-gray-600 h-[2px] rounded-[1em]" />
 
-                    <div className="grid gap-2 w-[75%] self-center">
-                        <p className="font-base font-medium">Enter a lobby code</p>
-                        <input
+                    <div className="grid gap-2">
+                        <p className="text-white font-base font-medium">Enter a lobby code</p>
+                        <input 
                             className="w-full rounded-lg h-10 p-3 text-black"
                             value={lobbyCode}
                             onChange={(e) => setLobbyCode(e.target.value)}
                         />
-                        <button
-                            className="w-full bg-[#41BBF5] rounded-lg h-10 text-black text-lg font-medium hover:opacity-90 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#18465C] hover:bg-[#41BBF5]"
+                        <button 
+                            className="bg-[#41BBF5] rounded-lg h-10 text-black text-lg font-medium hover:opacity-90 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#18465C] hover:bg-[#41BBF5]"
                             onClick={() => handleJoinLobby()}
                         >
                             Join lobby
                         </button>
                     </div>
 
-                    <div className="flex flex-col justify-center space-y-1 w-[75%] self-center">
-                        <p className="font-base font-medium">or create a lobby</p>
-                        <button
-                            className="w-full bg-[#41BBF5] rounded-lg h-10 text-black text-lg font-medium hover:opacity-90 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#18465C] hover:bg-[#41BBF5]"
+                    <div className="grid">
+                        <p className="text-white font-base font-medium">or create a lobby</p>
+                        <button 
+                            className="bg-[#41BBF5] rounded-lg h-10 text-black text-lg font-medium hover:opacity-90 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#18465C] hover:bg-[#41BBF5]"
                             onClick={() => handleCreateLobby()}
                         >
                             Create a lobby
