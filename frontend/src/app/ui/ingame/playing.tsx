@@ -1,6 +1,6 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
 import { useContext, useEffect, useState } from "react";
-import Loading from "../loading";
+import Loading from "../objects/loading";
 import GoogleMaps from "../objects/googlemaps";
 import Timer from "./objects/timer";
 import Prompts from "./objects/prompts";

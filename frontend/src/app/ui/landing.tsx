@@ -1,10 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { GeoBingoContext } from "../context/GeoBingoContext";
-import User from "./user";
-import SignIn from "./signin";
+import User from "./objects/user";
+import SignIn from "./objects/signin";
 import { Separator } from "@/components/ui/separator";
 import { Game } from "../lib/objects/game";
-import { toast } from "sonner";
 
 const messages = [
     'Choose prompts for the Street View search',
@@ -19,18 +18,7 @@ export default function Landing() {
     const [joined, setJoined] = useState(false);
 
     useEffect(() => {
-        if (!context.geoBingo.player) {
-            toast.warning('Your player info is not ready yet.', {
-                style: {
-                    background: 'rgb(44, 6, 8)',
-                    borderWidth: '0.5px',
-                    borderColor: 'rgb(76, 4, 9)',
-                    color: 'rgb(254, 158, 161)'
-                }
-            });
-            return;
-        };
-
+        if (!context.geoBingo.player) return
         if (joined) return;
 
         let urlParameter = new URLSearchParams(window.location.search);

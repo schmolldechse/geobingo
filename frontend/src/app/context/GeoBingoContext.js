@@ -1,5 +1,4 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
 import { Player } from "../lib/objects/player";
 import socket from "../lib/server/socket";
 import { toast } from "sonner";
@@ -7,8 +6,6 @@ import { toast } from "sonner";
 export const GeoBingoContext = createContext(null);
 
 export const GeoBingoProvider = ({ children }) => {
-    if (!supabase) throw new Error('Supabase client is not defined');
-
     const [player, setPlayer] = useState(null);
     const [game, setGame] = useState(undefined);
     const [map, setMap] = useState(undefined);
@@ -20,7 +17,7 @@ export const GeoBingoProvider = ({ children }) => {
     }, [game]);
 
     useEffect(() => {
-        setPlayer(new Player(null));
+        setPlayer(new Player(true, null, null, null));
 
         const handleLobbyUpdate = (response) => {
             console.log('Handle incoming lobby update with these properties:', response);
@@ -58,6 +55,10 @@ export const GeoBingoProvider = ({ children }) => {
 
         socket.on('geobingo:lobbyUpdate', handleLobbyUpdate);
         socket.on('geobingo:important', handleImportantMessage);
+
+        socket.on("connect", () => console.log("Connecting to server"));
+        socket.on("disconnect", (response) => console.log("Disconnected from server", response));
+        socket.on("error", (error) => console.error("error while connecting to backend:", error));
 
         return () => { game.stopSocket() }
     }, []);

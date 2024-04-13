@@ -3,19 +3,19 @@ import socket from "../server/socket";
 import { faker } from '@faker-js/faker';
 
 export class Player {
+    guest: boolean;
     name: string;
     id: string;
     picture: string;
-    auth: any;
     points: number;
 
-    constructor(auth: any) {
+    constructor(guest: boolean, name: string, id: string, picture: string) {
         faker.seed(123); // ?????
 
-        this.name = (auth ? auth.user_metadata.name : faker.person.firstName());
-        this.id = (auth ? auth.id : uuidv4());
-        this.picture = (auth ? auth.user_metadata.picture : '');
-        this.auth = (auth ? auth : {});
+        this.guest = guest;
+        this.name = (name ? name : faker.person.firstName());
+        this.id = (id ? id : uuidv4());
+        this.picture = (picture ? picture : '');
         this.points = 0;
 
         socket.emit('geobingo:initAuth', { player: this }, (response: any) => {  });

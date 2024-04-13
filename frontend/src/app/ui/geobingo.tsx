@@ -1,55 +1,35 @@
 import { useContext, useEffect } from "react"
 import { GeoBingoContext } from "../context/GeoBingoContext";
-import socket from "../lib/server/socket";
-import { supabase } from "../lib/supabaseClient";
-import { Player } from "../lib/objects/player";
 import Landing from "./landing";
 import Waiting from "./waiting/waiting";
 import Ingame from "./ingame/playing";
 import { Toaster } from "sonner";
 import Voting from "./voting/voting";
 import Score from "./score/score";
+import { Player } from "../lib/objects/player";
+import { useSession } from "next-auth/react";
+import { ring } from 'ldrs';
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
 
-    const fetchUser = async () => {
-        if (!supabase) throw new Error('Supabase client is not defined');
-        const {
-            data: { user }
-        } = await supabase.auth.getUser();
-        console.log('Retrieved user data:', user);
-    }
-
+    const { data: session, status } = useSession();
     useEffect(() => {
-        fetchUser();
+        if (status === 'authenticated' && session) context.geoBingo.setPlayer(new Player(false, session.user.name, session.user.id, session.user.image));
+        else if (status === 'unauthenticated') context.geoBingo.setPlayer(new Player(true, null, null, null));
+    }, [status]);
 
-        socket.on("connect", () => {
-            console.log("Connecting to server");
-        });
+    ring.register();
 
-        socket.on("error", (error) => {
-            console.error("error while connecting to backend:", error);
-        });
-
-        socket.on("disconnect", (response) => {
-            console.log("Disconnected from server", response);
-        });
-    }, []);
-
-    supabase.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_IN" && session) {
-            context.geoBingo.setPlayer(new Player(session.user));
-        } else if (event === "SIGNED_OUT") {
-            [window.localStorage, window.sessionStorage].forEach((storage) => {
-                Object.entries(storage).forEach(([key]) =>
-                    storage.removeItem(key),
-                );
-            });
-
-            context.geoBingo.setPlayer(new Player(null));
-        }
-    });
+    if (status === 'loading' || context.geoBingo === null) {
+        return (
+            <div className="bg-gray-900 h-screen w-screen p-24 overflow-hidden">
+                <div className="flex justify-center items-center h-full">
+                    <l-ring size={150} stroke={10} bg-opacity={0} speed={2} color="#5c5c5c"></l-ring>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <>
