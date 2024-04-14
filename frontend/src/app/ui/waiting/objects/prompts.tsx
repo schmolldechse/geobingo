@@ -41,15 +41,15 @@ export default function Prompts() {
                 {context.geoBingo.game?.prompts.map((prompt: Prompt, index: number) => (
                     <div
                         key={index}
-                        className="relative flex items-center space-x-4 h-full"
+                        className="relative flex space-x-3 items-center"
                     >
                         <input
                             type="text"
-                            className="bg-[#151951] border-2 border-[#018AD3] rounded-[8px] text-white px-4 h-10 disabled:cursor-not-allowed"
+                            className="w-full bg-[#151951] border-2 border-[#018AD3] rounded-[8px] text-white px-4 h-10 disabled:cursor-not-allowed"
                             placeholder="Enter a prompt"
                             value={prompt.name}
                             disabled={context.geoBingo.game?.host.id !== context.geoBingo.player?.id}
-                            onChange={(eevent) => changePrompt(index, (event.target as HTMLInputElement).value)}
+                            onChange={(event) => changePrompt(index, (event.target as HTMLInputElement).value)}
                             onKeyDown={(event) => {
                                 if (event.keyCode === 13 && (event.target as HTMLInputElement).value.length === 0) removePrompt(index);
                             }}
