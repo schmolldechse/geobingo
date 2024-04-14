@@ -23,6 +23,10 @@ const authOptions: NextAuthOptions = {
                 id: token.sub
             }
         })
+    },
+    pages: {
+        signIn: '/',
+        signOut: '/',
     }
 }
 
