@@ -134,7 +134,9 @@ export default function Score() {
             {!reviewing && (
                 <div className="pt-5">
                     {context.geoBingo.game?.votingPlayers.length > 0 && (
-                        <p className="text-white font-bold text-2xl">Players are still voting {context.geoBingo.game?.votingPlayers.length} / {context.geoBingo.game?.players.length}</p>
+                        <p className="text-white font-bold text-2xl">
+                            Player{context.geoBingo.game?.votingPlayers.length > 1 ? 's' : ''} are still voting {context.geoBingo.game?.votingPlayers.length} / {context.geoBingo.game?.players.length}
+                        </p>
                     )}
 
                     <div className="overflow-y-auto h-[calc(100vh-63vh)]">
