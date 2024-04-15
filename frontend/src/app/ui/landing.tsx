@@ -94,7 +94,7 @@ export default function Landing() {
 
                     <div className="gap-2 py-6">
                         {messages.map((message, index) => (
-                            <div className="flex flex-row items-center gap-2">
+                            <div key={index} className="flex flex-row items-center gap-2">
                                 <svg fill="#fff" width="24" height="24" viewBox="-3.5 0 19 19" className="cf-icon-svg">
                                     <path d="M4.63 15.638a1.03 1.03 0 0 1-.79-.37L.36 11.09a1.03 1.03 0 1 1 1.58-1.316l2.535 3.043L9.958 3.32a1.029 1.029 0 0 1 1.783 1.03L5.52 15.122a1.03 1.03 0 0 1-.803.511l-.088.004z" />
                                 </svg>
