@@ -14,7 +14,10 @@ export default function GeoBingo() {
 
     const { data: session, status } = useSession();
     useEffect(() => {
-        if (status === 'authenticated' && session) context.geoBingo.setPlayer(new Player(false, session.user.name, session.user.id, session.user.image));
+        if (status === 'authenticated' && session) {
+            // @ts-ignore
+            context.geoBingo.setPlayer(new Player(false, session.user.name, session.user.id, session.user.image));
+        }
         else if (status === 'unauthenticated') context.geoBingo.setPlayer(new Player(true, null, null, null));
     }, [status]);
 
