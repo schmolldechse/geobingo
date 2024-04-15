@@ -88,7 +88,7 @@ export default function Settings() {
                             }}
                             onChange={(e) => {
                                 const newValue = parseInt(e.currentTarget.value);
-                                setTime(newValue);
+                                setVotingTime(newValue);
                             }}
                             disabled={context.geoBingo.game?.host.id !== context.geoBingo.player?.id}
                             className="w-full disabled:cursor-not-allowed"
