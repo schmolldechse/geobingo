@@ -82,7 +82,7 @@ export default function Settings() {
                             type="range"
                             max={60}
                             min={10}
-                            value={time}
+                            value={votingTime}
                             onMouseUp={(e) => {
                                 context.geoBingo.game.editLobby({ votingTime: votingTime })
                             }}
@@ -94,7 +94,7 @@ export default function Settings() {
                             className="w-full disabled:cursor-not-allowed"
                         />
 
-                        <p className="text-white font-bold">{time}</p>
+                        <p className="text-white font-bold">{votingTime}</p>
                     </div>
                 </div>
             </div>
