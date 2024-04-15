@@ -11,12 +11,12 @@ const GoogleMaps: React.FC<GoogleMapsProps> = ({ className, streetView }) => {
     const context = useContext(GeoBingoContext);
 
     const mapRef = useRef<HTMLDivElement>(null);
-    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API) throw new Error('Google Maps API Key not set');
+    if (!process.env.GOOGLE_MAPS_API) throw new Error('Google Maps API Key not set');
 
     useEffect(() => {
         const initMap = async () => {
             const loader = new Loader({
-                apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API as string,
+                apiKey: process.env.GOOGLE_MAPS_API as string,
                 version: "weekly",
             });
 
