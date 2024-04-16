@@ -486,7 +486,9 @@ const startLobbyTimer = (lobby: Lobby) => {
         if (lobby.phase !== 'playing') clearInterval(intervalId);
 
         if (current.getTime() >= new Date(lobby.endingAt).getTime()) {
-            lobby.phase = 'voting';
+            const totalCaptures = lobby.prompts.map((prompt: Prompt) => prompt.captures?.length || 0).reduce((a, b) => a + b, 0);
+
+            lobby.phase = (totalCaptures > 1 ? 'voting' : 'score');
             lobby.startingAt = undefined;
             lobby.endingAt = undefined;
 
@@ -497,7 +499,7 @@ const startLobbyTimer = (lobby: Lobby) => {
 
             clearInterval(intervalId);
 
-            console.log('Lobby with id ' + lobby.id + ' ended. Switching to voting phase');
+            console.log(`Lobby with id ' + lobby.id + ' ended. Switching to ${lobby.phase} phase`);
         }
     }, 1000);
 }
