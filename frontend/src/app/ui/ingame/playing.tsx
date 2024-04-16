@@ -7,7 +7,7 @@ import Prompts from "./objects/prompts";
 
 export default function Ingame() {
     const context = useContext(GeoBingoContext);
-    const [difference, setDifference] = useState(10);
+    const [difference, setDifference] = useState(999);
     const [state, setState] = useState('initializing');
 
     useEffect(() => {
@@ -15,12 +15,12 @@ export default function Ingame() {
         const intervalId = setInterval(() => {
             const newDifference = Math.floor((startingAtTimestamp - Date.now()) / 1000);
             setDifference(newDifference);
-
+            
             if (newDifference <= 0) {
                 clearInterval(intervalId);
                 setState('playing');
             }
-        }, 1000);
+        }, 500);
 
         return () => clearInterval(intervalId);
     }, []);
@@ -30,7 +30,7 @@ export default function Ingame() {
             {state === 'initializing' && (
                 <div className="flex flex-col items-center justify-center h-screen space-y-2">
                     <Loading />
-                    {difference <= 5 && (
+                    {difference <= 10 && (
                         <p className="text-4xl text-center text-white font-bold">
                             Starting in {difference} second{difference > 1 ? 's' : ''} ...
                         </p>

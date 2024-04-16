@@ -3,18 +3,19 @@ import { useContext, useEffect, useState } from "react";
 
 export default function Timer() {
     const context = useContext(GeoBingoContext);
-    const [currentTime, setCurrentTime] = useState(Date.now());
+
+    const [timeLeft, setTimeLeft] = useState(0);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
-            setCurrentTime(Date.now());
+            const currentTime = Date.now();
+            const gameEndTime = new Date(context.geoBingo.game?.endingAt).getTime();
+            const newTimeLeft = Math.floor((gameEndTime - currentTime) / 1000);
+            setTimeLeft(newTimeLeft);
         }, 1000);
-
+    
         return () => clearInterval(intervalId);
     }, []);
-
-    const gameEndTime = new Date(context.geoBingo.game?.endingAt).getTime();
-    const timeLeft = Math.floor((gameEndTime - currentTime) / 1000);
 
     const hours = Math.floor(timeLeft / 3600);
     const minutes = Math.floor((timeLeft % 3600) / 60);
