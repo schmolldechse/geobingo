@@ -101,10 +101,11 @@ export class Game {
      * changing is a json object with the properties to change
      * @param changing 
      */
-    editLobby = (changing: any) => {
+    editLobby = (changing: any, callback: (response: any) => void) => {
         if (!socket) throw new Error('Socket is not defined');
         socket.emit('geobingo:editLobby', { lobbyCode: this.id, changing: changing }, (response: any) => {
             console.log('Response:', response);
+            callback(response);
         });
     }
 

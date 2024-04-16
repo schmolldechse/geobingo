@@ -36,7 +36,9 @@ export default function Settings() {
                             min={1}
                             value={maxSize}
                             onMouseUp={(e) => {
-                                context.geoBingo.game.editLobby({ maxSize: maxSize })
+                                context.geoBingo.game.editLobby({ maxSize: maxSize }, (response: any) => {
+                                    if (!response.success) setMaxSize(context.geoBingo.game?.maxSize || 20);
+                                })
                             }}
                             onChange={(e) => {
                                 const newValue = parseInt(e.currentTarget.value);

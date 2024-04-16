@@ -210,6 +210,8 @@ export default (playerSocket: PlayerSocket) => {
             if (typeof data.changing.maxSize !== 'number') return callback({ success: false, message: 'Invalid parameter' });
             if (data.changing.maxSize < 1 || data.changing.maxSize > 100) return callback({ success: false, message: `Parameter of 'maxSize' is out of bounds` });
 
+            if (data.changing.maxSize < lobby.players.length) return callback({ success: false, message: `Parameter of 'maxSize' can not be smaller than the amount of players` });
+
             lobby.maxSize = data.changing.maxSize;
         }
 
