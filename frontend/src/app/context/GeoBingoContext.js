@@ -2,6 +2,7 @@ import { createContext, useEffect, useRef, useState } from "react";
 import { Player } from "../lib/objects/player";
 import socket from "../lib/server/socket";
 import { toast } from "sonner";
+import { Loader } from "@googlemaps/js-api-loader";
 
 export const GeoBingoContext = createContext(null);
 
@@ -61,6 +62,20 @@ export const GeoBingoProvider = ({ children }) => {
         socket.on("error", (error) => console.error("error while connecting to backend:", error));
 
         return () => { game.stopSocket() }
+    }, []);
+
+    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API) throw new Error('Google Maps API Key not set');
+    useEffect(() => {
+        const loader = new Loader({
+            apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API,
+            version: "weekly",
+            libraries: ["maps", "marker"],
+        });
+
+        loader
+            .load()
+            .then(async () => console.log('Google Maps API loaded'))
+            .catch((e) => console.error('Could not load Google Maps:', e));
     }, []);
 
     const geoBingo = { player, setPlayer, game, setGame, map, setMap };

@@ -26,31 +26,29 @@ export default function Ingame() {
     }, []);
 
     return (
-        <>
-            <div className="bg-gray-900 h-screen w-screen">
-                {state === 'initializing' && (
-                    <div className="flex flex-col items-center justify-center h-screen space-y-2">
-                        <Loading />
-                        {difference <= 5 && (
-                            <p className="text-4xl text-center text-white font-bold">
-                                Starting in {difference} second{difference > 1 ? 's' : ''} ...
-                            </p>
-                        )}
-                    </div>
-                )}
+        <div className="bg-gray-900 h-screen w-screen">
+            {state === 'initializing' && (
+                <div className="flex flex-col items-center justify-center h-screen space-y-2">
+                    <Loading />
+                    {difference <= 5 && (
+                        <p className="text-4xl text-center text-white font-bold">
+                            Starting in {difference} second{difference > 1 ? 's' : ''} ...
+                        </p>
+                    )}
+                </div>
+            )}
 
-                {state === 'playing' && (
-                    <div className="relative">
-                        <GoogleMaps className="h-screen" />
-                        <div className="absolute top-0 left-1/2 mt-4 z-50">
-                            <Timer />
-                        </div>
-                        <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-50">
-                            <Prompts />
-                        </div>
+            {state === 'playing' && (
+                <div className="relative">
+                    <GoogleMaps className="h-screen" streetViewEnabled={false} />
+                    <div className="absolute top-0 left-1/2 mt-4 z-50">
+                        <Timer />
                     </div>
-                )}
-            </div>
-        </>
+                    <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-50">
+                        <Prompts />
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

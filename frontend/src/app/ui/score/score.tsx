@@ -41,15 +41,13 @@ export default function Score() {
             const prompts = context.geoBingo.game?.prompts;
             if (!prompts) return;
 
-            const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
-
             // bounds object to fit all the markers (captures)
             const bounds = new google.maps.LatLngBounds();
 
             prompts.forEach((prompt: Prompt, index: number) => {
                 if (!prompt.captures) return;
                 prompt.captures.forEach((capture: Capture) => {
-                    createMarker(capture, prompt.name, AdvancedMarkerElement);
+                    createMarker(capture, prompt.name);
                     bounds.extend(capture.coordinates);
                 });
             });
@@ -59,8 +57,8 @@ export default function Score() {
         initMap();
     }, [context.geoBingo.game?.prompts]);
 
-    const createMarker = (capture: Capture, name: string, AdvancedMarkerElement: any) => {
-        const advancedMarker = new AdvancedMarkerElement({
+    const createMarker = (capture: Capture, name: string) => {
+        const advancedMarker = new google.maps.marker.AdvancedMarkerElement({
             position: capture.coordinates,
             map: context.geoBingo.map,
         });
@@ -129,7 +127,7 @@ export default function Score() {
             ) : (
                 <h1 className="text-white font-bold text-3xl">Overview</h1>
             )}
-            <GoogleMaps className={`${reviewing ? 'h-full' : 'h-[50%]'} rounded-lg`} streetView={true} />
+            <GoogleMaps className={`${reviewing ? 'h-full' : 'h-[50%]'} rounded-lg`} streetViewEnabled={false} />
 
             {!reviewing && (
                 <div className="pt-5">
