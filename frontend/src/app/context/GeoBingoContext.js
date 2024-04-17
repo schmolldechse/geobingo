@@ -1,8 +1,10 @@
 import { createContext, useEffect, useRef, useState } from "react";
 import { Player } from "../lib/objects/player";
+import { Game } from "../lib/objects/game";
 import socket from "../lib/server/socket";
 import { toast } from "sonner";
 import { Loader } from "@googlemaps/js-api-loader";
+import { useSession } from "next-auth/react";
 
 export const GeoBingoContext = createContext(null);
 
@@ -13,13 +15,41 @@ export const GeoBingoProvider = ({ children }) => {
 
     const gameRef = useRef(game);
 
+    // initializing player
+    const loginReady = useRef(false);
+    const { data: session, status } = useSession();
+    useEffect(() => {
+        if (status === 'authenticated' && session) {
+            // @ts-ignore
+            setPlayer(new Player(false, session.user.name, session.user.id, session.user.image));
+        } else if (status === 'unauthenticated') setPlayer(new Player(true, null, null, null));
+        loginReady.current = true;
+    }, [status]);
+
+    // joining by directlink after authentication (when loginReady is true)
+    useEffect(() => {
+        if (!player) return;
+        if (loginReady.current === false) return;
+
+        let urlParameter = new URLSearchParams(window.location.search);
+        let lobbyCode = urlParameter.get("lobbyCode");
+        if (!lobbyCode) return;
+
+        //urlParameter.delete("lobbyCode");
+        //window.history.replaceState({}, document.title, window.location.pathname + '?' + urlParameter.toString());
+
+        player.join(lobbyCode, (response) => {
+            if (response.success) setGame(new Game(response.game));
+        });
+    }, [loginReady.current === true]);
+
+    // updating gameRef for 'lobbyUpdate' socket event
     useEffect(() => {
         gameRef.current = game;
     }, [game]);
 
+    // initializing socket events
     useEffect(() => {
-        setPlayer(new Player(true, null, null, null));
-
         const handleLobbyUpdate = (response) => {
             console.log('Handle incoming lobby update with these properties:', response);
 
@@ -64,16 +94,16 @@ export const GeoBingoProvider = ({ children }) => {
         return () => { game.stopSocket() }
     }, []);
 
+    // initializing Google Maps API
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API) throw new Error('Google Maps API Key not set');
     useEffect(() => {
         const loader = new Loader({
             apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API,
             version: "weekly",
-            libraries: ["maps", "marker"],
         });
 
         loader
-            .load()
+            .importLibrary('maps', 'marker')
             .then(async () => console.log('Google Maps API loaded'))
             .catch((e) => console.error('Could not load Google Maps:', e));
     }, []);

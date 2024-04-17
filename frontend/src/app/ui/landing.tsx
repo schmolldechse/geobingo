@@ -15,26 +15,6 @@ export default function Landing() {
     const context = useContext(GeoBingoContext);
     const [lobbyCode, setLobbyCode] = useState('' as string);
 
-    const [joined, setJoined] = useState(false);
-
-    useEffect(() => {
-        if (!context.geoBingo.player) return
-        if (joined) return;
-
-        let urlParameter = new URLSearchParams(window.location.search);
-        let lobbyCode = urlParameter.get("lobbyCode");
-        if (!lobbyCode) return;
-        setJoined(true);
-
-        urlParameter.delete("lobbyCode");
-        window.history.replaceState({}, document.title, window.location.pathname + '?' + urlParameter.toString());
-
-        context.geoBingo.player.join(lobbyCode, (response) => {
-            if (response.success) context.geoBingo.setGame(new Game(response.game));
-        });
-        setJoined(false);
-    }, []);
-
     const handleJoinLobby = () => {
         if (!context.geoBingo.player) throw new Error('Player is not defined');
         context.geoBingo.player.join(lobbyCode, (response: any) => {

@@ -6,20 +6,13 @@ import Ingame from "./ingame/playing";
 import { Toaster } from "sonner";
 import Voting from "./voting/voting";
 import Score from "./score/score";
-import { Player } from "../lib/objects/player";
 import { useSession } from "next-auth/react";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
 
+    // NextAuth session
     const { data: session, status } = useSession();
-    useEffect(() => {
-        if (status === 'authenticated' && session) {
-            // @ts-ignore
-            context.geoBingo.setPlayer(new Player(false, session.user.name, session.user.id, session.user.image));
-        }
-        else if (status === 'unauthenticated') context.geoBingo.setPlayer(new Player(true, null, null, null));
-    }, [status]);
 
     // initialize ldrs library async because of window initialization
     useEffect(() => {
