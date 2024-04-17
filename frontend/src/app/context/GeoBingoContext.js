@@ -41,7 +41,9 @@ export const GeoBingoProvider = ({ children }) => {
         player.join(lobbyCode, (response) => {
             if (response.success) setGame(new Game(response.game));
         });
-    }, [loginReady.current === true]);
+
+        loginReady.current = false;
+    }, [player]);
 
     // updating gameRef for 'lobbyUpdate' socket event
     useEffect(() => {
