@@ -88,7 +88,7 @@ export default function Landing() {
                     <div>
                         <User />
 
-                        {context.geoBingo.player.guest && (
+                        {context.geoBingo.player?.guest && (
                             <>
                                 <p className="text-white text-center mb-2">or</p>
                                 <SignIn />
