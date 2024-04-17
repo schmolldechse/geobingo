@@ -109,9 +109,10 @@ export default (playerSocket: PlayerSocket) => {
         lobby.players = lobby.players.filter(lobbyPlayer => { // lobbyPlayer is a PlayerSocket
             return lobbyPlayer.player?.id !== playerSocket.player?.id;
         });
+
         if (lobby.players.length === 0) {
             removeLobby(lobby);
-        } else {
+        } else if (lobby.host.player?.id === playerSocket.player?.id) {
             let randomPlayer = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id !== playerSocket.player?.id);
             lobby.host = randomPlayer || lobby.players[0];
             lobby.host.emit('geobingo:important', { message: 'You are the new host now' });
@@ -274,7 +275,7 @@ export default (playerSocket: PlayerSocket) => {
         newHost.emit('geobingo:important', { message: 'You are the new host now' });
 
         lobby.host = newHost;
-        
+
         updateLobby(lobby, { host: lobby.host.player });
         console.log('Lobbys host is now ' + lobby.host.player?.name);
         return callback({ success: true, message: 'Changed host role' })
@@ -318,14 +319,14 @@ export default (playerSocket: PlayerSocket) => {
         callback: Function
     ) => {
         if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
-        
+
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
 
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
         if (!lobby) return callback({ success: false, message: 'Lobby not found' });
 
         if (lobby.phase !== 'playing') return callback({ success: false, message: 'Game did not start yet' });
-        
+
         // reset the captures found by "playerSocket.player"
         lobby.prompts.forEach((prompt: Prompt) => {
             if (!prompt.captures) return;
@@ -337,7 +338,7 @@ export default (playerSocket: PlayerSocket) => {
         // fetching prompts that the player captured
         data.prompts.forEach((prompt: any) => {
             if (!prompt.capture) return;
-            
+
             // find prompt object from "lobby.prompts" by incoming prompt data with property "prompt.name"
             const lobbyPrompt = lobby.prompts.find((lobbyPrompt: Prompt) => lobbyPrompt.name === prompt.name);
             if (!lobbyPrompt) return;
@@ -365,7 +366,7 @@ export default (playerSocket: PlayerSocket) => {
         callback: Function
     ) => {
         if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
-        
+
         if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
 
         const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
@@ -409,7 +410,7 @@ export default (playerSocket: PlayerSocket) => {
         lobby.votingPlayers = votingPlayers;
 
         updateLobby(lobby, { votingPlayers: votingPlayers });
-        if (votingPlayers.length === 0) { 
+        if (votingPlayers.length === 0) {
             // collect points of each capture and give them to their creator
             lobby.prompts.forEach((prompt: Prompt) => {
                 prompt.captures?.forEach((capture: Capture) => {
@@ -462,7 +463,7 @@ export const removeLobby = (lobby: Lobby) => {
  */
 export const updateLobby = (lobby: Lobby, update: any) => {
     console.log('Sending update in lobby with id ' + lobby.id);
-    lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', update ));
+    lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', update));
 }
 
 /**
@@ -492,7 +493,7 @@ const startLobbyTimer = (lobby: Lobby) => {
             lobby.startingAt = undefined;
             lobby.endingAt = undefined;
 
-            // add voting property to each player
+            // add player ids to votingPlayers
             lobby.votingPlayers = lobby.players.map(playerSocket => playerSocket.player.id);
 
             updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, startingAt: lobby.startingAt, endingAt: lobby.endingAt, votingPlayers: lobby.votingPlayers });

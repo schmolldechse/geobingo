@@ -36,14 +36,16 @@ const onConnection = (playerSocket: PlayerSocket) => {
         if (lobby.players.length === 0) {
             removeLobby(lobby);
             return;
-        } else {
-            let randomPlayer = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id !== playerSocket.player?.id);
-            lobby.host = randomPlayer || lobby.players[0];
-            lobby.host.emit('geobingo:important', { message: 'You are the new host now' });
-
-            console.log('New host of lobby ' + lobby.id + ' is now ' + lobby.host.player?.name);
-            updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player), host: lobby.host.player })
         }
+        
+        if (lobby.host.player?.id !== playerSocket.player?.id) return;
+
+        let randomPlayer = lobby.players.find(lobbyPlayer => lobbyPlayer.player?.id !== playerSocket.player?.id);
+        lobby.host = randomPlayer || lobby.players[0];
+        lobby.host.emit('geobingo:important', { message: 'You are the new host now' });
+
+        console.log('New host of lobby ' + lobby.id + ' is now ' + lobby.host.player?.name);
+        updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player), host: lobby.host.player })
     });
 }
 
