@@ -8,18 +8,18 @@ export default function Settings() {
 
     const [blur, setBlur] = useState(true);
 
-    const [time, setTime] = useState(context.geoBingo.game?.time || 10);
+    const [playingTime, setPlayingTime] = useState((context.geoBingo.game?.timers.playing / 60) || 10);
     const [maxSize, setMaxSize] = useState(context.geoBingo.game?.maxSize || 20);
-    const [votingTime, setVotingTime] = useState(context.geoBingo.game?.votingTime || 15);
+    const [votingTime, setVotingTime] = useState(context.geoBingo.game?.timers.voting || 15);
 
     /**
      * updating time & maxSize from incoming "lobbyUpdate" socket event
      */
     useEffect(() => {
-        setTime(context.geoBingo.game?.time || 10);
+        setPlayingTime((context.geoBingo.game?.timers.playing / 60) || 10);
         setMaxSize(context.geoBingo.game?.maxSize || 20);
-        setVotingTime(context.geoBingo.game?.votingTime || 15);
-    }, [context.geoBingo.game?.time, context.geoBingo.game?.maxSize, context.geoBingo.game?.votingTime]);
+        setVotingTime(context.geoBingo.game?.timers.voting || 15);
+    }, [context.geoBingo.game?.timers, context.geoBingo.game?.maxSize]);
 
     return (
         <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px]">
@@ -60,19 +60,19 @@ export default function Settings() {
                             type="range"
                             max={60}
                             min={1}
-                            value={time}
+                            value={playingTime}
                             onMouseUp={(e) => {
-                                context.geoBingo.game.editLobby({ time: time })
+                                context.geoBingo.game.editLobby({ timers: { playing: playingTime } })
                             }}
                             onChange={(e) => {
                                 const newValue = parseInt(e.currentTarget.value);
-                                setTime(newValue);
+                                setPlayingTime(newValue);
                             }}
                             disabled={context.geoBingo.game?.host.id !== context.geoBingo.player?.id}
                             className="w-full disabled:cursor-not-allowed"
                         />
 
-                        <p className="text-white font-bold">{time}</p>
+                        <p className="text-white font-bold">{playingTime}</p>
                     </div>
                 </div>
 
@@ -86,7 +86,7 @@ export default function Settings() {
                             min={10}
                             value={votingTime}
                             onMouseUp={(e) => {
-                                context.geoBingo.game.editLobby({ votingTime: votingTime })
+                                context.geoBingo.game.editLobby({ timers: { voting: votingTime } })
                             }}
                             onChange={(e) => {
                                 const newValue = parseInt(e.currentTarget.value);

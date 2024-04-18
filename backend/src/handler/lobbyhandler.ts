@@ -1,6 +1,4 @@
 import { PlayerSocket, createListener } from "../socket/playersocket";
-import { format } from 'date-fns-tz';
-import { add } from 'date-fns';
 import { Prompt, prompts } from "../objects/prompt";
 import { Capture } from "../objects/capture";
 import { v4 as uuidv4 } from 'uuid';
@@ -29,14 +27,12 @@ type Lobby = {
     players: PlayerSocket[];
     host: PlayerSocket;
     privateLobby: boolean;
-    phase: 'waiting' | 'playing' | 'voting' | 'score';
+    phase: 'dashboard' | 'playing' | 'voting' | 'score';
     prompts: Prompt[];
     maxSize: number;
-    time: number;
-    votingTime: number; // per prompt
-    startingAt?: string;
-    endingAt?: string;
+    timers: { initializing?: number, playing: number, voting: number }; // in seconds
     votingPlayers?: string[];
+    timer?: any;
 }
 
 export let lobbies: Lobby[] = [];
@@ -57,13 +53,12 @@ export default (playerSocket: PlayerSocket) => {
             players: [playerSocket],
             host: playerSocket,
             privateLobby: data.privateLobby,
-            phase: 'waiting',
+            phase: 'dashboard',
             prompts: new Array(8).fill(null).map(() => ({
                 name: getRandomPrompt()
             })),
             maxSize: 10,
-            time: 10,
-            votingTime: 15,
+            timers: { playing: 10 * 60, voting: 15 }
         }
         lobbies.push(lobby);
 
@@ -86,7 +81,7 @@ export default (playerSocket: PlayerSocket) => {
         if (lobby.maxSize <= 0) return callback({ success: false, message: 'Lobbys max size has a invalid parameter' });
         if (lobby.players.length >= lobby.maxSize) return callback({ success: false, message: 'Lobby is full' });
 
-        if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
+        if (lobby.phase !== 'dashboard') return callback({ success: false, message: 'Game already started' });
 
         lobby.players.push(playerSocket);
 
@@ -184,7 +179,7 @@ export default (playerSocket: PlayerSocket) => {
 
         if (!lobby.prompts[data.index]) return callback({ success: false, message: 'Prompt does not exist' });
 
-        if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
+        if (lobby.phase !== 'dashboard') return callback({ success: false, message: 'Game already started' });
 
         lobby.prompts[data.index].name = data.promptName;
 
@@ -216,21 +211,21 @@ export default (playerSocket: PlayerSocket) => {
             lobby.maxSize = data.changing.maxSize;
         }
 
-        if (data.changing.time) {
-            if (typeof data.changing.time !== 'number') return callback({ success: false, message: 'Invalid parameter' });
-            if (data.changing.time < 1 || data.changing.time > 60) return callback({ success: false, message: `Parameter of 'time' is out of bounds` });
+        if (data.changing.timers.playing) {
+            if (typeof data.changing.timers.playing !== 'number') return callback({ success: false, message: 'Invalid parameter' });
+            if (data.changing.timers.playing < 1 || data.changing.timers.playing > 60) return callback({ success: false, message: `Parameter of 'timers.playing' is out of bounds` });
 
-            lobby.time = data.changing.time;
+            lobby.timers.playing = data.changing.timers.playing * 60;
         }
 
-        if (data.changing.votingTime) {
-            if (typeof data.changing.votingTime !== 'number') return callback({ success: false, message: 'Invalid parameter' });
-            if (data.changing.votingTime < 10 || data.changing.votingTime > 60) return callback({ success: false, message: `Parameter of 'votingTime' is out of bounds` });
+        if (data.changing.timers.voting) {
+            if (typeof data.changing.timers.voting !== 'number') return callback({ success: false, message: 'Invalid parameter' });
+            if (data.changing.timers.voting < 10 || data.changing.timers.voting > 60) return callback({ success: false, message: `Parameter of 'timers.voting' is out of bounds` });
 
-            lobby.votingTime = data.changing.votingTime;
+            lobby.timers.voting = data.changing.timers.voting;
         }
 
-        updateLobby(lobby, { maxSize: lobby.maxSize, time: lobby.time, votingTime: lobby.votingTime });
+        updateLobby(lobby, { maxSize: lobby.maxSize, timers: lobby.timers });
         return callback({ success: true, message: 'Updated lobby' });
     }
 
@@ -294,18 +289,9 @@ export default (playerSocket: PlayerSocket) => {
 
         if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
 
-        if (lobby.phase !== 'waiting') return callback({ success: false, message: 'Game already started' });
+        if (lobby.phase !== 'dashboard') return callback({ success: false, message: 'Game already started' });
 
-        let startingAt = new Date();
-        startingAt.setSeconds(startingAt.getSeconds() + 15); // +15s for preparation
-
-        lobby.startingAt = format(startingAt, 'yyyy-MM-dd HH:mm:ss', { timeZone: 'Europe/Berlin' });
-        lobby.endingAt = format(add(startingAt, { minutes: lobby.time }), 'yyy-MM-dd HH:mm:ss', { timeZone: 'Europe/Berlin' });
-
-        lobby.phase = 'playing';
-
-        startLobbyTimer(lobby);
-        updateLobby(lobby, { startingAt: lobby.startingAt, endingAt: lobby.endingAt, phase: lobby.phase });
+        startTimer(lobby);
         return callback({ success: true, message: 'Started game' });
     }
 
@@ -454,7 +440,10 @@ export default (playerSocket: PlayerSocket) => {
 
 export const removeLobby = (lobby: Lobby) => {
     console.log('Deleting lobby with id ' + lobby.id + ' because no players are left');
-    lobbies = lobbies.filter(object => object.id !== lobby.id);
+    lobbies = lobbies.filter(object => { 
+        if (object.id === lobby.id && object.timer) clearInterval(object.timer);
+        return object.id !== lobby.id;
+    });
 }
 
 /**
@@ -471,36 +460,59 @@ export const updateLobby = (lobby: Lobby, update: any) => {
  * @returns a lobby object without the playerSocket objects 
  */
 const createSendingLobby = (lobby: Lobby) => {
+    // remove "timer" property because the client won't need it
+    const { timer, ...copy } = lobby;
+
     return {
-        ...lobby,
+        ...copy,
         players: lobby.players.map(playerSocket => playerSocket.player),
         host: lobby.host.player
     };
 }
 
-const startLobbyTimer = (lobby: Lobby) => {
-    console.log('Lobby with id ' + lobby.id + ' started');
+const startTimer = (lobby: Lobby) => {
+    console.log(`Lobby's timer in ${lobby.id} started`);
 
-    let intervalId = setInterval(() => {
-        const current = new Date();
+    lobby.timers.initializing = 10;
+    lobby.phase = 'playing';
+    updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, timers: lobby.timers });
 
-        if (lobby.phase !== 'playing') clearInterval(intervalId);
+    const initializingTimer = () => {
+        lobby.timer = setInterval(() => {
+            if (lobby.timers.initializing <= 0) {
+                clearInterval(lobby.timer);
+                gameTimer();
+                return;
+            }
 
-        if (current.getTime() >= new Date(lobby.endingAt).getTime()) {
-            const totalCaptures = lobby.prompts.map((prompt: Prompt) => prompt.captures?.length || 0).reduce((a, b) => a + b, 0);
+            lobby.timers.initializing--;
+        }, 1000);
 
-            lobby.phase = (totalCaptures > 1 ? 'voting' : 'score');
-            lobby.startingAt = undefined;
-            lobby.endingAt = undefined;
+        return () => clearInterval(lobby.timer);
+    }
+    initializingTimer();
 
-            // add player ids to votingPlayers
-            lobby.votingPlayers = lobby.players.map(playerSocket => playerSocket.player.id);
+    const gameTimer = () => {
+        console.log(`Lobby's playing timer in id ${lobby.id} started`);
 
-            updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, startingAt: lobby.startingAt, endingAt: lobby.endingAt, votingPlayers: lobby.votingPlayers });
+        lobby.timer = setInterval(() => {
+            if (lobby.timers.playing <= 0) {
+                const totalCaptures = lobby.prompts.map((prompt: Prompt) => prompt.captures?.length || 0).reduce((a, b) => a + b, 0);
+                lobby.phase = (totalCaptures > 1 ? 'voting' : 'score');
 
-            clearInterval(intervalId);
+                // add player ids to votingPlayers
+                lobby.votingPlayers = lobby.players.map(playerSocket => playerSocket.player.id);
 
-            console.log(`Lobby with id ' + lobby.id + ' ended. Switching to ${lobby.phase} phase`);
-        }
-    }, 1000);
+                updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, votingPlayers: lobby.votingPlayers });
+
+                console.log(`Lobby with id ${lobby.id} ended. Switching to ${lobby.phase} phase`);
+                clearInterval(lobby.timer);
+                return;
+            }
+
+            lobby.timers.playing--;
+        }, 1000);
+
+        return () => clearInterval(lobby.timer);
+    }
 }

@@ -1,13 +1,11 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import GoogleMaps from "../objects/googlemaps";
 import { Button } from "@/components/ui/button";
 import { Capture } from "@/app/lib/objects/capture";
 
 export default function Voting() {
     const context = useContext(GeoBingoContext);
-    context.geoBingo.map.getStreetView().setVisible(true);
-    context.geoBingo.map.getStreetView().setOptions({ enableCloseButton: false });
 
     /**
     * adjust the position of streetview
@@ -26,7 +24,7 @@ export default function Voting() {
     /**
      * either selected like or dislike button, resets after every capture
      */
-    const [selected, setSelected] = useState<"like" | "dislike">(null);
+    const selected = useRef<'like' | 'dislike' | null>(null);
 
     const captures = context.geoBingo.game?.prompts
         .filter(prompt => prompt.captures)
@@ -42,12 +40,12 @@ export default function Voting() {
         adjustPosition(currentCapture.capture);
     }, [currentCapture]);
 
-    let captureIndex = 0;
-
     /**
      * switching every "votingTime" or 15s to the next capture
      */
     useEffect(() => {
+        let captureIndex = 0;
+
         const timer = setInterval(() => {
             timeLeft.current -= 1;
 
@@ -65,7 +63,7 @@ export default function Voting() {
     
                 setCurrentCapture(captures[captureIndex]);
                 timeLeft.current = context.geoBingo.game?.votingTime || 15;
-                setSelected(null);
+                selected.current = null;
             }
 
             // DOM-manipulation because useState fucks up "adjustPosition"
@@ -81,8 +79,14 @@ export default function Voting() {
     const handleVote = (type: 'like' | 'dislike', points: number) => {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
 
-        setSelected(type);
-        context.geoBingo.game.handleVote(currentCapture.prompt, currentCapture.capture.uniqueId, points);
+        selected.current = type;
+        context.geoBingo.game.handleVote(currentCapture.prompt, currentCapture.capture.uniqueId, points, (response: any) => {
+            if (!response.success) return;
+
+            // DOM-manipulation because useState fucks up "adjustPosition"
+            document.getElementById('likeButton').className = `space-x-2 ${selected.current === 'like' ? 'bg-green-700' : 'bg-transparent'} p-[1.5rem] hover:bg-green-700 hover:opacity-80`;
+            document.getElementById('dislikeButton').className = `space-x-2 ${selected.current === 'dislike' ? 'bg-red-700' : 'bg-transparent'} p-[1.5rem] hover:bg-red-700 hover:opacity-80`;
+        });
     }
 
     return (
@@ -93,7 +97,7 @@ export default function Voting() {
 
                     <div className="m-3 h-[20%]">
                         <div className="flex flex-row items-center">
-                            <p className="text-white font-bold text-4xl italic">{currentCapture.prompt}</p>
+                            <p className="text-white font-bold text-4xl italic">{currentCapture?.prompt}</p>
 
                             <div className="px-2 border-[3px] border-red-500 ml-auto rounded-full flex justify-center items-center">
                                 <p  id='timeLeft' className="italic text-xl text-red-500 m-2 font-bold">{timeLeft.current} s</p>
@@ -101,9 +105,9 @@ export default function Voting() {
                         </div>
 
                         <div className="flex flex-row items-center space-x-2">
-                            {currentCapture.capture.player.picture.length > 0 ? (
+                            {currentCapture?.capture.player.picture.length > 0 ? (
                                 <img
-                                    src={currentCapture.capture.player.picture}
+                                    src={currentCapture?.capture.player.picture}
                                     className="w-[50px] h-[50px] rounded-full"
                                     alt="player picture"
                                 />
@@ -117,19 +121,20 @@ export default function Voting() {
                             )}
 
                             <p className="text-white font-medium text-xl">
-                                {currentCapture.capture.player.id === context.geoBingo.player.id ? (
-                                    currentCapture.capture.player.name + ' (you)'
+                                {currentCapture?.capture.player.id === context.geoBingo.player?.id ? (
+                                    currentCapture?.capture.player.name + ' (you)'
                                 ) : (
-                                    currentCapture.capture.player.name
+                                    currentCapture?.capture.player.name
                                 )}
                             </p>
                         </div>
 
                         <div className="flex justify-center items-end mt-auto space-x-8">
                             <Button
-                                className={`space-x-2 ${selected === 'like' ? 'bg-green-700' : 'bg-transparent'} p-[1.5rem] hover:bg-green-700 hover:opacity-80`}
+                                id="likeButton"
+                                className='space-x-2 bg-transparent p-[1.5rem] hover:bg-green-700 hover:opacity-80'
                                 onClick={() => handleVote('like', 1)}
-                                disabled={currentCapture.capture.player.id === context.geoBingo.player.id}
+                                disabled={currentCapture?.capture.player.id === context.geoBingo.player?.id}
                             >
                                 <svg width="40px" height="40px" viewBox="0 0 48 48">
                                     <path fill="#F44336" d="M34 9c-4.2 0-7.9 2.1-10 5.4C21.9 11.1 18.2 9 14 9 7.4 9 2 14.4 2 21c0 11.9 22 24 22 24s22-12 22-24c0-6.6-5.4-12-12-12" />
@@ -138,9 +143,10 @@ export default function Voting() {
                             </Button>
 
                             <Button
-                                className={`space-x-2 ${selected === 'dislike' ? 'bg-red-700' : 'bg-transparent'} p-[1.5rem] hover:bg-red-700 hover:opacity-80`}
+                                id="dislikeButton"
+                                className='space-x-2 bg-transparent p-[1.5rem] hover:bg-red-700 hover:opacity-80'
                                 onClick={() => handleVote('dislike', 0)}
-                                disabled={currentCapture.capture.player.id === context.geoBingo.player.id}
+                                disabled={currentCapture?.capture.player.id === context.geoBingo.player?.id}
                             >
                                 <p className="font-bold text-2xl text-black">Dislike</p>
                                 <svg width="40px" height="40px" viewBox="0 0 48 48">

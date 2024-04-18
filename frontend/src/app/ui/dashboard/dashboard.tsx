@@ -6,7 +6,7 @@ import Prompts from "./objects/prompts";
 import Settings from "./objects/settings";
 import Players from "./objects/players";
 
-export default function Waiting() {
+export default function Dashboard() {
     const context = useContext(GeoBingoContext);
 
     if (!socket) throw new Error('Socket is not defined');

@@ -1,11 +1,11 @@
 import { useContext, useEffect } from "react"
 import { GeoBingoContext } from "../context/GeoBingoContext";
 import Landing from "./landing";
-import Waiting from "./waiting/waiting";
 import Ingame from "./ingame/playing";
-import { Toaster } from "sonner";
+import Dashboard from "./dashboard/dashboard";
 import Voting from "./voting/voting";
 import Score from "./score/score";
+import { Toaster } from "sonner";
 import { useSession } from "next-auth/react";
 
 export default function GeoBingo() {
@@ -38,9 +38,9 @@ export default function GeoBingo() {
             {context.geoBingo.game === undefined && (<Landing />)}
             {context.geoBingo.game !== undefined && (
                 (() => {
-                    switch (context.geoBingo.game.phase) {
-                        case 'waiting':
-                            return <Waiting />;
+                    switch (context.geoBingo.game?.phase) {
+                        case 'dashboard':
+                            return <Dashboard />;
                         case 'playing':
                             return <Ingame />;
                         case 'voting':
@@ -48,7 +48,7 @@ export default function GeoBingo() {
                         case 'score':
                             return <Score />;
                         default:
-                            return <p className="text-white">Where did you land?!?!!?</p>;
+                            return <p className="text-black text-3xl font-bold">Where did you land?!?!!?</p>;
                     }
                 })()
             )}

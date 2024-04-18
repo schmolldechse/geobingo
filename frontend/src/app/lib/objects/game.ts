@@ -11,13 +11,14 @@ export class Game {
     players!: Player[];
     host!: Player;
     privateLobby!: boolean;
-    phase!: 'waiting' | 'playing' | 'voting' | 'score';
+    phase!: 'dashboard' |  'playing' | 'voting' | 'score';
     prompts!: Prompt[];
     maxSize!: number;
-    time!: number;
-    votingTime!: number;
-    startingAt?: Date;
-    endingAt?: Date;
+    //time!: number;
+    //votingTime!: number;
+    //startingAt?: Date;
+    //endingAt?: Date;
+    timers!: { initializing?: number, playing: number, voting: number };
     votingPlayers?: string[];
 
     constructor(data: any) {
@@ -28,10 +29,11 @@ export class Game {
         this.phase = data.phase;
         this.prompts = data.prompts.map((prompt: any) => new Prompt(prompt.name, prompt.capture));
         this.maxSize = data.maxSize;
-        this.time = data.time;
-        this.votingTime = data.votingTime;
-        this.startingAt = data.startingAt;
-        this.endingAt = data.endingAt;
+        //this.time = data.time;
+        //this.votingTime = data.votingTime;
+        //this.startingAt = data.startingAt;
+        //this.endingAt = data.endingAt;
+        this.timers = data.timers;
     }
 
     removePrompt = (index: number) => {
@@ -83,10 +85,11 @@ export class Game {
         });
     }
 
-    handleVote = (prompt: string, captureId: string, points: number) => {
+    handleVote = (prompt: string, captureId: string, points: number, callback: (response: any) => void) => {
         if (!socket) throw new Error("Game is not defined");
         socket.emit('geobingo:handleVote', { lobbyCode: this.id, prompt: prompt, captureId: captureId, points: points }, (response: any) => {
             console.log('Response:', response);
+            callback(response);
         });
     }
 
