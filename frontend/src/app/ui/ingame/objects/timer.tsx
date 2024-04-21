@@ -8,7 +8,12 @@ export default function Timer() {
 
     useEffect(() => {
         let timer = setInterval(() => {
-            setPlayingTimer((prev) => prev - 1);
+            setPlayingTimer((prev) => {
+                if (prev === 0) {
+                    clearInterval(timer);
+                    return 0;
+                }
+            });
         }, 1000);
 
         return () => clearInterval(timer);

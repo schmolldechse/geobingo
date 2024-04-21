@@ -12,6 +12,10 @@ export default function Ingame() {
     const [state, setState] = useState('initializing');
 
     useEffect(() => {
+        // edit MapOptions
+        context.geoBingo.map?.getStreetView().setOptions({ disableDefaultUI: false, enableCloseButton: true, fullscreenControl: true });
+
+        // start timer
         let timer = setInterval(() => {
             setInitializingTimer((prev) => {
                 if (prev <= 0) {
@@ -25,8 +29,6 @@ export default function Ingame() {
 
         return () => clearInterval(timer);
     }, []);
-
-    console.log('initializingTimer', initializingTimer);
 
     return (
         <div className="bg-gray-900 h-screen w-screen">

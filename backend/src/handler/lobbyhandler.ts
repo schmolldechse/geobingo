@@ -334,7 +334,7 @@ export default (playerSocket: PlayerSocket) => {
             const capture = new Capture();
             capture.player = playerSocket.player;
             capture.uniqueId = uuidv4();
-            capture.found = prompt.capture.found;
+            //capture.found = prompt.capture.found; unneccessary
 
             capture.panorama = prompt.capture.panorama;
             capture.pov = prompt.capture.pov;

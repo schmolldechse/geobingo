@@ -28,7 +28,7 @@ const GoogleMaps: React.FC<GoogleMapsProps> = ({ className, streetViewEnabled })
         }
 
         const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, panoramaOptions);
-        //panorama.setOptions({ enableCloseButton: true });
+        //panorama.setOptions({ enableCloseButton: true }); unneccessary anymore, because every phase sets it's own options
         map.setStreetView(panorama);
 
         context.geoBingo.setMap(map);
