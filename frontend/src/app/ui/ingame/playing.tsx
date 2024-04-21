@@ -13,7 +13,7 @@ export default function Ingame() {
 
     useEffect(() => {
         // edit MapOptions
-        context.geoBingo.map?.getStreetView().setOptions({ disableDefaultUI: false, enableCloseButton: true, fullscreenControl: true });
+        context.geoBingo.map?.getStreetView().setOptions({ enableCloseButton: true });
 
         // start timer
         let timer = setInterval(() => {
