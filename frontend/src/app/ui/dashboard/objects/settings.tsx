@@ -42,7 +42,7 @@ export default function Settings() {
                             }}
                             onChange={(e) => {
                                 const newValue = parseInt(e.currentTarget.value);
-                                setMaxSize(newValue);
+                                setMaxSize(newValue <= context.geoBingo.game?.players.length ? context.geoBingo.game?.players.length : newValue);
                             }}
                             disabled={context.geoBingo.game?.host.id !== context.geoBingo.player?.id}
                             className="w-full disabled:cursor-not-allowed"
