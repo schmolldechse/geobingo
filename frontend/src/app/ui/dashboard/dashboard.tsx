@@ -31,13 +31,13 @@ export default function Dashboard() {
             </Button>
 
             <div className="flex flex-col sm:flex-row space-y-[1.5rem] sm:space-y-0 sm:space-x-[1.5rem] flex-grow">
-                <div className="flex-1 flex flex-col items-stretch">
+                <div className="flex-1 flex flex-col items-stretch shadow-2xl">
                     <Prompts />
                 </div>
-                <div className="flex-1 flex flex-col items-stretch">
+                <div className="flex-1 flex flex-col items-stretch shadow-2xl">
                     <Settings />
                 </div>
-                <div className="flex-1 flex flex-col items-stretch">
+                <div className="flex-1 flex flex-col items-stretch shadow-2xl">
                     <Players />
                 </div>
             </div>

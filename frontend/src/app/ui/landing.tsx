@@ -29,9 +29,10 @@ export default function Landing() {
         });
     }
 
+    // TODO: shadow
     return (
         <div className="bg-gray-900 min-h-screen w-screen p-4 sm:p-24 overflow-y-auto flex items-center justify-center">
-            <div className="bg-[#151951] min-h-[600px] rounded-[2em] p-4 flex flex-col items-center lg:flex-row overflow-x-auto">
+            <div className="bg-[#151951] min-h-[600px] rounded-[2em] p-4 flex flex-col items-center lg:flex-row overflow-x-auto shadow-2xl">
                 <div className="mx-4 w-min lg:w-1/2">
                     <div className="flex flex-row items-center">
                         <svg className="h-[95px] w-[95px] lg:h-[200px] lg:w-[200px]" viewBox="0 0 64 64">
