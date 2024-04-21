@@ -22,7 +22,7 @@ export default function Settings() {
     }, [context.geoBingo.game?.timers, context.geoBingo.game?.maxSize]);
 
     return (
-        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px]">
+        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px] shadow-2xl">
             <h1 className="text-white font-bold text-3xl">Settings</h1>
 
             <div className="space-y-4">

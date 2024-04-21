@@ -19,7 +19,7 @@ export default function Players() {
     };
 
     return (
-        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px]">
+        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px] shadow-2xl">
             <h1 className="text-white font-bold text-3xl">Players {context.geoBingo.game?.players.length} / {context.geoBingo.game?.maxSize}</h1>
 
             <div className="flex flex-col space-y-5">

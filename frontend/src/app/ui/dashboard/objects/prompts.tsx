@@ -22,7 +22,7 @@ export default function Prompts() {
     };
 
     return (
-        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px]">
+        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px] shadow-2xl">
             <div className="flex flex-row justify-center pb-1">
                 <h1 className="text-white font-bold text-3xl">Prompts</h1>
 
