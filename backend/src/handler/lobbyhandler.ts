@@ -211,14 +211,14 @@ export default (playerSocket: PlayerSocket) => {
             lobby.maxSize = data.changing.maxSize;
         }
 
-        if (data.changing.timers.playing) {
+        if (data.changing.timers?.playing) {
             if (typeof data.changing.timers.playing !== 'number') return callback({ success: false, message: 'Invalid parameter' });
             if (data.changing.timers.playing < 1 || data.changing.timers.playing > 60) return callback({ success: false, message: `Parameter of 'timers.playing' is out of bounds` });
 
             lobby.timers.playing = data.changing.timers.playing * 60;
         }
 
-        if (data.changing.timers.voting) {
+        if (data.changing.timers?.voting) {
             if (typeof data.changing.timers.voting !== 'number') return callback({ success: false, message: 'Invalid parameter' });
             if (data.changing.timers.voting < 10 || data.changing.timers.voting > 60) return callback({ success: false, message: `Parameter of 'timers.voting' is out of bounds` });
 
