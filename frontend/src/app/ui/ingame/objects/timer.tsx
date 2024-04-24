@@ -8,7 +8,7 @@ export default function Timer() {
 
     useEffect(() => {
         let timer = setInterval(() => {
-            setPlayingTimer((prev) => {
+            setPlayingTimer((prev: number) => {
                 if (prev <= 0) {
                     clearInterval(timer);
                     return 0;
@@ -19,6 +19,11 @@ export default function Timer() {
 
         return () => clearInterval(timer);
     }, []);
+
+    // updating timer if backend sends a update for "timers"
+    useEffect(() => {
+        setPlayingTimer(context.geoBingo.game?.timers.playing || 15);
+    }, [context.geoBingo.game?.timers]);
 
     const hours = Math.floor(playingTimer / 3600);
     const minutes = Math.floor((playingTimer % 3600) / 60);
