@@ -395,6 +395,7 @@ export default (playerSocket: PlayerSocket) => {
         const votingPlayers = lobby.votingPlayers.filter(playerId => playerId !== playerSocket.player.id);
         lobby.votingPlayers = votingPlayers;
 
+        updatePlayerInLobby(playerSocket, lobby, { phase: 'score' });
         updateLobby(lobby, { votingPlayers: votingPlayers });
         if (votingPlayers.length === 0) {
             // collect points of each capture and give them to their creator
@@ -453,6 +454,15 @@ export const removeLobby = (lobby: Lobby) => {
 export const updateLobby = (lobby: Lobby, update: any) => {
     console.log('Sending update in lobby with id ' + lobby.id);
     lobby.players.forEach(player => player.emit('geobingo:lobbyUpdate', update));
+}
+
+/**
+ * Sending an lobby update to any player in the lobby with the properties given in "update"
+ * @param lobby
+ */
+export const updatePlayerInLobby = (player: PlayerSocket, lobby: Lobby, update: any) => {
+    console.log('Sending update to player with id ' + player.player?.id + ' in lobby with id ' + lobby.id);
+    player.emit('geobingo:lobbyUpdate', update);
 }
 
 /**

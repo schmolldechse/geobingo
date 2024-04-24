@@ -1,7 +1,6 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Loading from "../objects/loading";
-import GoogleMaps from "../objects/googlemaps";
 import Timer from "./objects/timer";
 import Prompts from "./objects/prompts";
 
@@ -11,13 +10,12 @@ export default function Ingame() {
     const [initializingTimer, setInitializingTimer] = useState(context.geoBingo.game?.timers.initializing || 15);
     const [state, setState] = useState('initializing');
 
-    useEffect(() => {
-        // edit MapOptions
-        context.geoBingo.map?.getStreetView().setOptions({ enableCloseButton: true });
+    const mapRef = useRef(null);
+    const [map, setMap] = useState<google.maps.Map | null>(null);
 
-        // start timer
+    useEffect(() => {
         let timer = setInterval(() => {
-            setInitializingTimer((prev) => {
+            setInitializingTimer((prev: number) => {
                 if (prev <= 0) {
                     clearInterval(timer);
                     setState('playing');
@@ -29,6 +27,35 @@ export default function Ingame() {
 
         return () => clearInterval(timer);
     }, []);
+
+    useEffect(() => {
+        if (state === 'playing' && mapRef.current) initMap();
+    }, [state]);
+
+    const initMap = () => {
+        const mapOptions: google.maps.MapOptions = {
+            center: { lat: 0, lng: 0 },
+            zoom: 2,
+            mapId: 'GEOBINGO_MAP'
+        }
+
+        const mapInstance = new google.maps.Map(mapRef.current as HTMLDivElement, mapOptions);
+
+        // setting captures[0]'s position
+        const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
+            position: { lat: 0, lng: 0 },
+            pov: { heading: 0, pitch: 0 },
+            zoom: 0,
+            visible: false,
+            // StreetView options
+            enableCloseButton: true
+        }
+
+        const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, panoramaOptions);
+        mapInstance.setStreetView(panorama);
+
+        setMap(mapInstance);
+    }
 
     return (
         <div className="bg-gray-900 h-screen w-screen">
@@ -45,12 +72,12 @@ export default function Ingame() {
 
             {state === 'playing' && (
                 <div className="relative">
-                    <GoogleMaps className="h-screen" streetViewEnabled={false} />
+                    <div id="map" className="h-screen" ref={mapRef} />
                     <div className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-4 z-50">
                         <Timer />
                     </div>
                     <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-50">
-                        <Prompts />
+                        <Prompts map={map} />
                     </div>
                 </div>
             )}

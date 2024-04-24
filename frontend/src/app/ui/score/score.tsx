@@ -1,6 +1,5 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
-import { useContext, useEffect, useState } from "react";
-import GoogleMaps from "../objects/googlemaps";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Prompt } from "@/app/lib/objects/prompt";
 import { Capture } from "@/app/lib/objects/capture";
 import { Button } from "@/components/ui/button";
@@ -8,72 +7,82 @@ import Leaderboard from "./objects/leaderboard";
 
 export default function Score() {
     const context = useContext(GeoBingoContext);
-    context.geoBingo.map?.getStreetView().setOptions({ enableCloseButton: false, fullScreenControl: false }); // remove maybe because not working
 
     const [reviewing, setReviewing] = useState(undefined);
+
+    const mapRef = useRef(null);
+    const [map, setMap] = useState<google.maps.Map | null>(null);
 
     /**
      * leaving street view when pressing escape
      */
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && reviewing) {
-                setReviewing(undefined);
-                context.geoBingo.map.getStreetView().setVisible(false);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, []);
-
-    /**
-     * updating map
-     */
-    useEffect(() => {
-        context.geoBingo.map.getStreetView().setVisible(false);
-        context.geoBingo.map.setOptions({ mapTypeControl: false, zoomControl: true, disableDoubleClickZoom: true, streetViewControl: false, fullScreenControl: false });
-
         const initMap = async () => {
-            const prompts = context.geoBingo.game?.prompts;
-            if (!prompts) return;
+            const mapOptions: google.maps.MapOptions = {
+                center: { lat: 0, lng: 0 },
+                zoom: 2,
+                mapId: 'GEOBINGO_MAP'
+            }
+
+            const mapInstance = new google.maps.Map(mapRef.current as HTMLDivElement, mapOptions);
+
+            // setting captures[0]'s position
+            const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
+                position: { lat: 0, lng: 0 },
+                pov: { heading: 0, pitch: 0 },
+                zoom: 0,
+                visible: false,
+                // StreetView options
+                enableCloseButton: true,
+                fullscreenControl: false
+            }
+
+            const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, panoramaOptions);
+            panorama.addListener('visible_changed', () => {
+                if (!panorama.getVisible()) {
+                    setReviewing(undefined);
+                    //panorama.setVisible(false);
+                }
+            })
+            mapInstance.setStreetView(panorama);
 
             // bounds object to fit all the markers (captures)
             const bounds = new google.maps.LatLngBounds();
 
-            prompts.forEach((prompt: Prompt, index: number) => {
+            // AdvancedMarkerElement 
+            const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
+
+            context.geoBingo.game?.prompts.forEach((prompt: Prompt, index: number) => {
                 if (!prompt.captures) return;
                 prompt.captures.forEach((capture: Capture) => {
-                    createMarker(capture, prompt.name);
+                    // creating marker
+                    const marker = new AdvancedMarkerElement({
+                        position: capture.coordinates,
+                        map: mapInstance,
+                    });
+
+                    marker.addListener('click', () => {
+                        setReviewing({ capture, name: prompt.name });
+
+                        const position = new google.maps.LatLng(capture.coordinates.lat, capture.coordinates.lng);
+
+                        mapInstance.getStreetView().setPosition(position);
+                        mapInstance.getStreetView().setPov({ heading: capture.pov.heading, pitch: capture.pov.pitch });
+                        mapInstance.getStreetView().setZoom(capture.pov.zoom);
+                        mapInstance.getStreetView().setVisible(true);
+                    });
+
+                    // extending bounds
                     bounds.extend(capture.coordinates);
                 });
             });
 
-            context.geoBingo.map.fitBounds(bounds);
+            mapInstance.fitBounds(bounds);
+
+            setMap(mapInstance);
         }
         initMap();
-    }, [context.geoBingo.game?.prompts]);
-
-    const createMarker = (capture: Capture, name: string) => {
-        const advancedMarker = new google.maps.marker.AdvancedMarkerElement({
-            position: capture.coordinates,
-            map: context.geoBingo.map,
-        });
-
-        advancedMarker.addListener('click', () => {
-            setReviewing({ capture, name });
-
-            const position = new google.maps.LatLng(capture.coordinates.lat, capture.coordinates.lng);
-
-            context.geoBingo.map.getStreetView().setPosition(position);
-            context.geoBingo.map.getStreetView().setPov({ heading: capture.pov.heading, pitch: capture.pov.pitch });
-            context.geoBingo.map.getStreetView().setZoom(capture.pov.zoom);
-            context.geoBingo.map.getStreetView().setVisible(true);
-        })
-    }
+    }, []);
 
     return (
         <div className="bg-gray-900 h-screen w-screen overflow-y-auto p-5">
@@ -87,7 +96,7 @@ export default function Score() {
                                 className="p-2 border-2 border-red-500 rounded-[20px]"
                                 onClick={() => {
                                     setReviewing(undefined);
-                                    context.geoBingo.map.getStreetView().setVisible(false);
+                                    map.getStreetView().setVisible(false);
                                 }}
                             >
                                 <svg
@@ -127,15 +136,15 @@ export default function Score() {
             ) : (
                 <h1 className="text-white font-bold text-3xl">Overview</h1>
             )}
-            <GoogleMaps className={`${reviewing ? 'h-full' : 'h-[50%]'} rounded-lg`} streetViewEnabled={false} />
+            <div id="map" className={`${reviewing ? 'h-full' : 'h-[50%]'} rounded-lg`} ref={mapRef} />
 
             {!reviewing && (
                 <div className="pt-5">
-                    {context.geoBingo.game?.votingPlayers.length > 0 && (
+                    {context.geoBingo.game?.votingPlayers?.length > 0 ? (
                         <p className="text-white font-bold text-2xl">
-                            Player{context.geoBingo.game?.votingPlayers.length > 1 ? 's' : ''} are still voting {context.geoBingo.game?.votingPlayers.length} / {context.geoBingo.game?.players.length}
+                            {context.geoBingo.game?.votingPlayers.length} Player{context.geoBingo.game?.votingPlayers.length > 1 ? 's are' : ' is'} still voting
                         </p>
-                    )}
+                    ) : null}
 
                     <div className="overflow-y-auto h-[calc(100vh-63vh)]">
                         <Leaderboard />
