@@ -55,7 +55,7 @@ export const GeoBingoProvider = ({ children }) => {
         const handleLobbyUpdate = (response) => {
             console.log('Handle incoming lobby update with these properties:', response);
 
-            const copy = { ...gameRef.current, ...response };
+            const copy = { ...gameRef.current, ...response };            
             setGame(copy);
         }
 

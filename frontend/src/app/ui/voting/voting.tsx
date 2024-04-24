@@ -53,7 +53,7 @@ export default function Voting() {
                             //const copy = { ...context.geoBingo.game, phase: 'score' };
                             //context.geoBingo.setGame(copy);
                             context.geoBingo.game.finishVote();
-
+                            
                             clearInterval(timer);
                             return 0;
                         }
