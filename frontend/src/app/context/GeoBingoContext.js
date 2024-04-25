@@ -11,7 +11,6 @@ export const GeoBingoContext = createContext(null);
 export const GeoBingoProvider = ({ children }) => {
     const [player, setPlayer] = useState(null);
     const [game, setGame] = useState(undefined);
-    const [map, setMap] = useState(undefined);
 
     const gameRef = useRef(game);
 
@@ -110,7 +109,7 @@ export const GeoBingoProvider = ({ children }) => {
             .catch((e) => console.error('Could not load Google Maps:', e));
     }, []);
 
-    const geoBingo = { player, setPlayer, game, setGame, map, setMap };
+    const geoBingo = { player, setPlayer, game, setGame };
 
     return (
         <GeoBingoContext.Provider value={{ geoBingo }}>
