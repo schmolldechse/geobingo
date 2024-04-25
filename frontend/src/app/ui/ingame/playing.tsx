@@ -40,18 +40,8 @@ export default function Ingame() {
         }
 
         const mapInstance = new google.maps.Map(mapRef.current as HTMLDivElement, mapOptions);
-
-        // setting captures[0]'s position
-        const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
-            position: { lat: 0, lng: 0 },
-            pov: { heading: 0, pitch: 0 },
-            zoom: 0,
-            visible: false,
-            // StreetView options
-            enableCloseButton: true
-        }
-
-        const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, panoramaOptions);
+    
+        const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, { visible: false, enableCloseButton: true });
         mapInstance.setStreetView(panorama);
 
         setMap(mapInstance);
