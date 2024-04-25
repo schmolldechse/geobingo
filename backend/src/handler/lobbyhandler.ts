@@ -396,8 +396,8 @@ export default (playerSocket: PlayerSocket) => {
         lobby.votingPlayers = votingPlayers;
 
         updatePlayerInLobby(playerSocket, lobby, { phase: 'score' });
-        updateLobby(lobby, { votingPlayers: votingPlayers });
-        if (votingPlayers.length === 0) {
+        //updateLobby(lobby, { votingPlayers: votingPlayers });
+        //if (votingPlayers.length === 0) {
             // collect points of each capture and give them to their creator
             lobby.prompts.forEach((prompt: Prompt) => {
                 prompt.captures?.forEach((capture: Capture) => {
@@ -414,10 +414,27 @@ export default (playerSocket: PlayerSocket) => {
                 })
             });
 
-            updateLobby(lobby, { phase: 'score', players: lobby.players.map(playerSocket => playerSocket.player) });
-        }
+            updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player) });
+        //}
 
         return callback({ success: true, message: 'Finished voting' });
+    }
+
+    const skip = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        lobby.timers.playing = 15;
+        updateLobby(lobby, { timers: lobby.timers });
+
+        return callback({ success: true, message: 'Skipped' });
     }
 
     createListener(playerSocket, 'geobingo',
@@ -434,7 +451,8 @@ export default (playerSocket: PlayerSocket) => {
             startGame,
             uploadCaptures,
             handleVote,
-            finishVote
+            finishVote,
+            skip
         ]
     );
 };
