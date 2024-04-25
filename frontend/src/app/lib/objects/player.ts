@@ -10,10 +10,8 @@ export class Player {
     points: number;
 
     constructor(guest: boolean, name: string, id: string, picture: string) {
-        faker.seed(123); // ?????
-
         this.guest = guest;
-        this.name = (name ? name : faker.person.firstName());
+        this.name = (guest ? faker.person.firstName() : name);
         this.id = (id ? id : uuidv4());
         this.picture = (picture ? picture : '');
         this.points = 0;
