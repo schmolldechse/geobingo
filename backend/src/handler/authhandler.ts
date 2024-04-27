@@ -5,6 +5,8 @@ export default (playerSocket: PlayerSocket) => {
         data: any,
         callback: Function
     ) => {
+        if (typeof callback !== "function") return;
+
         if (!data.player) return callback({ success: false, data: { message: 'Not authenticated' } });
         playerSocket.player = data.player;
 
