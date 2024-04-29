@@ -112,6 +112,16 @@ export class Game {
         });
     }
 
+    /**
+     * Telling the backend to reset the game
+     */
+    resetLobby = () => {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:resetLobby', { lobbyCode: this.id }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
     stopSocket() {
         gameEvents.forEach(event => socket.off(event));
     }

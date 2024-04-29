@@ -398,23 +398,23 @@ export default (playerSocket: PlayerSocket) => {
         updatePlayerInLobby(playerSocket, lobby, { phase: 'score' });
         //updateLobby(lobby, { votingPlayers: votingPlayers });
         //if (votingPlayers.length === 0) {
-            // collect points of each capture and give them to their creator
-            lobby.prompts.forEach((prompt: Prompt) => {
-                prompt.captures?.forEach((capture: Capture) => {
-                    if (!capture.votes) return;
-                    const points = capture.votes?.reduce((total: number, vote: Vote) => total + vote.points, 0) || 0;
+        // collect points of each capture and give them to their creator
+        lobby.prompts.forEach((prompt: Prompt) => {
+            prompt.captures?.forEach((capture: Capture) => {
+                if (!capture.votes) return;
+                const points = capture.votes?.reduce((total: number, vote: Vote) => total + vote.points, 0) || 0;
 
-                    const lobbyPlayer = lobby.players.find(playerSocket => playerSocket.player.id === capture.player.id);
-                    if (!lobbyPlayer) {
-                        console.log('Could not find player from capture ' + capture.uniqueId);
-                        return;
-                    }
+                const lobbyPlayer = lobby.players.find(playerSocket => playerSocket.player.id === capture.player.id);
+                if (!lobbyPlayer) {
+                    console.log('Could not find player from capture ' + capture.uniqueId);
+                    return;
+                }
 
-                    lobbyPlayer.player.points += points;
-                })
-            });
+                lobbyPlayer.player.points += points;
+            })
+        });
 
-            updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player) });
+        updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player) });
         //}
 
         return callback({ success: true, message: 'Finished voting' });
@@ -437,6 +437,32 @@ export default (playerSocket: PlayerSocket) => {
         return callback({ success: true, message: 'Skipped' });
     }
 
+    const resetLobby = (
+        data: any,
+        callback: Function
+    ) => {
+        if (data.lobbyCode?.length === 0) return callback({ success: false, message: 'No lobby code given' });
+
+        if (!playerSocket.player) return callback({ success: false, message: 'Not authenticated' });
+
+        const lobby = lobbies.find(lobby => lobby.id === data.lobbyCode);
+        if (!lobby) return callback({ success: false, message: 'Lobby not found' });
+
+        if (lobby.host.player?.id !== playerSocket.player?.id) return callback({ success: false, message: 'Not the host' });
+
+        lobby.phase = "dashboard";
+        lobby.prompts = new Array(8).fill(null).map(() => ({
+            name: getRandomPrompt()
+        }));
+        lobby.timer = undefined;
+        lobby.votingPlayers = undefined;
+        lobby.timers = { playing: 10 * 60, voting: 15 }
+
+        updateLobby(lobby, { phase: lobby.phase, prompts: lobby.prompts, timers: lobby.timers });
+
+        return callback({ success: true, message: 'Lobby has been successfully reset' });
+    }
+
     createListener(playerSocket, 'geobingo',
         [
             createLobby,
@@ -452,14 +478,15 @@ export default (playerSocket: PlayerSocket) => {
             uploadCaptures,
             handleVote,
             finishVote,
-            skip
+            skip,
+            resetLobby
         ]
     );
 };
 
 export const removeLobby = (lobby: Lobby) => {
     console.log('Deleting lobby with id ' + lobby.id + ' because no players are left');
-    lobbies = lobbies.filter(object => { 
+    lobbies = lobbies.filter(object => {
         if (object.id === lobby.id && object.timer) clearInterval(object.timer);
         return object.id !== lobby.id;
     });

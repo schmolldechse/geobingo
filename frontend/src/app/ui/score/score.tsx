@@ -4,6 +4,7 @@ import { Prompt } from "@/app/lib/objects/prompt";
 import { Capture } from "@/app/lib/objects/capture";
 import { Button } from "@/components/ui/button";
 import Leaderboard from "./objects/leaderboard";
+import socket from "@/app/lib/server/socket";
 
 export default function Score() {
     const context = useContext(GeoBingoContext);
@@ -86,8 +87,18 @@ export default function Score() {
         initMap();
     }, []);
 
+    if (!socket) throw new Error('Socket is not defined');
+
+    const leaveGame = () => {
+        if (!context.geoBingo.game) throw new Error("Game is not defined");
+        if (!context.geoBingo.player) throw new Error("Player is not defined");
+        context.geoBingo.player.leave((response: any) => {
+            if (response.success) context.geoBingo.setGame(undefined);
+        });
+    };
+
     return (
-        <div className="bg-gray-900 h-screen w-screen overflow-y-auto p-5">
+        <div className="bg-gray-900 h-screen w-screen overflow-y-hidden p-5">
             {reviewing ? (
                 <div className="absolute top-1/2 :left-[10px] transform -translate-y-1/2 z-50">
                     <div className="bg-gray-900 p-4 text-left inline-block rounded-r-lg">
@@ -141,7 +152,7 @@ export default function Score() {
             <div id="map" className={`${reviewing ? 'h-full' : 'h-[50%]'} rounded-lg`} ref={mapRef} />
 
             {!reviewing && (
-                <div className="pt-5">
+                <>
                     {context.geoBingo.game?.votingPlayers?.length > 0 ? (
                         <p className="text-white font-bold text-2xl">
                             {context.geoBingo.game?.votingPlayers.length} Player{context.geoBingo.game?.votingPlayers.length > 1 ? 's are' : ' is'} still voting
@@ -151,7 +162,19 @@ export default function Score() {
                     <div className="overflow-y-auto h-[calc(100vh-63vh)]">
                         <Leaderboard />
                     </div>
-                </div>
+
+                    <div className="space-x-[1rem] flex items-center justify-center">
+                        <Button className="bg-[#018ad3]" onClick={() => leaveGame()}>
+                            Leave game
+                        </Button>
+
+                        {context.geoBingo.player?.id === context.geoBingo.game?.host.id ? (
+                            <Button className="bg-[#018ad3]" onClick={() => context.geoBingo.game?.resetLobby()}>
+                                Back to lobby
+                            </Button>
+                        ) : null}
+                    </div>
+                </>
             )}
         </div>
     )
