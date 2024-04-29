@@ -21,7 +21,9 @@ export default function Score() {
             const mapOptions: google.maps.MapOptions = {
                 center: { lat: 0, lng: 0 },
                 zoom: 2,
-                mapId: 'GEOBINGO_MAP'
+                mapId: 'GEOBINGO_MAP',
+                // MapUI options
+                streetViewControl: false
             }
 
             const mapInstance = new google.maps.Map(mapRef.current as HTMLDivElement, mapOptions);
