@@ -526,7 +526,7 @@ const startTimer = (lobby: Lobby) => {
         lobby.timer = setInterval(() => {
             if (lobby.timers.playing <= 0) {
                 const totalCaptures = lobby.prompts.map((prompt: Prompt) => prompt.captures?.length || 0).reduce((a, b) => a + b, 0);
-                lobby.phase = (totalCaptures > 1 ? 'voting' : 'score');
+                lobby.phase = (totalCaptures > 0 ? 'voting' : 'score');
 
                 // add player ids to votingPlayers
                 lobby.votingPlayers = lobby.players.map(playerSocket => playerSocket.player.id);
