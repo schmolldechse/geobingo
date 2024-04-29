@@ -9,10 +9,21 @@ export default function Voting() {
     const captures = context.geoBingo.game?.prompts
         .filter(prompt => prompt.captures)
         .flatMap(prompt => prompt.captures.map(capture => ({ prompt: prompt.name, capture })));
-    const [currentCapture, setCurrentCapture] = useState(captures[0]);
+    const [captureIndex, setCaptureIndex] = useState(0);
+    const [currentCapture, setCurrentCapture] = useState(captures[captureIndex]);
 
+    /**
+     * timeLeft for voting on a capture, resets after every capture
+     */
+    const [time, setTime] = useState(context.geoBingo.game?.timers.voting || 15);
+
+    /**
+     * GoogleMaps
+     */
     const mapRef = useRef(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
+
+    const timerId = useRef(null);
 
     useEffect(() => {
         const initMap = () => {
@@ -42,32 +53,30 @@ export default function Voting() {
         }
 
         const initVotingTimer = () => {
-            let captureIndex = 0;
+            timerId.current = setInterval(() => {
+                setTime(prevTime => {
+                    if (prevTime <= 0) {
+                        setCaptureIndex(prevIndex => {
+                            const nextIndex = prevIndex + 1;
+                            if (nextIndex === captures.length) {
+                                context.geoBingo.game?.finishVote();
+                                clearInterval(timerId.current);
+                            } else {
+                                setCurrentCapture(captures[nextIndex]);
+                                setSelected(null);
+                            }
 
-            const timer = setInterval(() => {
-                setTime((prev: number) => {
-                    if (prev <= 0) {
-                        captureIndex++;
-
-                        if (captureIndex === captures.length) {
-                            //const copy = { ...context.geoBingo.game, phase: 'score' };
-                            //context.geoBingo.setGame(copy);
-                            context.geoBingo.game.finishVote();
-                            
-                            clearInterval(timer);
-                            return 0;
-                        }
-
-                        setCurrentCapture(captures[captureIndex]);
-                        setTime(context.geoBingo.game?.timers.voting || 15);
-                        setSelected(null);
-                        return 0;
+                            return nextIndex;
+                        });
+                        
+                        return context.geoBingo.game?.timers.voting || 15;
                     }
-                    return prev - 1;
-                });
+
+                    return prevTime - 1;
+                })
             }, 1000);
 
-            return () => clearInterval(timer);
+            return () => clearInterval(timerId.current);
         }
 
         initMap();
@@ -82,11 +91,6 @@ export default function Voting() {
         map.getStreetView().setPov({ heading: capture.pov.heading, pitch: capture.pov.pitch });
         map.getStreetView().setZoom(capture.pov.zoom);
     }
-
-    /**
-     * timeLeft for voting on a capture, resets after every capture
-     */
-    const [time, setTime] = useState(context.geoBingo.game?.timers.voting || 15);
 
     /**
      * either selected like or dislike button, resets after every capture

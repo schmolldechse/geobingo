@@ -33,6 +33,8 @@ export default function GeoBingo() {
         )
     }
 
+    console.log('phase:', context.geoBingo.game?.phase);
+
     return (
         <>
             {context.geoBingo.game === undefined && (<Landing />)}
