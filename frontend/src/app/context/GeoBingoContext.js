@@ -54,8 +54,8 @@ export const GeoBingoProvider = ({ children }) => {
         const handleLobbyUpdate = (response) => {
             console.log('Handle incoming lobby update with these properties:', response);
 
-            const copy = { ...gameRef.current, ...response };            
-            setGame(copy);
+            const copy = { ...gameRef.current, ...response };   
+            setGame(copy);     
         }
 
         const handleImportantMessage = (response) => {
@@ -92,7 +92,7 @@ export const GeoBingoProvider = ({ children }) => {
         socket.on("disconnect", (response) => console.log("Disconnected from server", response));
         socket.on("error", (error) => console.error("error while connecting to backend:", error));
 
-        return () => { game.stopSocket() }
+        return () => { game?.stopSocket() }
     }, []);
 
     // initializing Google Maps API
