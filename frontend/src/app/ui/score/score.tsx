@@ -81,11 +81,14 @@ export default function Score() {
             });
 
             mapInstance.fitBounds(bounds);
-
             setMap(mapInstance);
         }
         initMap();
     }, []);
+
+    useEffect(() => {
+        if (mapRef.current) google.maps.event.trigger(mapRef.current, 'resize');
+    }, [reviewing])
 
     if (!socket) throw new Error('Socket is not defined');
 
