@@ -62,6 +62,7 @@ export default function Voting() {
                                 context.geoBingo.game?.finishVote();
                                 clearInterval(timerId.current);
                             } else {
+                                setTime(context.geoBingo.game?.timers.voting || 15);
                                 setCurrentCapture(captures[nextIndex]);
                                 setSelected(null);
                             }
@@ -104,6 +105,8 @@ export default function Voting() {
         if (!map || !currentCapture) return;
         adjustPosition(currentCapture.capture);
     }, [currentCapture]);
+
+    console.log('phase:', context.geoBingo.game?.phase);
 
     /**
      * handle vote
