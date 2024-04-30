@@ -14,20 +14,17 @@ export default function Ingame() {
     const [map, setMap] = useState<google.maps.Map | null>(null);
 
     useEffect(() => {
-        let timer = setInterval(() => {
-            setInitializingTimer((prev: number) => {
-                if (prev <= 0) {
-                    clearInterval(timer);
-                    setState('playing');
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
+        if (context.geoBingo.game?.timers.initializing <= 0) {
+            setState('playing');
+            return;
+        }
 
-        return () => clearInterval(timer);
-    }, []);
+        setInitializingTimer(context.geoBingo.game?.timers.initializing);
+    }, [context.geoBingo.game?.timers.initializing]);
 
+    /**
+     * Initializing map when state switches to 'playing'
+     */
     useEffect(() => {
         if (state === 'playing' && mapRef.current) initMap();
     }, [state]);

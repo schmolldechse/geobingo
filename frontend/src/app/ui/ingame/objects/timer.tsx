@@ -4,26 +4,12 @@ import { useContext, useEffect, useState } from "react";
 export default function Timer() {
     const context = useContext(GeoBingoContext);
 
-    const [playingTimer, setPlayingTimer] = useState(context.geoBingo.game?.timers.playing || 15);
+    const [playingTimer, setPlayingTimer] = useState(context.geoBingo.game?.timers.playing || 600);
 
     useEffect(() => {
-        let timer = setInterval(() => {
-            setPlayingTimer((prev: number) => {
-                if (prev <= 0) {
-                    clearInterval(timer);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    // updating timer if backend sends a update for "timers"
-    useEffect(() => {
-        setPlayingTimer(context.geoBingo.game?.timers.playing || 15);
-    }, [context.geoBingo.game?.timers]);
+        if (context.geoBingo.game?.timers.playing <= 0) return;
+        setPlayingTimer(context.geoBingo.game?.timers.playing);
+    }, [context.geoBingo.game?.timers.playing]);
 
     const hours = Math.floor(playingTimer / 3600);
     const minutes = Math.floor((playingTimer % 3600) / 60);

@@ -539,6 +539,7 @@ const startTimer = (lobby: Lobby) => {
             }
 
             lobby.timers.initializing--;
+            updateLobby(lobby, { timers: lobby.timers });
         }, 1000);
 
         return () => clearInterval(lobby.timer);
@@ -564,6 +565,7 @@ const startTimer = (lobby: Lobby) => {
             }
 
             lobby.timers.playing--;
+            updateLobby(lobby, { timers: lobby.timers });
         }, 1000);
 
         return () => clearInterval(lobby.timer);
