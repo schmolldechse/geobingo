@@ -19,79 +19,52 @@ export default function Players() {
     };
 
     return (
-        <div className="bg-[#151951] rounded-[20px] p-4 overflow-y-auto max-h-[400px] sm:max-h-[750px] shadow-2xl">
+        <div className="flex-1 bg-[#151951] rounded-[1rem] p-5 overflow-y-auto">
             <h1 className="text-white font-bold text-3xl">Players {context.geoBingo.game?.players.length} / {context.geoBingo.game?.maxSize}</h1>
 
-            <div className="flex flex-col space-y-5">
-                {context.geoBingo.game?.players.map((player: Player, index: number) => (
-                    <div
-                        key={index}
-                        className="flex items-center h-full"
-                        onMouseEnter={() => setHoveringPlayer(player.id)}
-                        onMouseLeave={() => setHoveringPlayer(null)}
-                    >
-                        {player.picture.length > 0 ? (
+            {context.geoBingo.game?.players.map((player: Player) => (
+                <div
+                    key={player.id}
+                    onMouseEnter={() => setHoveringPlayer(player.id)}
+                    onMouseLeave={() => setHoveringPlayer(null)}
+                    className="flex items-center my-2"
+                >
+                    {player.guest ? (
+                        <svg
+                            height={50}
+                            width={50}
+                        >
+                            <circle cx={25} cy={17.81} r={6.58} />
+                            <path
+                                d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
+                            />
+                        </svg>
+                    ) : (
+                        <img
+                            src={player.picture}
+                            width={50}
+                            height={50}
+                            className="rounded-full"
+                            alt="player-picture"
+                        />
+                    )}
+
+                    <p className="text-white font-bold text-base ml-2">
+                        {player.name}
+                        {' '}{player.id === context.geoBingo.game?.host.id ? '(Host)' : ''}
+                        {' '}{player.id === context.geoBingo.player?.id ? '(you)' : ''}
+                    </p>
+
+                    <div className="ml-auto">
+                        {hoveringPlayer === player.id && context.geoBingo.game?.host.id === context.geoBingo.player?.id && player.id !== context.geoBingo.player?.id ? (
                             <>
-                                <img
-                                    src={player.picture}
-                                    width={50}
-                                    height={50}
-                                    className="rounded-full"
-                                    alt="player-picture"
-                                />
-
-                                {player.id === context.geoBingo.game?.host.id && (
-                                    <svg
-                                        width="30"
-                                        height="30"
-                                        viewBox="-2 -4 24 24"
-                                        style={{ transform: 'rotate(30deg) translate(-24px, -9px)' }}
-                                        fill="orange"
-                                    >
-                                        <path
-                                            d="M2.776 5.106 3.648 11h12.736l.867-5.98-3.493 3.02-3.755-4.827-3.909 4.811zm10.038-1.537-.078.067.141.014 1.167 1.499 1.437-1.242.14.014-.062-.082 2.413-2.086a1 1 0 0 1 1.643.9L18.115 13H1.922L.399 2.7a1 1 0 0 1 1.65-.898L4.35 3.827l-.05.06.109-.008 1.444 1.27 1.212-1.493.109-.009-.06-.052L9.245.976a1 1 0 0 1 1.565.017zM2 14h16v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"
-                                        />
-                                    </svg>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <svg height={50} width={50}>
-                                    <circle cx={25} cy={17.81} r={6.58} />
-                                    <path
-                                        d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
-                                    />
-                                </svg>
-
-                                {player.id === context.geoBingo.game?.host.id && (
-                                    <svg
-                                        width="20"
-                                        height="20"
-                                        viewBox="-2 -4 24 24"
-                                        style={{ transform: 'rotate(28deg) translate(-36px, -3px)' }}
-                                        fill="orange"
-                                    >
-                                        <path
-                                            d="M2.776 5.106 3.648 11h12.736l.867-5.98-3.493 3.02-3.755-4.827-3.909 4.811zm10.038-1.537-.078.067.141.014 1.167 1.499 1.437-1.242.14.014-.062-.082 2.413-2.086a1 1 0 0 1 1.643.9L18.115 13H1.922L.399 2.7a1 1 0 0 1 1.65-.898L4.35 3.827l-.05.06.109-.008 1.444 1.27 1.212-1.493.109-.009-.06-.052L9.245.976a1 1 0 0 1 1.565.017zM2 14h16v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"
-                                        />
-                                    </svg>
-                                )}
-                            </>
-                        )}
-
-                        <p className="text-white font-bold text-base">
-                            {player.name} {player.id === context.geoBingo.player?.id ? "(you)" : ""}
-                        </p>
-
-                        {hoveringPlayer == player.id && context.geoBingo.game.host.id === context.geoBingo.player.id && player.id !== context.geoBingo.player.id ? (
-                            <div className="ml-auto flex items-center">
                                 <Button
                                     className="bg-transparent hover:opacity-80"
                                     onClick={() => kickPlayer(player.id)}
                                 >
                                     <svg
                                         width="30"
-                                        height="300"
+                                        height="30"
                                         viewBox="0 0 36 36"
                                         fill="darkred"
                                     >
@@ -124,10 +97,10 @@ export default function Players() {
                                         />
                                     </svg>
                                 </Button>
-                            </div>
+                            </>
                         ) : (
                             <div
-                                className="bg-gray-600 p-1 rounded-full px-3 ml-auto mr-3"
+                                className="bg-gray-600 p-1 px-3 rounded-full"
                             >
                                 <p className="text-white font-bold">
                                     {Number(player.points)}
@@ -135,8 +108,8 @@ export default function Players() {
                             </div>
                         )}
                     </div>
-                ))}
-            </div>
+                </div>
+            ))}
         </div>
     )
 }

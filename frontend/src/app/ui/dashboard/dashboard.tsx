@@ -5,6 +5,7 @@ import { useContext } from "react";
 import Prompts from "./objects/prompts";
 import Settings from "./objects/settings";
 import Players from "./objects/players";
+import Chat from "./objects/chat";
 
 export default function Dashboard() {
     const context = useContext(GeoBingoContext);
@@ -25,32 +26,30 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="bg-gray-900 p-5 space-y-4 h-screen overflow-y-auto sm:overflow-hidden flex flex-col justify-between">
-            <Button className="bg-[#018ad3] self-start" onClick={() => leaveGame()}>
-                {" < "}Leave game
+        <div className="flex flex-col justify-between bg-gray-900 p-5 h-screen overflow-y-auto sm:overflow-y-hidden space-y-5">
+            <Button
+                className="self-start bg-[#018AD3] text-white"
+                onClick={leaveGame}
+            >
+                &lt; Leave Game
             </Button>
 
-            <div className="flex flex-col sm:flex-row space-y-[1.5rem] sm:space-y-0 sm:space-x-[1.5rem] flex-grow">
-                <div className="flex-1 flex flex-col items-stretch">
+            <div className="flex flex-col sm:flex-row flex-grow space-y-5 sm:space-y-0 sm:space-x-5">
+                <div className="flex-1 flex flex-col overflow-y-auto max-h-[calc(100vh-10rem)] ">
                     <Prompts />
                 </div>
-                <div className="flex-1 flex flex-col items-stretch">
-                    <Settings />
-                </div>
-                <div className="flex-1 flex flex-col items-stretch">
-                    <Players />
-                </div>
+                <Settings />
+                <Players />
             </div>
 
-            <div className="flex justify-center">
+            {context.geoBingo.player?.id === context.geoBingo.game?.host.id && (
                 <Button
-                    className="bg-green-600 text-black font-bold text-lg hover:bg-green-600 hover:opacity-80"
-                    onClick={() => startGame()}
-                    disabled={context.geoBingo.game.host.id !== context.geoBingo.player.id}
+                    className="self-center bg-green-600 text-white"
+                    onClick={startGame}
                 >
-                    Start game
+                    Start Game
                 </Button>
-            </div>
+            )}
         </div>
     )
 }
