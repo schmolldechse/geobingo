@@ -392,30 +392,28 @@ export default (playerSocket: PlayerSocket) => {
         if (!voting) return callback({ success: false, message: 'Already finished voting' });
 
         // update the amount of players who are still voting
-        const votingPlayers = lobby.votingPlayers.filter(playerId => playerId !== playerSocket.player.id);
-        lobby.votingPlayers = votingPlayers;
+        lobby.votingPlayers = lobby.votingPlayers.filter(playerId => playerId !== playerSocket.player.id);
 
-        updatePlayerInLobby(playerSocket, lobby, { phase: 'score' });
-        //updateLobby(lobby, { votingPlayers: votingPlayers });
-        //if (votingPlayers.length === 0) {
-        // collect points of each capture and give them to their creator
-        lobby.prompts.forEach((prompt: Prompt) => {
-            prompt.captures?.forEach((capture: Capture) => {
-                if (!capture.votes) return;
-                const points = capture.votes?.reduce((total: number, vote: Vote) => total + vote.points, 0) || 0;
+        updateLobby(lobby, { votingPlayers: lobby.votingPlayers });
+        if (lobby.votingPlayers.length === 0) { 
+            // collect points of each capture and give them to their creator
+            lobby.prompts.forEach((prompt: Prompt) => {
+                prompt.captures?.forEach((capture: Capture) => {
+                    if (!capture.votes) return;
+                    const points = capture.votes?.reduce((total: number, vote: Vote) => total + vote.points, 0) || 0;
 
-                const lobbyPlayer = lobby.players.find(playerSocket => playerSocket.player.id === capture.player.id);
-                if (!lobbyPlayer) {
-                    console.log('Could not find player from capture ' + capture.uniqueId);
-                    return;
-                }
+                    const lobbyPlayer = lobby.players.find(playerSocket => playerSocket.player.id === capture.player.id);
+                    if (!lobbyPlayer) {
+                        console.log('Could not find player from capture ' + capture.uniqueId);
+                        return;
+                    }
 
-                lobbyPlayer.player.points += points;
-            })
-        });
+                    lobbyPlayer.player.points += points;
+                })
+            });
 
-        updateLobby(lobby, { players: lobby.players.map(playerSocket => playerSocket.player) });
-        //}
+            updateLobby(lobby, { phase: 'score', players: lobby.players.map(playerSocket => playerSocket.player) });
+        }
 
         return callback({ success: true, message: 'Finished voting' });
     }
