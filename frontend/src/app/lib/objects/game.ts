@@ -14,10 +14,6 @@ export class Game {
     phase!: 'dashboard' |  'playing' | 'voting' | 'score';
     prompts!: Prompt[];
     maxSize!: number;
-    //time!: number;
-    //votingTime!: number;
-    //startingAt?: Date;
-    //endingAt?: Date;
     timers!: { initializing?: number, playing: number, voting: number };
     votingPlayers?: string[];
 
@@ -29,10 +25,6 @@ export class Game {
         this.phase = data.phase;
         this.prompts = data.prompts.map((prompt: any) => new Prompt(prompt.name, prompt.capture));
         this.maxSize = data.maxSize;
-        //this.time = data.time;
-        //this.votingTime = data.votingTime;
-        //this.startingAt = data.startingAt;
-        //this.endingAt = data.endingAt;
         this.timers = data.timers;
     }
 
