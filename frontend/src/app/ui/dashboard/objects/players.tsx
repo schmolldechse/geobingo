@@ -29,25 +29,13 @@ export default function Players() {
                     onMouseLeave={() => setHoveringPlayer(null)}
                     className="flex items-center my-2"
                 >
-                    {player.guest ? (
-                        <svg
-                            height={50}
-                            width={50}
-                        >
-                            <circle cx={25} cy={17.81} r={6.58} />
-                            <path
-                                d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
-                            />
-                        </svg>
-                    ) : (
-                        <img
-                            src={player.picture}
-                            width={50}
-                            height={50}
-                            className="rounded-full"
-                            alt="player-picture"
-                        />
-                    )}
+                    <img
+                        src={player.picture}
+                        width={50}
+                        height={50}
+                        className="rounded-full"
+                        alt="player-picture"
+                    />
 
                     <p className="text-white font-bold text-base ml-2">
                         {player.name}
