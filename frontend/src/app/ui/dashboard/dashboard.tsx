@@ -42,14 +42,13 @@ export default function Dashboard() {
                 <Players />
             </div>
 
-            {context.geoBingo.player?.id === context.geoBingo.game?.host.id && (
-                <Button
-                    className="self-center bg-green-600 text-white"
-                    onClick={startGame}
-                >
-                    Start Game
-                </Button>
-            )}
+            <Button
+                className="self-center bg-green-600 text-white"
+                onClick={startGame}
+                disabled={context.geoBingo.game?.host.id !== context.geoBingo.player?.id}
+            >
+                Start Game
+            </Button>
         </div>
     )
 }
