@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import socket from "../server/socket";
 import { faker } from '@faker-js/faker';
+import path from 'path';
+
+const guestPath = '/images/guest.png';
 
 export class Player {
     guest: boolean;
@@ -13,7 +16,7 @@ export class Player {
         this.guest = guest;
         this.name = (guest ? faker.person.firstName() : name);
         this.id = (id ? id : uuidv4());
-        this.picture = (picture ? picture : '');
+        this.picture = (picture ? picture : path.resolve(__dirname, guestPath));
         this.points = 0;
 
         socket.emit('geobingo:initAuth', { player: this }, (response: any) => {  });

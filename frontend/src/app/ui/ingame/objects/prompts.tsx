@@ -7,7 +7,7 @@ import React, { useEffect } from "react";
 import { useContext } from "react";
 import { toast } from "sonner";
 
-const photoSoundPath =  '/sounds/photo.mp3';
+const photoSoundPath = '/sounds/photo.mp3';
 
 interface PromptsProps {
     map: google.maps.Map;

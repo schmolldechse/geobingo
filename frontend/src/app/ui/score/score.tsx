@@ -128,23 +128,14 @@ export default function Score() {
                         </div>
                         <p className="text-gray-400 font-bold text-xl pt-5">Captured by</p>
 
-                        <div className="flex flex-row items-center">
-                            {reviewing.capture.player.picture.length > 0 ? (
-                                <img
-                                    src={reviewing.capture.player.picture}
-                                    width={50}
-                                    height={50}
-                                    className="rounded-full"
-                                    alt="player-picture"
-                                />
-                            ) : (
-                                <svg height={50} width={50}>
-                                    <circle cx={25} cy={17.81} r={6.58} />
-                                    <path
-                                        d="M25,26.46c-7.35,0-13.3,5.96-13.3,13.3h26.61c0-7.35-5.96-13.3-13.3-13.3Z"
-                                    />
-                                </svg>
-                            )}
+                        <div className="flex flex-row items-center mt-2">
+                            <img
+                                src={reviewing.capture.player.picture}
+                                width={50}
+                                height={50}
+                                className="rounded-full"
+                                alt="player-picture"
+                            />
                             <p className="text-white font-bold text-xl">{reviewing.capture.player.name}</p>
                         </div>
                     </div>
