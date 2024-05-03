@@ -14,6 +14,8 @@
   "license": "ISC",
   "dependencies": {
     "node-schedule": "^2.1.1",
+    "parse-duration": "^1.1.0",
+    "pretty-ms": "^9.0.0",
     "socket.io": "^4.7.5",
     "uuid": "^9.0.1"
   },

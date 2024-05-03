@@ -1,8 +1,6 @@
 import { GeoBingoContext } from "@/app/context/GeoBingoContext";
 import { Capture } from "@/app/lib/objects/capture";
 import { Prompt } from "@/app/lib/objects/prompt";
-import socket from "@/app/lib/server/socket";
-import { Button } from "@/components/ui/button";
 import React, { useEffect } from "react";
 import { useContext } from "react";
 import { toast } from "sonner";
@@ -94,15 +92,6 @@ export default function Prompts({ map }: PromptsProps) {
                         </React.Fragment>
                     ))}
                 </div>
-
-                <Button onClick={() => {
-                    if (!context.geoBingo.game) throw new Error("Game is not defined");
-                    if (!socket) throw new Error("Socket is not defined");
-
-                    socket.emit('geobingo:skip', { lobbyCode: context.geoBingo.game.id }, (response: any) => console.log('Response:', response));
-                }}>
-                    Skip time
-                </Button>
             </div>
         </div>
     )

@@ -7,7 +7,6 @@ export default function Timer() {
     const [playingTimer, setPlayingTimer] = useState(context.geoBingo.game?.timers.playing || 600);
 
     useEffect(() => {
-        if (context.geoBingo.game?.timers.playing <= 0) return;
         setPlayingTimer(context.geoBingo.game?.timers.playing);
     }, [context.geoBingo.game?.timers.playing]);
 

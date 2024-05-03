@@ -12,7 +12,8 @@ export default function User() {
                 alt="avatar"
                 width={50}
                 height={50}
-                className="rounded-full" />
+                className="rounded-full" 
+            />
 
             <p className="text-white text-lg font-medium">
                 {context.geoBingo.player?.guest ? 'Guest ' : ''} {context.geoBingo.player?.name}

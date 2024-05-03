@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useState } from "react"
 import { GeoBingoContext } from "../context/GeoBingoContext";
 import Landing from "./landing";
 import Ingame from "./ingame/playing";
@@ -7,12 +7,16 @@ import Voting from "./voting/voting";
 import Score from "./score/score";
 import { Toaster } from "sonner";
 import { useSession } from "next-auth/react";
+import Chat from "./objects/chat/chatinforeground";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
 
     // NextAuth session
     const { data: session, status } = useSession();
+
+    // Chat
+    const [showChat, setShowChat] = useState(false);
 
     // initialize ldrs library async because of window initialization
     useEffect(() => {
@@ -21,7 +25,40 @@ export default function GeoBingo() {
             ring.register();
         }
         getLoader();
-    })
+    }, []);
+
+    /**
+     * Initializing chat
+     */
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                setShowChat(prev => !prev);
+            }
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            const chatElement = document.getElementById('chat') as HTMLElement;
+            if (chatElement === null) return;
+
+            if (!showChat) return; 
+            if (!chatElement.contains(event.target as Node)) setShowChat(false);
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('mousedown', handleClickOutside);
+
+        return () => { 
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, []);
+
+    useEffect(() => {
+        const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+        if (chatInput) chatInput.focus();
+    }, [showChat]);
 
     if (status === 'loading' || context === null || context.geoBingo === null) {
         return (
@@ -51,6 +88,15 @@ export default function GeoBingo() {
                             return <p className="text-black text-3xl font-bold">Where did you land?!?!!?</p>;
                     }
                 })()
+            )}
+
+            {showChat && context.geoBingo.game && (
+                <>
+                    <div className="fixed top-0 left-0 w-screen h-screen bg-black opacity-75"></div>
+                    <div className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center">
+                        <Chat />
+                    </div>
+                </>
             )}
 
             <Toaster className="z-50" />

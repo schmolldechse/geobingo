@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 export default function SignIn() {
     return (
         <div className="mx-4 flex flex-col space-y-2 items-center">
-            <Button className="bg-[#653DA2] w-[75%] rounded-[10px] py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#522891] hover:bg-[#653DA2]"
+            <Button className="bg-[#653DA2] w-[75%] rounded-[10px] py-6 gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-[#522891] hover:bg-[#653DA2]"
                 onClick={() => signIn('twitch', { callbackUrl: '/' })}>
                 <svg width="30px" height="30px" viewBox="0 0 16 16" fill="none">
                     <g fill="#000">
@@ -19,7 +19,7 @@ export default function SignIn() {
             </Button>
 
             <Button
-                className="bg-white w-[75%] rounded-[10px] p-3 py-6 flex gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-blue-400 hover:bg-white"
+                className="bg-white w-[75%] rounded-[10px] p-3 py-6 gap-3 items-center inline-flex hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-blue-400 hover:bg-white"
                 onClick={() => signIn('google', { callbackUrl: '/' })}
             >
                 <svg

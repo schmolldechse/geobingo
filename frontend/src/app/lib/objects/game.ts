@@ -1,4 +1,5 @@
 import socket from "../server/socket";
+import { LobbyChatObject } from "./lobbychatobject";
 import { Player } from "./player";
 import { Prompt } from "./prompt";
 
@@ -14,8 +15,9 @@ export class Game {
     phase!: 'dashboard' |  'playing' | 'voting' | 'score';
     prompts!: Prompt[];
     maxSize!: number;
-    timers!: { initializing?: number, playing: number, voting: number };
-    votingPlayers?: string[];
+    timers!: { initializing: number, playing: number, voting: number };
+    chat!: LobbyChatObject[];
+    currentCapture?: any;
 
     constructor(data: any) {
         this.id = data.id;
@@ -26,6 +28,7 @@ export class Game {
         this.prompts = data.prompts.map((prompt: any) => new Prompt(prompt.name, prompt.capture));
         this.maxSize = data.maxSize;
         this.timers = data.timers;
+        this.chat = data.chat;
     }
 
     removePrompt = (index: number) => {
@@ -110,6 +113,16 @@ export class Game {
     resetLobby = () => {
         if (!socket) throw new Error('Socket is not defined');
         socket.emit('geobingo:resetLobby', { lobbyCode: this.id }, (response: any) => {
+            console.log('Response:', response);
+        });
+    }
+
+    /**
+     * 
+     */
+    sendMessage = (lobbyChatObject: LobbyChatObject) => {
+        if (!socket) throw new Error('Socket is not defined');
+        socket.emit('geobingo:sendMessage', { lobbyCode: this.id, lobbyChatObject: lobbyChatObject }, (response: any) => {
             console.log('Response:', response);
         });
     }

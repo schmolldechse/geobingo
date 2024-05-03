@@ -6,24 +6,11 @@ import { Capture } from "@/app/lib/objects/capture";
 export default function Voting() {
     const context = useContext(GeoBingoContext);
 
-    const captures = context.geoBingo.game?.prompts
-        .filter(prompt => prompt.captures)
-        .flatMap(prompt => prompt.captures.map(capture => ({ prompt: prompt.name, capture })));
-    const [captureIndex, setCaptureIndex] = useState(0);
-    const [currentCapture, setCurrentCapture] = useState(captures[captureIndex]);
-
-    /**
-     * timeLeft for voting on a capture, resets after every capture
-     */
-    const [time, setTime] = useState(context.geoBingo.game?.timers.voting || 15);
-
     /**
      * GoogleMaps
      */
     const mapRef = useRef(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
-
-    const timerId = useRef(null);
 
     useEffect(() => {
         const initMap = () => {
@@ -37,9 +24,9 @@ export default function Voting() {
 
             // setting captures[0]'s position
             const panoramaOptions: google.maps.StreetViewPanoramaOptions = {
-                position: { lat: captures[0].capture.coordinates.lat, lng: captures[0].capture.coordinates.lng },
-                pov: { heading: captures[0].capture.pov.heading, pitch: captures[0].capture.pov.pitch },
-                zoom: captures[0].capture.pov.zoom,
+                position: { lat: context.geoBingo.game?.currentCapture?.capture.coordinates.lat, lng: context.geoBingo.game?.currentCapture?.capture.coordinates.lng },
+                pov: { heading: context.geoBingo.game?.currentCapture?.capture.pov.heading, pitch: context.geoBingo.game?.currentCapture?.capture.pov.pitch },
+                zoom: context.geoBingo.game?.currentCapture?.capture.pov.zoom,
                 visible: true,
                 // StreetView options
                 enableCloseButton: false,
@@ -52,36 +39,7 @@ export default function Voting() {
             setMap(mapInstance);
         }
 
-        const initVotingTimer = () => {
-            timerId.current = setInterval(() => {
-                setTime(prevTime => {
-                    if (prevTime <= 0) {
-                        setCaptureIndex(prevIndex => {
-                            const nextIndex = prevIndex + 1;
-                            if (nextIndex === captures.length) {
-                                context.geoBingo.game?.finishVote();
-                                clearInterval(timerId.current);
-                            } else {
-                                setTime(context.geoBingo.game?.timers.voting || 15);
-                                setCurrentCapture(captures[nextIndex]);
-                                setSelected(null);
-                            }
-
-                            return nextIndex;
-                        });
-                        
-                        return context.geoBingo.game?.timers.voting || 15;
-                    }
-
-                    return prevTime - 1;
-                })
-            }, 1000);
-
-            return () => clearInterval(timerId.current);
-        }
-
         initMap();
-        initVotingTimer();
     }, []);
 
     /**
@@ -102,11 +60,10 @@ export default function Voting() {
      * adjustPosition for every other capture
      */
     useEffect(() => {
-        if (!map || !currentCapture) return;
-        adjustPosition(currentCapture.capture);
-    }, [currentCapture]);
-
-    console.log('phase:', context.geoBingo.game?.phase);
+        if (!map || !context.geoBingo.game?.currentCapture) return;
+        adjustPosition(context.geoBingo.game?.currentCapture.capture);
+        setSelected(null);
+    }, [context.geoBingo.game?.currentCapture]);
 
     /**
      * handle vote
@@ -115,38 +72,38 @@ export default function Voting() {
         if (!context.geoBingo.game) throw new Error("Game is not defined");
 
         setSelected(type);
-        context.geoBingo.game.handleVote(currentCapture.prompt, currentCapture.capture.uniqueId, points, (response: any) => {
+        context.geoBingo.game.handleVote(context.geoBingo.game?.currentCapture.prompt, context.geoBingo.game?.currentCapture.capture.uniqueId, points, (response: any) => {
             if (!response.success) return;
         });
     }
 
     return (
         <div className="bg-gray-900 h-screen w-screen overflow-hidden">
-            {currentCapture && (
+            {context.geoBingo.game?.currentCapture && (
                 <>
                     <div id='map' className="h-[80%]" ref={mapRef} />
 
                     <div className="m-3 h-[20%]">
                         <div className="flex flex-row items-center">
-                            <p className="text-white font-bold text-4xl italic">{currentCapture?.prompt}</p>
+                            <p className="text-white font-bold text-4xl italic">{context.geoBingo.game?.currentCapture?.prompt}</p>
 
                             <div className="px-2 border-[3px] border-red-500 ml-auto rounded-full flex justify-center items-center">
-                                <p id='timeLeft' className="italic text-xl text-red-500 m-2 font-bold">{time} s</p>
+                                <p id='timeLeft' className="italic text-xl text-red-500 m-2 font-bold">{context.geoBingo.game?.timers.voting} s</p>
                             </div>
                         </div>
 
                         <div className="flex flex-row items-center space-x-2">
                             <img
-                                src={currentCapture?.capture.player.picture}
+                                src={context.geoBingo.game?.currentCapture?.capture.player.picture}
                                 className="w-[50px] h-[50px] rounded-full"
                                 alt="player picture"
                             />
 
                             <p className="text-white font-medium text-xl">
-                                {currentCapture?.capture.player.id === context.geoBingo.player?.id ? (
-                                    currentCapture?.capture.player.name + ' (you)'
+                                {context.geoBingo.game?.currentCapture?.capture.player.id === context.geoBingo.player?.id ? (
+                                    context.geoBingo.game?.currentCapture?.capture.player.name + ' (you)'
                                 ) : (
-                                    currentCapture?.capture.player.name
+                                    context.geoBingo.game?.currentCapture?.capture.player.name
                                 )}
                             </p>
                         </div>
@@ -155,7 +112,7 @@ export default function Voting() {
                             <Button
                                 className={`space-x-2 bg-transparent p-[1.5rem] hover:bg-green-700 hover:opacity-80 ${selected === 'like' ? 'bg-green-700' : 'bg-transparent'}`}
                                 onClick={() => handleVote('like', 1)}
-                                disabled={currentCapture?.capture.player.id === context.geoBingo.player?.id}
+                                disabled={context.geoBingo.game?.currentCapture?.capture.player.id === context.geoBingo.player?.id}
                             >
                                 <svg width="40px" height="40px" viewBox="0 0 48 48">
                                     <path fill="#F44336" d="M34 9c-4.2 0-7.9 2.1-10 5.4C21.9 11.1 18.2 9 14 9 7.4 9 2 14.4 2 21c0 11.9 22 24 22 24s22-12 22-24c0-6.6-5.4-12-12-12" />
@@ -166,7 +123,7 @@ export default function Voting() {
                             <Button
                                 className={`space-x-2 bg-transparent p-[1.5rem] hover:bg-red-700 hover:opacity-80 ${selected === 'dislike' ? 'bg-red-700' : 'bg-transparent'}`}
                                 onClick={() => handleVote('dislike', 0)}
-                                disabled={currentCapture?.capture.player.id === context.geoBingo.player?.id}
+                                disabled={context.geoBingo.game?.currentCapture?.capture.player.id === context.geoBingo.player?.id}
                             >
                                 <p className="font-bold text-2xl text-black">Dislike</p>
                                 <svg width="40px" height="40px" viewBox="0 0 48 48">

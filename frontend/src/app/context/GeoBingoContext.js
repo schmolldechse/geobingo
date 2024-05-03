@@ -58,7 +58,7 @@ export const GeoBingoProvider = ({ children }) => {
             setGame(copy);     
         }
 
-        const handleImportantMessage = (response) => {
+        const handleNotification = (response) => {
             console.log('Handle incoming important message:', response);
 
             if (response.kicked) {
@@ -85,8 +85,45 @@ export const GeoBingoProvider = ({ children }) => {
             });
         };
 
+        const handleLobbyChatMessage = (response) => {
+            console.log('Handle incoming lobby chat message:', response);
+
+            let lobbyChatObject = null;
+
+            switch (response.type) {
+                case 'player':
+                    lobbyChatObject = {
+                        id: response.id,
+                        type: response.type,
+                        timestamp: response.timestamp,
+                        player: response.player,
+                        message: response.message
+                    }
+                    break;
+                case 'system':
+                    lobbyChatObject = {
+                        id: response.id,
+                        type: response.type,
+                        timestamp: response.timestamp,
+                        message: response.message,
+                        data: response.data,
+                    }
+                    break;
+                case 'location':
+                    break;
+                default:
+                    console.log('Could not parse chat object'); 
+                    return;
+            }
+
+            const updatedChat = [...gameRef.current.chat, lobbyChatObject];
+
+            setGame(prev => ({ ...prev, chat: updatedChat }));
+        }
+
         socket.on('geobingo:lobbyUpdate', handleLobbyUpdate);
-        socket.on('geobingo:important', handleImportantMessage);
+        socket.on('geobingo:important', handleNotification);
+        socket.on('geobingo:lobbyChatMessage', handleLobbyChatMessage);
 
         socket.on("connect", () => console.log("Connecting to server"));
         socket.on("disconnect", (response) => console.log("Disconnected from server", response));

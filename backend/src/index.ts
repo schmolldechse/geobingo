@@ -1,10 +1,11 @@
 import { createServer } from "http";
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 import { PlayerSocket } from "./socket/playersocket";
 
 import authHandler from "./handler/authhandler";
-import lobbyHandler, { lobbies, removeLobby, updateLobby } from "./handler/lobbyhandler";
+import lobbyHandler, { updateLobby } from "./handler/lobbyhandler";
+import { lobbies, removeLobby } from "./objects/lobby";
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -20,7 +21,9 @@ const io = new Server(httpServer, {
     }
 });
 
-const onConnection = (playerSocket: PlayerSocket) => {
+const onConnection = (socket: Socket) => {
+    const playerSocket = new PlayerSocket(socket);
+
     authHandler(playerSocket);
     lobbyHandler(playerSocket);
 

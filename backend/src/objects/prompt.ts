@@ -47,3 +47,8 @@ export class Prompt {
         this.name = name;
     }
 }
+
+export const getRandomPrompt = () => {
+    const randomIndex = Math.floor(Math.random() * prompts.length);
+    return prompts[randomIndex];
+}

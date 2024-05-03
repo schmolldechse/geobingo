@@ -37,7 +37,7 @@ export default function Ingame() {
         }
 
         const mapInstance = new google.maps.Map(mapRef.current as HTMLDivElement, mapOptions);
-    
+
         const panorama = new google.maps.StreetViewPanorama(mapRef.current as HTMLDivElement, { visible: false, enableCloseButton: true });
         mapInstance.setStreetView(panorama);
 

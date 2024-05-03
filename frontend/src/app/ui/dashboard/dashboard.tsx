@@ -39,7 +39,10 @@ export default function Dashboard() {
                     <Prompts />
                 </div>
                 <Settings />
-                <Players />
+                <div className="flex-1 flex flex-col space-y-4 max-h-[calc(100vh-10rem)]">
+                    <Players />
+                    <Chat />
+                </div>
             </div>
 
             <Button
