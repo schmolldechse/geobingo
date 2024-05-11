@@ -7,16 +7,5 @@
         "backend": "npm run --prefix backend dev",
         "frontend": "npm run --prefix frontend dev",
         "install": "npm ci --prefix backend && npm ci --prefix frontend"
-    },
-    "dependencies": {
-        "concurrently": "^8.2.2",
-        "next": "14.1.4"
-    },
-    "devDependencies": {
-        "@types/node": "^20",
-        "autoprefixer": "^10.0.1",
-        "eslint": "^8",
-        "eslint-config-next": "14.1.4",
-        "typescript": "^5"
     }
 }

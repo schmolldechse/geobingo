@@ -7,10 +7,15 @@ import authHandler from "./handler/authhandler";
 import lobbyHandler, { updateLobby } from "./handler/lobbyhandler";
 import { lobbies, removeLobby } from "./objects/lobby";
 
+import dotenv from 'dotenv';
+dotenv.config();
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || "*";
+
 const httpServer = createServer();
 const io = new Server(httpServer, {
     cors: {
-        origin: "*",
+        origin: allowedOrigins,
         methods: ["GET", "POST"]
     },
     pingInterval: 20000,
