@@ -11,6 +11,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || "*";
+const port = process.env.PORT || 4010;
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -60,6 +61,6 @@ const onConnection = (socket: Socket) => {
 
 io.on('connection', onConnection);
 
-httpServer.listen(8000, () => {
-    console.log('Server is running on port 8000');
+httpServer.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
