@@ -27,6 +27,7 @@ export default function Voting() {
                 position: { lat: context.geoBingo.game?.currentCapture?.capture.coordinates.lat, lng: context.geoBingo.game?.currentCapture?.capture.coordinates.lng },
                 pov: { heading: context.geoBingo.game?.currentCapture?.capture.pov.heading, pitch: context.geoBingo.game?.currentCapture?.capture.pov.pitch },
                 zoom: context.geoBingo.game?.currentCapture?.capture.pov.zoom,
+                pano: context.geoBingo.game?.currentCapture?.capture.panorama,
                 visible: true,
                 // StreetView options
                 enableCloseButton: false,
