@@ -5,7 +5,7 @@ import { useContext } from "react";
 import Prompts from "./objects/prompts";
 import Settings from "./objects/settings";
 import Players from "./objects/players";
-import Chat from "./objects/chat";
+import { Chat } from "../objects/chat/chat";
 
 export default function Dashboard() {
     const context = useContext(GeoBingoContext);
@@ -41,7 +41,7 @@ export default function Dashboard() {
                 <Settings />
                 <div className="flex-1 flex flex-col space-y-4 max-h-[calc(100vh-10rem)]">
                     <Players />
-                    <Chat />
+                    <Chat dashboard={true} />
                 </div>
             </div>
 

@@ -7,7 +7,7 @@ import Voting from "./voting/voting";
 import Score from "./score/score";
 import { Toaster } from "sonner";
 import { useSession } from "next-auth/react";
-import Chat from "./objects/chat/chatinforeground";
+import { Chat } from "./objects/chat/chat";
 
 export default function GeoBingo() {
     const context = useContext(GeoBingoContext);
@@ -42,14 +42,14 @@ export default function GeoBingo() {
             const chatElement = document.getElementById('chat') as HTMLElement;
             if (chatElement === null) return;
 
-            if (!showChat) return; 
+            if (!showChat) return;
             if (!chatElement.contains(event.target as Node)) setShowChat(false);
         }
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('mousedown', handleClickOutside);
 
-        return () => { 
+        return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('mousedown', handleClickOutside);
         }
@@ -94,7 +94,7 @@ export default function GeoBingo() {
                 <>
                     <div className="fixed top-0 left-0 w-screen h-screen bg-black opacity-75"></div>
                     <div className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center">
-                        <Chat />
+                        <Chat dashboard={false} />
                     </div>
                 </>
             )}

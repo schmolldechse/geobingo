@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import PlayerMessage from "./playermessage";
 import SystemMessage from "./systemmessage";
 
-export default function Chat() {
+export function Chat({ dashboard }: { dashboard: boolean }) {
     const context = useContext(GeoBingoContext);
 
     const sendMessage = (lobbyChatObject: LobbyChatObject) => {
@@ -13,8 +13,12 @@ export default function Chat() {
         context.geoBingo.game?.sendMessage(lobbyChatObject);
     };
 
+    const chatClass = dashboard 
+    ? "flex-1 flex flex-col bg-[#151951] rounded-[1rem] p-3 overflow-auto"
+    : "bg-gray-900 flex flex-col p-2 rounded-[1rem] overflow-auto w-[75%] h-[75%]"
+
     return (
-        <div id="chat" className={`bg-gray-900 flex flex-col p-2 rounded-[1rem] overflow-auto w-[75%] h-[75%]`}>
+        <div id="chat" className={chatClass}>
             <div className="overflow-y-auto pb-2 flex-1 flex flex-col-reverse">
                 {context.geoBingo.game?.chat.slice().reverse().map((chatObject: LobbyChatObject, index: number) => {
                     switch (chatObject.type) {
@@ -35,6 +39,7 @@ export default function Chat() {
                 placeholder="Type a message..."
                 className="mt-auto w-full rounded-md p-2 bg-[#151951] border-2 border-[#018AD3] outline-none text-white"
                 type="text"
+                maxLength={250}
                 onKeyDown={(event) => {
                     if (event.key !== 'Enter') return;
                     if (event.currentTarget.value.length === 0) return;
