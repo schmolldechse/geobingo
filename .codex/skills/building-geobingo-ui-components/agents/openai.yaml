@@ -1,0 +1,4 @@
+interface:
+  display_name: "Building GeoBingo UI Components"
+  short_description: "Reusable Svelte UI rules for GeoBingo"
+  default_prompt: "Use $building-geobingo-ui-components to create or review a reusable GeoBingo UI component."

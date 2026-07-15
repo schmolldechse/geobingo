@@ -1,0 +1,24 @@
+services:
+  geobingo_database:
+    image: postgres:18.4
+    container_name: geobingo_database
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-geobingo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-geobingo}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - geobingo_database-data:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-geobingo} -d $${POSTGRES_DB:-geobingo}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  geobingo_database-data:
