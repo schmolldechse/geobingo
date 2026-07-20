@@ -133,7 +133,7 @@
 	oncancel={handleCancel}
 	onpointerdown={handleDialogPointerDown}
 	class={[
-		"m-0 w-[min(calc(100%-2rem),32rem)] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border-2 border-foreground bg-surface p-0 text-foreground shadow-[var(--shadow-paper-raised)]",
+		"border-foreground bg-surface text-foreground m-0 max-h-[calc(100dvh-2rem)] w-[min(calc(100%-2rem),32rem)] overflow-hidden rounded-2xl border-2 p-0 shadow-[var(--shadow-paper-raised)]",
 		className
 	]}
 	aria-labelledby={hasVisibleTitle ? titleId : undefined}
@@ -145,7 +145,7 @@
 		{#if showHeader}
 			<div class="flex items-start justify-between gap-x-4">
 				{#if typeof title === "string"}
-					<h2 id={titleId} class="m-0 text-xl font-black tracking-tight text-foreground">{title}</h2>
+					<h2 id={titleId} class="text-foreground m-0 text-xl font-black tracking-tight">{title}</h2>
 				{:else if title}
 					<div id={titleId}>
 						{@render title()}

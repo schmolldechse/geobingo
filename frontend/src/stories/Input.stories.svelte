@@ -42,16 +42,16 @@
 
 {#snippet fieldLabel(forId: string, label: string, description?: string)}
 	<div class="grid gap-0.5">
-		<label for={forId} class="text-sm font-extrabold text-foreground">{label}</label>
+		<label for={forId} class="text-foreground text-sm font-extrabold">{label}</label>
 		{#if description}
-			<span class="text-xs text-muted">{description}</span>
+			<span class="text-muted text-xs">{description}</span>
 		{/if}
 	</div>
 {/snippet}
 
 {#snippet playground({ label, ...args }: PlaygroundArgs)}
 	<div class="grid max-w-md gap-2 p-6 sm:p-8">
-		<label for="input-playground" class="text-sm font-extrabold text-foreground">{label}</label>
+		<label for="input-playground" class="text-foreground text-sm font-extrabold">{label}</label>
 		<Input id="input-playground" {...args} />
 	</div>
 {/snippet}
@@ -61,11 +61,11 @@
 <Story name="Typen" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Eingabetypen</h2>
-			<p class="m-0 text-sm text-muted">Text, Suche und Zahl mit der jeweils passenden nativen Eingabe.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Eingabetypen</h2>
+			<p class="text-muted m-0 text-sm">Text, Suche und Zahl mit der jeweils passenden nativen Eingabe.</p>
 		</header>
 
-		<div class="grid max-w-3xl gap-5 rounded-2xl border-2 border-border bg-surface p-5 md:grid-cols-3">
+		<div class="border-border bg-surface grid max-w-3xl gap-5 rounded-2xl border-2 p-5 md:grid-cols-3">
 			<div class="grid content-start gap-2">
 				{@render fieldLabel("input-type-text", "Text", 'type="text"')}
 				<Input id="input-type-text" type="text" value="Fernsehturm" />
@@ -85,11 +85,11 @@
 <Story name="Inhaltszustände" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Inhaltszustände</h2>
-			<p class="m-0 text-sm text-muted">Leer, mit Platzhalter und mit einem vorhandenen Wert.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Inhaltszustände</h2>
+			<p class="text-muted m-0 text-sm">Leer, mit Platzhalter und mit einem vorhandenen Wert.</p>
 		</header>
 
-		<div class="grid max-w-3xl gap-5 rounded-2xl border-2 border-border bg-surface p-5 md:grid-cols-3">
+		<div class="border-border bg-surface grid max-w-3xl gap-5 rounded-2xl border-2 p-5 md:grid-cols-3">
 			<div class="grid content-start gap-2">
 				{@render fieldLabel("input-empty", "Leer")}
 				<Input id="input-empty" value="" aria-label="Leeres Eingabefeld" />
@@ -109,11 +109,11 @@
 <Story name="Interaktionszustände" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Interaktionszustände</h2>
-			<p class="m-0 text-sm text-muted">Standard, fokussiert, deaktiviert und schreibgeschützt.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Interaktionszustände</h2>
+			<p class="text-muted m-0 text-sm">Standard, fokussiert, deaktiviert und schreibgeschützt.</p>
 		</header>
 
-		<div class="grid max-w-4xl gap-5 rounded-2xl border-2 border-border bg-surface p-5 sm:grid-cols-2">
+		<div class="border-border bg-surface grid max-w-4xl gap-5 rounded-2xl border-2 p-5 sm:grid-cols-2">
 			<div class="grid content-start gap-2">
 				{@render fieldLabel("input-default", "Standard")}
 				<Input id="input-default" value="Alexanderplatz" />
@@ -137,24 +137,24 @@
 <Story name="Formular-Komposition" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Formular-Komposition</h2>
-			<p class="m-0 text-sm text-muted">Beschriftung, Hilfetext und ein expliziter Fehlerzustand.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Formular-Komposition</h2>
+			<p class="text-muted m-0 text-sm">Beschriftung, Hilfetext und ein expliziter Fehlerzustand.</p>
 		</header>
 
 		<form
-			class="grid max-w-lg gap-6 rounded-2xl border-2 border-border bg-surface p-5"
+			class="border-border bg-surface grid max-w-lg gap-6 rounded-2xl border-2 p-5"
 			onsubmit={(event) => event.preventDefault()}
 		>
 			<div class="grid gap-2">
-				<label for="input-composed-name" class="text-sm font-extrabold text-foreground">Öffentlicher Teamname</label>
+				<label for="input-composed-name" class="text-foreground text-sm font-extrabold">Öffentlicher Teamname</label>
 				<Input id="input-composed-name" value="Kartenfüchse" aria-describedby="input-composed-name-help" />
-				<p id="input-composed-name-help" class="m-0 text-xs leading-5 text-muted">
+				<p id="input-composed-name-help" class="text-muted m-0 text-xs leading-5">
 					Dieser Name ist für alle Teilnehmenden der Lobby sichtbar.
 				</p>
 			</div>
 
 			<div class="grid gap-2">
-				<label for="input-composed-code" class="text-sm font-extrabold text-foreground">Lobby-Code</label>
+				<label for="input-composed-code" class="text-foreground text-sm font-extrabold">Lobby-Code</label>
 				<Input
 					id="input-composed-code"
 					value="BER20"
@@ -162,7 +162,7 @@
 					aria-describedby="input-composed-code-error"
 					class="border-primary focus:border-primary"
 				/>
-				<p id="input-composed-code-error" class="m-0 text-xs font-bold leading-5 text-primary">
+				<p id="input-composed-code-error" class="text-primary m-0 text-xs leading-5 font-bold">
 					Der Lobby-Code muss aus sechs Zeichen bestehen.
 				</p>
 			</div>
@@ -173,11 +173,11 @@
 <Story name="Zahlenbereich" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Zahlenbereich</h2>
-			<p class="m-0 text-sm text-muted">Numerischer Wert mit nativen Grenzen und Schrittweite.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Zahlenbereich</h2>
+			<p class="text-muted m-0 text-sm">Numerischer Wert mit nativen Grenzen und Schrittweite.</p>
 		</header>
 
-		<div class="grid max-w-sm gap-2 rounded-2xl border-2 border-border bg-surface p-5">
+		<div class="border-border bg-surface grid max-w-sm gap-2 rounded-2xl border-2 p-5">
 			{@render fieldLabel("input-range", "Punktefaktor", "Erlaubt sind Werte von 1 bis 10")}
 			<Input id="input-range" type="number" value={3} min={1} max={10} step={1} />
 		</div>

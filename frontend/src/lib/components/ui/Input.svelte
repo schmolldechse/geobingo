@@ -70,7 +70,7 @@
 	{value}
 	oninput={handleInput}
 	class={[
-		"min-h-11 w-full rounded-xl border-2 border-border bg-surface px-3 py-2 text-sm font-semibold text-foreground outline-none transition-colors placeholder:text-muted focus:border-secondary disabled:cursor-not-allowed disabled:opacity-50",
+		"border-border bg-surface text-foreground placeholder:text-muted focus:border-secondary min-h-11 w-full rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50",
 		className
 	]}
 	data-input

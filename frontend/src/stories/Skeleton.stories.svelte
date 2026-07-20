@@ -19,30 +19,30 @@
 <Story name="Grundformen" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Grundformen</h2>
-			<p class="m-0 text-sm text-muted">Rechteck, abgerundete Fläche, Pill und Kreis.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Grundformen</h2>
+			<p class="text-muted m-0 text-sm">Rechteck, abgerundete Fläche, Pill und Kreis.</p>
 		</header>
 
 		<div
-			class="flex flex-wrap items-end gap-6 rounded-2xl border-2 border-border bg-surface p-6"
+			class="border-border bg-surface flex flex-wrap items-end gap-6 rounded-2xl border-2 p-6"
 			aria-label="Inhalt wird geladen"
 		>
 			<span class="sr-only">Inhalt wird geladen</span>
 			<div class="grid gap-2">
 				<Skeleton class="h-20 w-32" />
-				<span class="text-xs font-bold text-muted">Rechteck</span>
+				<span class="text-muted text-xs font-bold">Rechteck</span>
 			</div>
 			<div class="grid gap-2">
 				<Skeleton class="h-20 w-32 rounded-xl" />
-				<span class="text-xs font-bold text-muted">Abgerundet</span>
+				<span class="text-muted text-xs font-bold">Abgerundet</span>
 			</div>
 			<div class="grid gap-2">
 				<Skeleton class="h-4 w-32 rounded-full" />
-				<span class="text-xs font-bold text-muted">Pill</span>
+				<span class="text-muted text-xs font-bold">Pill</span>
 			</div>
 			<div class="grid gap-2">
 				<Skeleton class="size-20 rounded-full" />
-				<span class="text-xs font-bold text-muted">Kreis</span>
+				<span class="text-muted text-xs font-bold">Kreis</span>
 			</div>
 		</div>
 	</section>
@@ -51,7 +51,7 @@
 <Story name="Avatar" asChild>
 	<section class="p-6 sm:p-8">
 		<div
-			class="flex max-w-md items-center gap-4 rounded-2xl border-2 border-border bg-surface p-5"
+			class="border-border bg-surface flex max-w-md items-center gap-4 rounded-2xl border-2 p-5"
 			aria-label="Profil wird geladen"
 		>
 			<span class="sr-only">Profil wird geladen</span>
@@ -67,7 +67,7 @@
 <Story name="Inhaltskarte" asChild>
 	<section class="p-6 sm:p-8">
 		<article
-			class="grid max-w-sm gap-4 rounded-2xl border-2 border-foreground bg-surface p-5 shadow-[var(--shadow-paper)]"
+			class="border-foreground bg-surface grid max-w-sm gap-4 rounded-2xl border-2 p-5 shadow-[var(--shadow-paper)]"
 			aria-label="Zielkarte wird geladen"
 		>
 			<span class="sr-only">Zielkarte wird geladen</span>
@@ -88,7 +88,7 @@
 <Story name="Liste" asChild>
 	<section class="p-6 sm:p-8">
 		<div
-			class="grid max-w-xl divide-y-2 divide-border overflow-hidden rounded-2xl border-2 border-border bg-surface"
+			class="divide-border border-border bg-surface grid max-w-xl divide-y-2 overflow-hidden rounded-2xl border-2"
 			aria-label="Spielerliste wird geladen"
 		>
 			<span class="sr-only">Spielerliste wird geladen</span>
@@ -122,7 +122,7 @@
 
 		<div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
 			{#each cardRows as card}
-				<article class="grid gap-4 rounded-2xl border-2 border-border bg-surface p-5">
+				<article class="border-border bg-surface grid gap-4 rounded-2xl border-2 p-5">
 					<Skeleton class="h-36 w-full rounded-xl" />
 					<div class="grid gap-2">
 						<Skeleton class={["h-5 rounded-full", card === 2 ? "w-3/4" : "w-2/3"]} />

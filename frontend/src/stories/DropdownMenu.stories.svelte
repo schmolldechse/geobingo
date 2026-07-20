@@ -58,7 +58,7 @@
 {#snippet accountItems()}
 	<DropdownMenu.Group aria-label="Konto und Lobby">
 		<DropdownMenu.GroupHeading>
-			<span class="block text-sm tracking-normal normal-case text-foreground">Alex Beispiel</span>
+			<span class="text-foreground block text-sm tracking-normal normal-case">Alex Beispiel</span>
 			<span class="block font-semibold tracking-normal normal-case">alex@geobingo.de</span>
 		</DropdownMenu.GroupHeading>
 		<DropdownMenu.Separator />
@@ -86,8 +86,8 @@
 <Story name="Komplettes Menü" asChild>
 	<section class="min-h-96 p-6 sm:p-8">
 		<header class="mb-6 grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Komplettes Menü</h2>
-			<p class="m-0 text-sm text-muted">Gruppen, Überschriften, Icons, Trenner und nicht verfügbare Einträge.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Komplettes Menü</h2>
+			<p class="text-muted m-0 text-sm">Gruppen, Überschriften, Icons, Trenner und nicht verfügbare Einträge.</p>
 		</header>
 
 		<DropdownMenu.Root open closeOnInteractOutside={false}>
@@ -111,13 +111,13 @@
 <Story name="Ausrichtung" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Ausrichtung</h2>
-			<p class="m-0 text-sm text-muted">Der Inhalt kann am Anfang, mittig oder am Ende des Triggers ausgerichtet werden.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Ausrichtung</h2>
+			<p class="text-muted m-0 text-sm">Der Inhalt kann am Anfang, mittig oder am Ende des Triggers ausgerichtet werden.</p>
 		</header>
 
 		<div class="grid gap-6 lg:grid-cols-3">
 			{#each alignments as align}
-				<div class="min-h-72 rounded-2xl border-2 border-border bg-surface p-5">
+				<div class="border-border bg-surface min-h-72 rounded-2xl border-2 p-5">
 					<div class={align === "center" ? "text-center" : align === "end" ? "text-right" : "text-left"}>
 						<DropdownMenu.Root open closeOnInteractOutside={false}>
 							<DropdownMenu.Trigger>{align} <ChevronDown aria-hidden="true" size={16} /></DropdownMenu.Trigger>
@@ -136,39 +136,39 @@
 <Story name="Zustände" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Zustände</h2>
-			<p class="m-0 text-sm text-muted">
+			<h2 class="text-foreground m-0 text-xl font-black">Zustände</h2>
+			<p class="text-muted m-0 text-sm">
 				Geschlossen, vollständig deaktiviert, deaktivierter Trigger und deaktivierter Eintrag.
 			</p>
 		</header>
 
 		<div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-			<div class="min-h-64 rounded-2xl border-2 border-border bg-surface p-5">
-				<p class="mt-0 text-xs font-extrabold tracking-widest text-muted uppercase">Geschlossen</p>
+			<div class="border-border bg-surface min-h-64 rounded-2xl border-2 p-5">
+				<p class="text-muted mt-0 text-xs font-extrabold tracking-widest uppercase">Geschlossen</p>
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>Menü <ChevronDown aria-hidden="true" size={16} /></DropdownMenu.Trigger>
 					<DropdownMenu.Content><DropdownMenu.Item>Eintrag</DropdownMenu.Item></DropdownMenu.Content>
 				</DropdownMenu.Root>
 			</div>
 
-			<div class="min-h-64 rounded-2xl border-2 border-border bg-surface p-5">
-				<p class="mt-0 text-xs font-extrabold tracking-widest text-muted uppercase">Root deaktiviert</p>
+			<div class="border-border bg-surface min-h-64 rounded-2xl border-2 p-5">
+				<p class="text-muted mt-0 text-xs font-extrabold tracking-widest uppercase">Root deaktiviert</p>
 				<DropdownMenu.Root open disabled closeOnInteractOutside={false}>
 					<DropdownMenu.Trigger>Menü <ChevronDown aria-hidden="true" size={16} /></DropdownMenu.Trigger>
 					<DropdownMenu.Content class="w-52"><DropdownMenu.Item>Eintrag</DropdownMenu.Item></DropdownMenu.Content>
 				</DropdownMenu.Root>
 			</div>
 
-			<div class="min-h-64 rounded-2xl border-2 border-border bg-surface p-5">
-				<p class="mt-0 text-xs font-extrabold tracking-widest text-muted uppercase">Trigger deaktiviert</p>
+			<div class="border-border bg-surface min-h-64 rounded-2xl border-2 p-5">
+				<p class="text-muted mt-0 text-xs font-extrabold tracking-widest uppercase">Trigger deaktiviert</p>
 				<DropdownMenu.Root open closeOnInteractOutside={false}>
 					<DropdownMenu.Trigger disabled>Menü <ChevronDown aria-hidden="true" size={16} /></DropdownMenu.Trigger>
 					<DropdownMenu.Content class="w-52"><DropdownMenu.Item>Eintrag</DropdownMenu.Item></DropdownMenu.Content>
 				</DropdownMenu.Root>
 			</div>
 
-			<div class="min-h-64 rounded-2xl border-2 border-border bg-surface p-5">
-				<p class="mt-0 text-xs font-extrabold tracking-widest text-muted uppercase">Eintrag deaktiviert</p>
+			<div class="border-border bg-surface min-h-64 rounded-2xl border-2 p-5">
+				<p class="text-muted mt-0 text-xs font-extrabold tracking-widest uppercase">Eintrag deaktiviert</p>
 				<DropdownMenu.Root open closeOnInteractOutside={false}>
 					<DropdownMenu.Trigger>Menü <ChevronDown aria-hidden="true" size={16} /></DropdownMenu.Trigger>
 					<DropdownMenu.Content class="w-52">
@@ -184,8 +184,8 @@
 <Story name="Trigger-Komposition" asChild>
 	<section class="min-h-80 p-6 sm:p-8">
 		<header class="mb-6 grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Eigener Trigger</h2>
-			<p class="m-0 text-sm text-muted">Der Trigger reicht Zustand und Interaktionen an eine Button-Komponente weiter.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Eigener Trigger</h2>
+			<p class="text-muted m-0 text-sm">Der Trigger reicht Zustand und Interaktionen an eine Button-Komponente weiter.</p>
 		</header>
 
 		<div class="flex max-w-md justify-end">
@@ -208,8 +208,8 @@
 <Story name="Langes Menü" asChild>
 	<section class="min-h-[34rem] p-6 sm:p-8">
 		<header class="mb-6 grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Langes Menü</h2>
-			<p class="m-0 text-sm text-muted">Triggerbreite, maximale Höhe und Scrollverhalten bei vielen Einträgen.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Langes Menü</h2>
+			<p class="text-muted m-0 text-sm">Triggerbreite, maximale Höhe und Scrollverhalten bei vielen Einträgen.</p>
 		</header>
 
 		<DropdownMenu.Root open closeOnInteractOutside={false}>
@@ -221,7 +221,7 @@
 					<DropdownMenu.GroupHeading>Berlin</DropdownMenu.GroupHeading>
 					{#each longMenuItems as item, index}
 						<DropdownMenu.Item textValue={item}>
-							<span class="w-5 text-xs text-muted">{String(index + 1).padStart(2, "0")}</span>{item}
+							<span class="text-muted w-5 text-xs">{String(index + 1).padStart(2, "0")}</span>{item}
 						</DropdownMenu.Item>
 					{/each}
 				</DropdownMenu.Group>

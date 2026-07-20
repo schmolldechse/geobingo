@@ -2,4 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\GeoBingo.Contracts\GeoBingo.Contracts.csproj" />
+  </ItemGroup>
 </Project>

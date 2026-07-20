@@ -13,7 +13,7 @@
 	aria-hidden="true"
 	data-skeleton
 	class={[
-		"relative overflow-hidden border border-border/70 bg-surface-muted shadow-[inset_0_1px_0_color-mix(in_srgb,var(--surface)_70%,transparent)]",
+		"border-border/70 bg-surface-muted relative overflow-hidden border shadow-[inset_0_1px_0_color-mix(in_srgb,var(--surface)_70%,transparent)]",
 		"motion-safe:animate-pulse motion-reduce:animate-none",
 		className
 	]}

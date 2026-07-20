@@ -2,20 +2,21 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
     <UserSecretsId>128b4d1f-a5ff-486f-b576-9b51e3303eb1</UserSecretsId>
   </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="../GeoBingo.Contracts/GeoBingo.Contracts.csproj" />
     <ProjectReference Include="../GeoBingo.GameModes/GeoBingo.GameModes.csproj" />
-    <ProjectReference Include="../GeoBingo.Application/GeoBingo.Application.csproj" />
     <ProjectReference Include="../GeoBingo.Data/GeoBingo.Data.csproj" />
     <ProjectReference Include="../GeoBingo.Observability/GeoBingo.Observability.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-    <PackageReference Include="Microsoft.OpenApi" Version="3.9.0" />
+    <PackageReference Include="Riok.Mapperly" Version="4.3.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.16" />
   </ItemGroup>
 </Project>

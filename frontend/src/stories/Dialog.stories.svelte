@@ -58,12 +58,12 @@
 
 {#snippet customTitle()}
 	<div class="flex items-center gap-3">
-		<span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+		<span class="bg-accent text-accent-foreground inline-flex size-10 shrink-0 items-center justify-center rounded-xl">
 			<MapPinned aria-hidden="true" size={21} />
 		</span>
 		<div>
-			<span class="block text-xs font-extrabold tracking-widest text-muted uppercase">Nächstes Ziel</span>
-			<h2 class="m-0 text-xl font-black tracking-tight text-foreground">Rote Telefonzelle</h2>
+			<span class="text-muted block text-xs font-extrabold tracking-widest uppercase">Nächstes Ziel</span>
+			<h2 class="text-foreground m-0 text-xl font-black tracking-tight">Rote Telefonzelle</h2>
 		</div>
 	</div>
 {/snippet}
@@ -71,10 +71,10 @@
 {#snippet playground(args: PlaygroundArgs)}
 	<Dialog {...args} actions={dialogActions}>
 		<div class="grid gap-3">
-			<p class="m-0 text-sm leading-6 text-muted">
+			<p class="text-muted m-0 text-sm leading-6">
 				Passe Titel, Kopfzeile, Aktionen und Schließverhalten über die Controls an.
 			</p>
-			<div class="rounded-xl border border-border bg-surface-muted p-4 text-sm font-semibold text-foreground">
+			<div class="border-border bg-surface-muted text-foreground rounded-xl border p-4 text-sm font-semibold">
 				4 Teams · 12 Ziele · 90 Minuten
 			</div>
 		</div>
@@ -86,8 +86,8 @@
 <Story name="Mit Aktionen" asChild>
 	<Dialog isVisible title="Änderungen speichern?" actions={dialogActions}>
 		<div class="grid gap-3">
-			<p class="m-0 leading-6 text-muted">Die neuen Lobby-Einstellungen gelten sofort für alle Teilnehmenden.</p>
-			<div class="rounded-xl border-2 border-border bg-surface-muted p-4 text-sm text-foreground">
+			<p class="text-muted m-0 leading-6">Die neuen Lobby-Einstellungen gelten sofort für alle Teilnehmenden.</p>
+			<div class="border-border bg-surface-muted text-foreground rounded-xl border-2 p-4 text-sm">
 				<strong class="block">Geänderte Spieldauer</strong>
 				60 Minuten → 90 Minuten
 			</div>
@@ -97,7 +97,7 @@
 
 <Story name="Eigener Titel" asChild>
 	<Dialog isVisible title={customTitle} actions={dialogActions}>
-		<p class="m-0 leading-6 text-muted">
+		<p class="text-muted m-0 leading-6">
 			Findet die markante Telefonzelle, fotografiert euer Team davor und ladet das Ergebnis hoch.
 		</p>
 	</Dialog>
@@ -106,7 +106,7 @@
 <Story name="Reduzierte Varianten" asChild>
 	<section class="grid gap-6 p-6 lg:grid-cols-2 lg:p-8">
 		<div class="grid gap-3">
-			<span class="text-xs font-extrabold tracking-widest text-muted uppercase">Ohne Kopfzeile</span>
+			<span class="text-muted text-xs font-extrabold tracking-widest uppercase">Ohne Kopfzeile</span>
 			<Dialog
 				isVisible
 				isModal={false}
@@ -117,14 +117,14 @@
 				aria-label="Kurzer Hinweis"
 				class="relative! inset-auto! w-full!"
 			>
-				<p class="m-0 text-sm leading-6 text-muted">
+				<p class="text-muted m-0 text-sm leading-6">
 					Die Runde wurde gespeichert. Du kannst dieses Fenster über Escape schließen.
 				</p>
 			</Dialog>
 		</div>
 
 		<div class="grid gap-3">
-			<span class="text-xs font-extrabold tracking-widest text-muted uppercase">Nur Kopfzeile und Inhalt</span>
+			<span class="text-muted text-xs font-extrabold tracking-widest uppercase">Nur Kopfzeile und Inhalt</span>
 			<Dialog
 				isVisible
 				isModal={false}
@@ -134,7 +134,7 @@
 				showCloseButton={false}
 				class="relative! inset-auto! w-full!"
 			>
-				<p class="m-0 text-sm leading-6 text-muted">Für diesen Hinweis ist keine direkte Aktion erforderlich.</p>
+				<p class="text-muted m-0 text-sm leading-6">Für diesen Hinweis ist keine direkte Aktion erforderlich.</p>
 			</Dialog>
 		</div>
 	</section>
@@ -143,11 +143,11 @@
 <Story name="Nicht modal" asChild>
 	<section class="grid min-h-[30rem] gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Seitenkontext bleibt erreichbar</h2>
-			<p class="m-0 text-sm text-muted">Ein nicht-modaler Dialog blockiert die umgebende Oberfläche nicht.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Seitenkontext bleibt erreichbar</h2>
+			<p class="text-muted m-0 text-sm">Ein nicht-modaler Dialog blockiert die umgebende Oberfläche nicht.</p>
 		</header>
 
-		<div class="grid gap-4 rounded-2xl border-2 border-border bg-surface p-5 sm:grid-cols-[1fr_1.2fr]">
+		<div class="border-border bg-surface grid gap-4 rounded-2xl border-2 p-5 sm:grid-cols-[1fr_1.2fr]">
 			<div class="grid content-start gap-3">
 				<Button variant="outline">Lobby-Code kopieren</Button>
 				<Button variant="ghost">Spielerübersicht öffnen</Button>
@@ -161,7 +161,7 @@
 				showActions={false}
 				class="relative! inset-auto! w-full!"
 			>
-				<p class="m-0 text-sm leading-6 text-muted">Teile den Lobby-Code erst, wenn alle Spielregeln festgelegt sind.</p>
+				<p class="text-muted m-0 text-sm leading-6">Teile den Lobby-Code erst, wenn alle Spielregeln festgelegt sind.</p>
 			</Dialog>
 		</div>
 	</section>
@@ -170,15 +170,15 @@
 <Story name="Langer Inhalt" asChild>
 	<Dialog isVisible title="Vollständige Spielregeln" actions={dialogActions} class="m-auto!">
 		<div class="grid gap-5">
-			<p class="m-0 text-sm leading-6 text-muted">
+			<p class="text-muted m-0 text-sm leading-6">
 				Dieser Inhalt überschreitet bewusst die verfügbare Höhe. Kopfzeile, Inhalt und Aktionen bleiben innerhalb des Viewports
 				scrollbar.
 			</p>
 
 			{#each longContentSections as section, index}
-				<section class="grid gap-1.5 rounded-xl border border-border bg-surface-muted p-4">
-					<h3 class="m-0 text-sm font-extrabold text-foreground">{index + 1}. {section}</h3>
-					<p class="m-0 text-sm leading-6 text-muted">
+				<section class="border-border bg-surface-muted grid gap-1.5 rounded-xl border p-4">
+					<h3 class="text-foreground m-0 text-sm font-extrabold">{index + 1}. {section}</h3>
+					<p class="text-muted m-0 text-sm leading-6">
 						Alle Teams bestätigen diese Regel vor dem Start. Rückfragen werden gemeinsam mit der Spielleitung geklärt.
 					</p>
 				</section>

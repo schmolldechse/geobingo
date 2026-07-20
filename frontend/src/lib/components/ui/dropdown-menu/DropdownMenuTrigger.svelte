@@ -129,10 +129,10 @@
 		onfocus={handleFocus}
 		onkeydown={handleKeydown}
 		class={[
-			"inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-foreground bg-surface px-4 text-sm font-extrabold text-foreground",
+			"border-foreground bg-surface text-foreground inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 px-4 text-sm font-extrabold",
 			"shadow-[3px_3px_0_var(--foreground)] transition-[transform,box-shadow,background-color,color] duration-150 motion-reduce:transition-none",
-			"enabled:cursor-pointer enabled:hover:-translate-x-px enabled:hover:-translate-y-px enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:hover:shadow-[4px_4px_0_var(--foreground)]",
-			"enabled:active:translate-x-0.5 enabled:active:translate-y-0.5 enabled:active:shadow-[1px_1px_0_var(--foreground)] data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+			"enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:cursor-pointer enabled:hover:-translate-x-px enabled:hover:-translate-y-px enabled:hover:shadow-[4px_4px_0_var(--foreground)]",
+			"data-[state=open]:bg-accent data-[state=open]:text-accent-foreground enabled:active:translate-x-0.5 enabled:active:translate-y-0.5 enabled:active:shadow-[1px_1px_0_var(--foreground)]",
 			"disabled:cursor-not-allowed disabled:opacity-45",
 			className
 		]}

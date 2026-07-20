@@ -52,7 +52,7 @@
 		onkeydown={menu.handleContentKeydown}
 		style={contentStyle}
 		class={[
-			"absolute z-50 max-h-[min(24rem,calc(100dvh-2rem))] min-w-52 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border-2 border-foreground bg-surface p-1.5 text-foreground shadow-[var(--shadow-paper-raised)] outline-none",
+			"border-foreground bg-surface text-foreground absolute z-50 max-h-[min(24rem,calc(100dvh-2rem))] max-w-[calc(100vw-2rem)] min-w-52 overflow-y-auto rounded-xl border-2 p-1.5 shadow-[var(--shadow-paper-raised)] outline-none",
 			"transition-[opacity,transform] duration-150 motion-reduce:transition-none",
 			align === "start" && "left-0",
 			align === "center" && "left-1/2 -translate-x-1/2",

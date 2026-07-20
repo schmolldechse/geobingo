@@ -87,9 +87,9 @@
 		if (!isDisabled) menu.setActiveItem(itemId);
 	}}
 	class={[
-		"flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-extrabold text-foreground outline-none",
+		"text-foreground flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-extrabold outline-none",
 		"transition-[background-color,color,transform] duration-150 motion-reduce:transition-none",
-		"enabled:cursor-pointer enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:active:translate-x-px",
+		"enabled:hover:bg-accent enabled:hover:text-accent-foreground enabled:cursor-pointer enabled:active:translate-x-px",
 		"data-active:bg-accent data-active:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-45",
 		className
 	]}

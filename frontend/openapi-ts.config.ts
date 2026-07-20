@@ -1,27 +1,12 @@
 import { defineConfig } from "@hey-api/openapi-ts";
 
 export default defineConfig({
-	input: "http://localhost:5054/openapi/v1.json",
-	output: "./src/lib/api",
-	parser: {
-		transforms: {
-			enums: {
-				case: "SCREAMING_SNAKE_CASE"
-			}
-		}
-	},
+	input: "http://localhost:5287/openapi/v1.json",
+	output: "src/lib/generated/api",
 	plugins: [
 		{
 			name: "@hey-api/typescript",
-			enums: {
-				mode: "typescript",
-				case: "SCREAMING_SNAKE_CASE"
-			}
-		},
-		{
-			name: "valibot",
-			requests: false,
-			responses: false
+			enums: false
 		}
 	]
 });

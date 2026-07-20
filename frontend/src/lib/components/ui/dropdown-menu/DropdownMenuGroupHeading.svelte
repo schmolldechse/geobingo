@@ -10,6 +10,6 @@
 	let { children, class: className, ...rest }: Props = $props();
 </script>
 
-<div {...rest} class={["px-3 pt-2 pb-1 text-xs font-extrabold tracking-[0.12em] text-muted uppercase", className]}>
+<div {...rest} class={["text-muted px-3 pt-2 pb-1 text-xs font-extrabold tracking-[0.12em] uppercase", className]}>
 	{@render children?.()}
 </div>

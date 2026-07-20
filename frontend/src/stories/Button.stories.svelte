@@ -56,14 +56,14 @@
 <Story name="Varianten" asChild>
 	<section class="grid gap-4 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Varianten</h2>
-			<p class="m-0 text-sm text-muted">Jede Variante im aktiven und deaktivierten Zustand.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Varianten</h2>
+			<p class="text-muted m-0 text-sm">Jede Variante im aktiven und deaktivierten Zustand.</p>
 		</header>
 
-		<div class="grid gap-3 rounded-2xl border-2 border-border bg-surface p-4 sm:p-6">
+		<div class="border-border bg-surface grid gap-3 rounded-2xl border-2 p-4 sm:p-6">
 			{#each variants as variant}
-				<div class="grid gap-3 border-b border-border pb-3 last:border-0 last:pb-0 sm:grid-cols-[7rem_1fr] sm:items-center">
-					<span class="font-mono text-xs font-bold text-muted">{variant}</span>
+				<div class="border-border grid gap-3 border-b pb-3 last:border-0 last:pb-0 sm:grid-cols-[7rem_1fr] sm:items-center">
+					<span class="text-muted font-mono text-xs font-bold">{variant}</span>
 					<div class="flex flex-wrap items-center gap-3">
 						<Button {variant}>Aktiv</Button>
 						<Button {variant} disabled>Deaktiviert</Button>
@@ -77,11 +77,11 @@
 <Story name="Größen" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Größen</h2>
-			<p class="m-0 text-sm text-muted">Von der kompakten Aktion bis zur quadratischen Icon-Schaltfläche.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Größen</h2>
+			<p class="text-muted m-0 text-sm">Von der kompakten Aktion bis zur quadratischen Icon-Schaltfläche.</p>
 		</header>
 
-		<div class="flex flex-wrap items-center gap-4 rounded-2xl border-2 border-border bg-surface p-6">
+		<div class="border-border bg-surface flex flex-wrap items-center gap-4 rounded-2xl border-2 p-6">
 			{#each sizes as size}
 				<div class="grid justify-items-center gap-2">
 					<Button {size} aria-label={size === "icon" ? "Kompass öffnen" : undefined}>
@@ -91,7 +91,7 @@
 							{size.toUpperCase()}
 						{/if}
 					</Button>
-					<code class="text-xs font-bold text-muted">{size}</code>
+					<code class="text-muted text-xs font-bold">{size}</code>
 				</div>
 			{/each}
 		</div>
@@ -101,11 +101,11 @@
 <Story name="Zustände" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Zustände</h2>
-			<p class="m-0 text-sm text-muted">Aktive und nicht verfügbare Aktionen mit klarer visueller Hierarchie.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Zustände</h2>
+			<p class="text-muted m-0 text-sm">Aktive und nicht verfügbare Aktionen mit klarer visueller Hierarchie.</p>
 		</header>
 
-		<div class="grid max-w-2xl gap-4 rounded-2xl border-2 border-border bg-surface p-6 sm:grid-cols-2">
+		<div class="border-border bg-surface grid max-w-2xl gap-4 rounded-2xl border-2 p-6 sm:grid-cols-2">
 			<Button>Aktiv</Button>
 			<Button disabled>Deaktiviert</Button>
 			<Button variant="outline">Aktiv – Outline</Button>
@@ -119,11 +119,11 @@
 <Story name="Mit Icons" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Icon-Kompositionen</h2>
-			<p class="m-0 text-sm text-muted">Führendes Icon, nachgestelltes Icon und zugängliche Icon-only-Aktion.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Icon-Kompositionen</h2>
+			<p class="text-muted m-0 text-sm">Führendes Icon, nachgestelltes Icon und zugängliche Icon-only-Aktion.</p>
 		</header>
 
-		<div class="flex flex-wrap items-center gap-4 rounded-2xl border-2 border-border bg-surface p-6">
+		<div class="border-border bg-surface flex flex-wrap items-center gap-4 rounded-2xl border-2 p-6">
 			<Button><Plus aria-hidden="true" size={18} />Ziel hinzufügen</Button>
 			<Button variant="secondary">Weiter<ArrowRight aria-hidden="true" size={18} /></Button>
 			<Button variant="outline" href="#details">
@@ -139,11 +139,11 @@
 <Story name="Button und Link" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="m-0 text-xl font-black text-foreground">Semantische Elemente</h2>
-			<p class="m-0 text-sm text-muted">Die gleiche visuelle Sprache für Aktionen und Navigation.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Semantische Elemente</h2>
+			<p class="text-muted m-0 text-sm">Die gleiche visuelle Sprache für Aktionen und Navigation.</p>
 		</header>
 
-		<div class="flex flex-wrap items-center gap-4 rounded-2xl border-2 border-border bg-surface p-6">
+		<div class="border-border bg-surface flex flex-wrap items-center gap-4 rounded-2xl border-2 p-6">
 			<Button type="button">Native Schaltfläche</Button>
 			<Button href="#lobby" variant="secondary">Link zur Lobby</Button>
 			<Button href="#gesperrt" variant="outline" disabled>Deaktivierter Link</Button>
