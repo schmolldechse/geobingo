@@ -1,4 +1,5 @@
 using GeoBingo.Api.Authentication;
+using GeoBingo.Api.Lobbies;
 using GeoBingo.Api.Mapping;
 using GeoBingo.Api.OpenAPI;
 using GeoBingo.Api.Serialization;
@@ -29,6 +30,7 @@ try
     builder.Services.AddGeoBingoAuthentication(builder.Configuration);
     builder.Services.AddAuthorization();
     builder.Services.AddGeoBingoGameModes();
+    builder.Services.AddGeoBingoLobbyRuntime();
 
     builder.Services.AddProblemDetails();
 
