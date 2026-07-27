@@ -18,6 +18,32 @@ export type AuthProvider = {
 	displayName: string;
 };
 
+/**
+ * Public metadata for a registered GeoBingo game mode.
+ */
+export type GameModeSummary = {
+	/**
+	 * The stable lower-case game-mode key.
+	 */
+	key: string;
+	/**
+	 * The human-readable game-mode name.
+	 */
+	displayName: string;
+	/**
+	 * A concise explanation of the game mode.
+	 */
+	description: string;
+	/**
+	 * The normalized public game-mode version.
+	 */
+	version: string;
+	/**
+	 * The explicit stable display and default-selection order.
+	 */
+	order: number | string;
+};
+
 export type ProblemDetails = {
 	type?: null | string;
 	title?: null | string;
@@ -149,3 +175,19 @@ export type EndCurrentAuthenticationSessionResponses = {
 
 export type EndCurrentAuthenticationSessionResponse =
 	EndCurrentAuthenticationSessionResponses[keyof EndCurrentAuthenticationSessionResponses];
+
+export type ListGameModesData = {
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/api/game-modes";
+};
+
+export type ListGameModesResponses = {
+	/**
+	 * OK
+	 */
+	200: Array<GameModeSummary>;
+};
+
+export type ListGameModesResponse = ListGameModesResponses[keyof ListGameModesResponses];

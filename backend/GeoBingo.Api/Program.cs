@@ -3,6 +3,8 @@ using GeoBingo.Api.Mapping;
 using GeoBingo.Api.OpenAPI;
 using GeoBingo.Api.Serialization;
 using GeoBingo.Data;
+using GeoBingo.GameModes;
+using GeoBingo.GameModes.Registry;
 using GeoBingo.Observability;
 using GeoBingo.Observability.Logging;
 using Microsoft.AspNetCore.Builder;
@@ -26,6 +28,7 @@ try
     builder.Services.AddGeoBingoData(builder.Configuration);
     builder.Services.AddGeoBingoAuthentication(builder.Configuration);
     builder.Services.AddAuthorization();
+    builder.Services.AddGeoBingoGameModes();
 
     builder.Services.AddProblemDetails();
 
@@ -42,9 +45,11 @@ try
         options => options.AddSchemaTransformer<StringEnumSchemaTransformer>());
 
     // mapping
-    builder.Services.AddSingleton<AuthProviderMapper>();
+    builder.Services.AddSingleton<AuthProviderMapper>()
+        .AddSingleton<GameModeMapper>();
 
     var app = builder.Build();
+    _ = app.Services.GetRequiredService<IGameModeRegistry>();
 
     app.UseGeoBingoRequestLogging();
     app.UseAuthentication();
