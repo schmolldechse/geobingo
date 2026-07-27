@@ -152,6 +152,49 @@ public sealed class CaptureChallengeModule : IGameModeModule
         throw new InvalidOperationException("The Capture Challenge round has an unsupported status.");
     }
 
+    public void HandleParticipantWithdrawal(
+        GameModeParticipantWithdrawalContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        _ = RequireLobbyState(context.LobbyState);
+        var roundState = context.RoundState
+            as CaptureChallengeRoundState
+            ?? throw new ArgumentException(
+                "The round state is not a Capture Challenge state.",
+                nameof(context));
+
+        if (context.ParticipantUserId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "The participant user identifier cannot be empty.",
+                nameof(context));
+        }
+
+        if (!roundState.IsParticipant(context.ParticipantUserId))
+        {
+            throw new ArgumentException(
+                "The selected user is not a participant of this round.",
+                nameof(context));
+        }
+
+        switch (roundState.Status)
+        {
+            case null:
+                return;
+            case Contracts.GameModes.CaptureChallenge
+                .CaptureChallengeStatus.CAPTURING:
+                roundState.RemoveCapturesOwnedBy(
+                    context.ParticipantUserId);
+                return;
+            case Contracts.GameModes.CaptureChallenge
+                .CaptureChallengeStatus.VOTING:
+                return;
+            default:
+                throw new InvalidOperationException(
+                    "The Capture Challenge round has an unsupported status.");
+        }
+    }
+
     private static CaptureChallengeLobbyState RequireLobbyState(IGameModeLobbyState state) => state as CaptureChallengeLobbyState
         ?? throw new ArgumentException("The lobby state is not a Capture Challenge state.", nameof(state));
 

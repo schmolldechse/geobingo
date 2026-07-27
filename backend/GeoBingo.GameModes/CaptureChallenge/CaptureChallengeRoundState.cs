@@ -79,6 +79,10 @@ public sealed class CaptureChallengeRoundState : IGameModeRoundState
     internal bool IsParticipant(Guid userId) =>
         _participants.Any(participant => participant.UserId == userId);
 
+    internal void RemoveCapturesOwnedBy(Guid userId) =>
+        _captures.RemoveAll(
+            capture => capture.OwnerUserId == userId);
+
     internal CaptureChallengeGoal? FindGoal(Guid goalId) =>
         _goals.FirstOrDefault(goal => goal.Id == goalId);
 

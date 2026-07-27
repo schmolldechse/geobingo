@@ -2,6 +2,22 @@
 /* eslint-disable */
 /* tslint:disable */
 
+/** Transpiled from GeoBingo.Contracts.Lobbies.LobbyEndedReason */
+export enum LobbyEndedReason {
+	CLOSED_BY_HOST = "CLOSED_BY_HOST",
+	NO_MEMBERS = "NO_MEMBERS",
+	KICKED = "KICKED",
+	BANNED = "BANNED",
+	SERVER_SHUTDOWN = "SERVER_SHUTDOWN",
+	SERVER_ERROR = "SERVER_ERROR"
+}
+
+/** Transpiled from GeoBingo.Contracts.Lobbies.LobbySettings */
+export type LobbySettings = {
+	/** Transpiled from int */
+	maxPlayers: number;
+};
+
 /** Transpiled from GeoBingo.Contracts.Lobbies.LobbyStatus */
 export enum LobbyStatus {
 	WAITING = "WAITING",

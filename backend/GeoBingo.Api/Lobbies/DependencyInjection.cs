@@ -16,6 +16,8 @@ public static class DependencyInjection
         services.AddSingleton<LobbyProjectionPublisher>();
         services.AddSingleton<ILobbyRegistry, LobbyRegistry>();
         services.AddSingleton<LobbyOperationDispatcher>();
+        services.AddSingleton<LobbyMembershipPolicy>();
+        services.AddSingleton<LobbyConnectionLifecycle>();
         return services;
     }
 }

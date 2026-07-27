@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GeoBingo.Contracts.Common;
 using GeoBingo.Contracts.Lobbies;
 using GeoBingo.GameModes.Abstractions;
@@ -125,6 +126,55 @@ internal sealed class LobbyMemberState
 
     public HashSet<string> ConnectionIds { get; } =
         new(StringComparer.Ordinal);
+
+    public DateTimeOffset? DisconnectGraceEndsAt { get; private set; }
+
+    public bool IsConnected => ConnectionIds.Count > 0;
+
+    public void AttachConnection(string connectionId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionId);
+        ConnectionIds.Add(connectionId);
+        DisconnectGraceEndsAt = null;
+    }
+
+    public bool DetachConnection(
+        string connectionId,
+        DateTimeOffset now,
+        TimeSpan gracePeriod)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionId);
+        if (gracePeriod <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(gracePeriod),
+                "The disconnect grace period must be positive.");
+        }
+
+        if (!ConnectionIds.Remove(connectionId))
+        {
+            return false;
+        }
+
+        if (ConnectionIds.Count == 0)
+        {
+            DisconnectGraceEndsAt = now.Add(gracePeriod);
+        }
+
+        return true;
+    }
+
+    public bool HasExpiredDisconnectGrace(DateTimeOffset now) =>
+        ConnectionIds.Count == 0
+        && DisconnectGraceEndsAt is DateTimeOffset deadline
+        && now >= deadline;
+
+    public bool MatchesDisconnectDeadline(DateTimeOffset deadline) =>
+        ConnectionIds.Count == 0
+        && DisconnectGraceEndsAt == deadline;
+
+    public void ClearDisconnectGrace() =>
+        DisconnectGraceEndsAt = null;
 }
 
 internal sealed record LobbyRuntimeSummary(
@@ -191,7 +241,7 @@ internal sealed class LobbyRuntimeState
 
     public string Code { get; }
 
-    public LobbyStatus Status { get; internal set; }
+    public LobbyStatus Status { get; private set; }
 
     public Guid HostUserId { get; internal set; }
 
@@ -240,6 +290,70 @@ internal sealed class LobbyRuntimeState
         && !IsClosed
         && Members.ContainsKey(userId);
 
+    public bool TryGetMember(
+        Guid userId,
+        out LobbyMemberState? member)
+    {
+        if (userId == Guid.Empty)
+        {
+            member = null;
+            return false;
+        }
+
+        return Members.TryGetValue(userId, out member);
+    }
+
+    public LobbyMemberState AddMember(
+        Guid userId,
+        string handle,
+        string displayName)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "The user identifier cannot be empty.",
+                nameof(userId));
+        }
+
+        ValidateMemberName(handle, nameof(handle));
+        ValidateMemberName(displayName, nameof(displayName));
+
+        if (Members.ContainsKey(userId))
+        {
+            throw new InvalidOperationException(
+                "The user is already a lobby member.");
+        }
+
+        var member = new LobbyMemberState
+        {
+            UserId = userId,
+            Handle = handle,
+            DisplayName = displayName,
+            JoinOrder = AllocateJoinOrder()
+        };
+
+        Members.Add(userId, member);
+        return member;
+    }
+
+    public bool RemoveMember(Guid userId) =>
+        userId != Guid.Empty
+        && Members.Remove(userId);
+
+    public Guid? FindHostSuccessorUserId() =>
+        Members.Values
+            .OrderBy(member => member.JoinOrder)
+            .Select(member => (Guid?)member.UserId)
+            .FirstOrDefault();
+
+    public IReadOnlyList<Guid> FindExpiredDisconnectedMemberIds(
+        DateTimeOffset now) =>
+        Members.Values
+            .Where(member => member.HasExpiredDisconnectGrace(now))
+            .OrderBy(member => member.JoinOrder)
+            .Select(member => member.UserId)
+            .ToArray();
+
     public bool CanReplaceSettings(LobbySettings replacement) =>
         replacement is not null
         && !IsClosing
@@ -271,6 +385,12 @@ internal sealed class LobbyRuntimeState
 
     public void IncrementStateVersion() =>
         StateVersion = checked(StateVersion + 1);
+
+    public void TransitionTo(LobbyStatus nextStatus)
+    {
+        LobbyStateMachine.EnsureTransitionAllowed(Status, nextStatus);
+        Status = nextStatus;
+    }
 
     public void BeginClosing(LobbyEndedReason reason)
     {
@@ -318,4 +438,21 @@ internal sealed class LobbyRuntimeState
         {
             MaxPlayers = source.MaxPlayers
         };
+
+    private static void ValidateMemberName(
+        string value,
+        string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value)
+            || value.Length > 64
+            || !string.Equals(
+                value,
+                value.Trim(),
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The member name must be trimmed and contain between 1 and 64 characters.",
+                parameterName);
+        }
+    }
 }

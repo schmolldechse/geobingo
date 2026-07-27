@@ -23,4 +23,7 @@ public interface IGameModeModule
     GameModeProjectionPair CreateProjections(GameModeProjectionContext context);
 
     GameModeAdvanceOutcome Advance(GameModeAdvanceContext context);
+
+    void HandleParticipantWithdrawal(
+        GameModeParticipantWithdrawalContext context);
 }
