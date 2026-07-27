@@ -16,13 +16,13 @@
 		<defs>
 			<style>
 				.g {
-					fill: #87b9d6;
+					fill: var(--color-primary);
 				}
 				.h {
-					fill: #ed6a61;
+					fill: var(--color-secondary);
 				}
 				.i {
-					fill: #f4c959;
+					fill: var(--color-accent);
 				}
 			</style>
 		</defs>
