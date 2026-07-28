@@ -7,7 +7,7 @@ using GeoBingo.GameModes.Abstractions;
 
 namespace GeoBingo.Api.Lobbies.Runtime;
 
-internal sealed record LobbyCreation
+public sealed record LobbyCreation
 {
     public LobbyCreation(
         Guid hostUserId,
@@ -70,11 +70,10 @@ internal sealed record LobbyCreation
 
     public LobbySettings Settings { get; }
 
-    private static LobbySettings CopySettings(LobbySettings settings) =>
-        new()
-        {
-            MaxPlayers = settings.MaxPlayers
-        };
+    private static LobbySettings CopySettings(LobbySettings settings) => new()
+    {
+        MaxPlayers = settings.MaxPlayers
+    };
 }
 
 internal sealed record LobbyActor(
@@ -261,7 +260,27 @@ internal sealed class LobbyRuntimeState
 
     public int NextJoinOrder { get; private set; } = 2;
 
+    public int? CurrentRoundNumber { get; internal set; }
+
     public IGameModeRoundState? CurrentRound { get; internal set; }
+
+    public List<CompletedRoundSummary>
+        CompletedRoundSummaries
+    { get; } = [];
+
+    public List<CompletedRoundResults>
+        CompletedRoundResults
+    { get; } = [];
+
+    public List<CumulativePlayerResult>
+        CumulativeResults
+    { get; } = [];
+
+    public bool HasNonDefaultModeConfiguration
+    {
+        get;
+        internal set;
+    }
 
     public DateTimeOffset? PreparationDeadline { get; internal set; }
 
@@ -418,6 +437,22 @@ internal sealed class LobbyRuntimeState
         IsClosed = true;
     }
 
+    public void ClearSensitiveState()
+    {
+        Members.Clear();
+        BannedUserIds.Clear();
+        CompletedRoundSummaries.Clear();
+        CompletedRoundResults.Clear();
+        CumulativeResults.Clear();
+        CurrentRound = null;
+        CurrentRoundNumber = null;
+        PreparationDeadline = null;
+        ModeDeadline = null;
+        ModeDeadlineRoundId = null;
+        ModeLobbyState = ClearedGameModeLobbyState.Instance;
+        HasNonDefaultModeConfiguration = false;
+    }
+
     public LobbyRuntimeSummary CreateSummary() =>
         new(
             LobbyId,
@@ -453,6 +488,17 @@ internal sealed class LobbyRuntimeState
             throw new ArgumentException(
                 "The member name must be trimmed and contain between 1 and 64 characters.",
                 parameterName);
+        }
+    }
+
+    private sealed class ClearedGameModeLobbyState
+        : IGameModeLobbyState
+    {
+        public static ClearedGameModeLobbyState Instance { get; } =
+            new();
+
+        private ClearedGameModeLobbyState()
+        {
         }
     }
 }

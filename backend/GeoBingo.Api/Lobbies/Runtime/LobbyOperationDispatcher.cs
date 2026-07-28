@@ -2,8 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using GeoBingo.Contracts.Common;
+using GeoBingo.Contracts.GameModes.CaptureChallenge;
+using GeoBingo.Contracts.Lobbies;
 using GeoBingo.GameModes.Abstractions;
 using GeoBingo.GameModes.CaptureChallenge;
+using GeoBingo.GameModes.Registry;
 
 namespace GeoBingo.Api.Lobbies.Runtime;
 
@@ -11,20 +14,38 @@ internal sealed class LobbyOperationDispatcher
 {
     private readonly ILobbyRegistry lobbyRegistry;
     private readonly LobbyConnectionRegistry connectionRegistry;
-    private readonly CaptureChallengeOperations captureChallengeOperations;
+    private readonly LobbyMembershipPolicy membershipPolicy;
+    private readonly IGameModeRegistry gameModeRegistry;
+    private readonly CaptureChallengeOperations
+        captureChallengeOperations;
+    private readonly TimeProvider timeProvider;
 
     public LobbyOperationDispatcher(
         ILobbyRegistry lobbyRegistry,
         LobbyConnectionRegistry connectionRegistry,
-        CaptureChallengeOperations captureChallengeOperations)
+        LobbyMembershipPolicy membershipPolicy,
+        IGameModeRegistry gameModeRegistry,
+        CaptureChallengeOperations captureChallengeOperations,
+        TimeProvider timeProvider)
     {
         this.lobbyRegistry = lobbyRegistry
             ?? throw new ArgumentNullException(nameof(lobbyRegistry));
         this.connectionRegistry = connectionRegistry
-            ?? throw new ArgumentNullException(nameof(connectionRegistry));
-        this.captureChallengeOperations = captureChallengeOperations
+            ?? throw new ArgumentNullException(
+                nameof(connectionRegistry));
+        this.membershipPolicy = membershipPolicy
+            ?? throw new ArgumentNullException(
+                nameof(membershipPolicy));
+        this.gameModeRegistry = gameModeRegistry
+            ?? throw new ArgumentNullException(
+                nameof(gameModeRegistry));
+        this.captureChallengeOperations =
+            captureChallengeOperations
             ?? throw new ArgumentNullException(
                 nameof(captureChallengeOperations));
+        this.timeProvider = timeProvider
+            ?? throw new ArgumentNullException(
+                nameof(timeProvider));
     }
 
     public bool TryResolveForConnection(
@@ -91,36 +112,377 @@ internal sealed class LobbyOperationDispatcher
         return true;
     }
 
-    public ValueTask<LobbyOperationCompletion> DispatchForConnectionAsync(
-        string operationName,
+    public ValueTask<LobbyOperationCompletion> LeaveAsync(
         string connectionId,
-        Guid authenticatedUserId,
-        Func<LobbyRuntimeState, LobbyActor, CancellationToken,
-            ValueTask<LobbyMutationOutcome>> mutation,
-        CancellationToken cancellationToken)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
-        ArgumentNullException.ThrowIfNull(mutation);
-
-        if (!TryResolveForConnection(
-                connectionId,
-                authenticatedUserId,
-                out var runtime,
-                out var failure))
-        {
-            return ValueTask.FromResult(
-                CreateRejectedCompletion(runtime, failure!));
-        }
-
-        return runtime!.EnqueueMutationAsync(
-            operationName,
-            new LobbyActor(
-                authenticatedUserId,
-                connectionId,
-                IsSystem: false),
-            WrapExpectedFailures(mutation),
+        Guid userId,
+        CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            "leave-lobby",
+            connectionId,
+            userId,
+            (runtime, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.LEAVE);
+                var effects = membershipPolicy.RemoveMember(
+                    state,
+                    actor,
+                    userId,
+                    LobbyMemberRemovalReason.LEAVE,
+                    timeProvider.GetUtcNow());
+                CancelRemovalDeadlines(runtime, effects);
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
             cancellationToken);
-    }
+
+    public ValueTask<LobbyOperationCompletion> CloseAsync(
+        string connectionId,
+        Guid userId,
+        CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            "close-lobby",
+            connectionId,
+            userId,
+            (runtime, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.CLOSE_LOBBY);
+                runtime.CancelAllDeadlines();
+                state.BeginClosing(
+                    LobbyEndedReason.CLOSED_BY_HOST);
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> RemovePlayerAsync(
+        string connectionId,
+        Guid userId,
+        RemovePlayerRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            request.Kind == PlayerRemovalKind.BAN
+                ? "ban-member"
+                : "kick-member",
+            connectionId,
+            userId,
+            (runtime, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.REMOVE_MEMBER);
+                var effects = membershipPolicy.RemoveMember(
+                    state,
+                    actor,
+                    request.UserId,
+                    request.Kind == PlayerRemovalKind.BAN
+                        ? LobbyMemberRemovalReason.BAN
+                        : LobbyMemberRemovalReason.KICK,
+                    timeProvider.GetUtcNow());
+                CancelRemovalDeadlines(runtime, effects);
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> TransferHostAsync(
+        string connectionId,
+        Guid userId,
+        TransferHostRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            "transfer-host",
+            connectionId,
+            userId,
+            (_, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.TRANSFER_HOST);
+                if (request.UserId == state.HostUserId
+                    || !state.Members.ContainsKey(request.UserId))
+                {
+                    throw new LobbyRuntimeException(
+                        ErrorCode.VALIDATION_FAILED,
+                        "The new host must be another active lobby member.");
+                }
+
+                state.HostUserId = request.UserId;
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion>
+        UpdateLobbySettingsAsync(
+            string connectionId,
+            Guid userId,
+            UpdateLobbySettingsRequest request,
+            CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            "update-lobby-settings",
+            connectionId,
+            userId,
+            (_, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.UPDATE_LOBBY_SETTINGS);
+                state.ReplaceSettings(request.Settings);
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> SelectGameModeAsync(
+        string connectionId,
+        Guid userId,
+        SelectGameModeRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            "select-game-mode",
+            connectionId,
+            userId,
+            (_, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.SELECT_MODE);
+                if (!gameModeRegistry.TryGet(
+                        request.ModeKey,
+                        out var module)
+                    || module is null)
+                {
+                    throw new LobbyRuntimeException(
+                        ErrorCode.MODE_NOT_FOUND,
+                        "The requested game mode was not found.");
+                }
+
+                if (string.Equals(
+                        state.SelectedModeKey,
+                        module.Key,
+                        StringComparison.Ordinal))
+                {
+                    throw new LobbyRuntimeException(
+                        ErrorCode.VALIDATION_FAILED,
+                        "The requested game mode is already selected.");
+                }
+
+                if (state.HasNonDefaultModeConfiguration
+                    && !request.ConfirmModeStateReset)
+                {
+                    throw new LobbyRuntimeException(
+                        ErrorCode.VALIDATION_FAILED,
+                        "Changing the game mode requires confirmation because the current configuration will be reset.");
+                }
+
+                state.SelectedModeKey = module.Key;
+                state.SelectedModeVersion = module.Version;
+                state.ModeLobbyState =
+                    module.CreateDefaultLobbyState();
+                state.HasNonDefaultModeConfiguration = false;
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> StartRoundAsync(
+        string connectionId,
+        Guid userId,
+        CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            "start-round",
+            connectionId,
+            userId,
+            (_, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.START_ROUND);
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Rejected(
+                        new LobbyOperationFailure(
+                            ErrorCode.MODE_OPERATION_NOT_SUPPORTED,
+                            "Round start is not available in this implementation slice.",
+                            Errors: null)));
+            },
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion>
+        UpdateCaptureChallengeSettingsAsync(
+            string connectionId,
+            Guid userId,
+            UpdateCaptureChallengeSettingsRequest request,
+            CancellationToken cancellationToken) =>
+        DispatchWaitingCaptureChallengeAsync(
+            "update-capture-challenge-settings",
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.UpdateSettings(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> AddCaptureGoalAsync(
+        string connectionId,
+        Guid userId,
+        AddCaptureGoalRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchWaitingCaptureChallengeAsync(
+            "add-capture-goal",
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.AddGoal(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> UpdateCaptureGoalAsync(
+        string connectionId,
+        Guid userId,
+        UpdateCaptureGoalRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchWaitingCaptureChallengeAsync(
+            "update-capture-goal",
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.UpdateGoal(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> RemoveCaptureGoalAsync(
+        string connectionId,
+        Guid userId,
+        RemoveCaptureGoalRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchWaitingCaptureChallengeAsync(
+            "remove-capture-goal",
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.RemoveGoal(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> ReorderCaptureGoalsAsync(
+        string connectionId,
+        Guid userId,
+        ReorderCaptureGoalsRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchWaitingCaptureChallengeAsync(
+            "reorder-capture-goals",
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.ReorderGoals(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> SubmitCaptureAsync(
+        string connectionId,
+        Guid userId,
+        SubmitCaptureRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchRoundCaptureChallengeAsync(
+            "submit-capture",
+            LobbyOperationKind.MUTATE_CAPTURE,
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.SubmitCapture(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> UpdateCaptureAsync(
+        string connectionId,
+        Guid userId,
+        UpdateCaptureRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchRoundCaptureChallengeAsync(
+            "update-capture",
+            LobbyOperationKind.MUTATE_CAPTURE,
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.UpdateCapture(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> RemoveCaptureAsync(
+        string connectionId,
+        Guid userId,
+        RemoveCaptureRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchRoundCaptureChallengeAsync(
+            "remove-capture",
+            LobbyOperationKind.MUTATE_CAPTURE,
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.RemoveCapture(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> CastVoteAsync(
+        string connectionId,
+        Guid userId,
+        CastVoteRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchRoundCaptureChallengeAsync(
+            "cast-vote",
+            LobbyOperationKind.MUTATE_VOTE,
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.CastVote(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
+
+    public ValueTask<LobbyOperationCompletion> ChangeVoteAsync(
+        string connectionId,
+        Guid userId,
+        ChangeVoteRequest request,
+        CancellationToken cancellationToken) =>
+        DispatchRoundCaptureChallengeAsync(
+            "change-vote",
+            LobbyOperationKind.MUTATE_VOTE,
+            connectionId,
+            userId,
+            (state, context) =>
+                captureChallengeOperations.ChangeVote(
+                    state,
+                    request,
+                    context),
+            cancellationToken);
 
     public ValueTask<LobbyOperationCompletion> DispatchSystemAsync(
         string operationName,
@@ -150,6 +512,156 @@ internal sealed class LobbyOperationDispatcher
             LobbyActor.System,
             WrapExpectedFailures(mutation),
             cancellationToken);
+    }
+
+    private ValueTask<LobbyOperationCompletion>
+        DispatchWaitingCaptureChallengeAsync(
+            string operationName,
+            string connectionId,
+            Guid userId,
+            Action<
+                CaptureChallengeLobbyState,
+                LobbyOperationContext> operation,
+            CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            operationName,
+            connectionId,
+            userId,
+            (_, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    LobbyOperationKind.UPDATE_MODE_CONFIGURATION);
+                var captureState =
+                    RequireCaptureChallengeLobbyState(state);
+                operation(
+                    captureState,
+                    CreateOperationContext(state, actor));
+                state.HasNonDefaultModeConfiguration = true;
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    private ValueTask<LobbyOperationCompletion>
+        DispatchRoundCaptureChallengeAsync(
+            string operationName,
+            LobbyOperationKind operationKind,
+            string connectionId,
+            Guid userId,
+            Action<
+                CaptureChallengeRoundState,
+                LobbyOperationContext> operation,
+            CancellationToken cancellationToken) =>
+        DispatchForConnectionAsync(
+            operationName,
+            connectionId,
+            userId,
+            (_, state, actor, _) =>
+            {
+                LobbyOperationRules.EnsureAllowed(
+                    state,
+                    actor,
+                    operationKind);
+                var roundState =
+                    state.CurrentRound
+                        as CaptureChallengeRoundState
+                    ?? throw new LobbyRuntimeException(
+                        ErrorCode.INVALID_MODE_STATUS,
+                        "No active Capture Challenge round is available.");
+                operation(
+                    roundState,
+                    CreateOperationContext(state, actor));
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            },
+            cancellationToken);
+
+    private ValueTask<LobbyOperationCompletion>
+        DispatchForConnectionAsync(
+            string operationName,
+            string connectionId,
+            Guid authenticatedUserId,
+            Func<
+                LobbyRuntime,
+                LobbyRuntimeState,
+                LobbyActor,
+                CancellationToken,
+                ValueTask<LobbyMutationOutcome>> mutation,
+            CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationName);
+        ArgumentNullException.ThrowIfNull(mutation);
+
+        if (!TryResolveForConnection(
+                connectionId,
+                authenticatedUserId,
+                out var runtime,
+                out var failure))
+        {
+            return ValueTask.FromResult(
+                CreateRejectedCompletion(runtime, failure!));
+        }
+
+        return runtime!.EnqueueMutationAsync(
+            operationName,
+            new LobbyActor(
+                authenticatedUserId,
+                connectionId,
+                IsSystem: false),
+            WrapExpectedFailures(
+                (state, actor, token) =>
+                    mutation(
+                        runtime,
+                        state,
+                        actor,
+                        token)),
+            cancellationToken);
+    }
+
+    private static CaptureChallengeLobbyState
+        RequireCaptureChallengeLobbyState(
+            LobbyRuntimeState state) =>
+        state.ModeLobbyState as CaptureChallengeLobbyState
+        ?? throw new LobbyRuntimeException(
+            ErrorCode.MODE_OPERATION_NOT_SUPPORTED,
+            "This operation is not supported by the selected game mode.");
+
+    private LobbyOperationContext CreateOperationContext(
+        LobbyRuntimeState state,
+        LobbyActor actor)
+    {
+        var actorUserId = actor.UserId
+            ?? throw new LobbyRuntimeException(
+                ErrorCode.AUTH_REQUIRED,
+                "An authenticated lobby actor is required.");
+        var actorMayMutate = state.TryGetMember(
+                actorUserId,
+                out var member)
+            && member?.IsConnected == true;
+
+        return new LobbyOperationContext(
+            state.LobbyId,
+            actorUserId,
+            state.HostUserId,
+            actorMayMutate,
+            state.Status,
+            state.SelectedModeKey,
+            state.SelectedModeVersion,
+            timeProvider.GetUtcNow());
+    }
+
+    private static void CancelRemovalDeadlines(
+        LobbyRuntime runtime,
+        LobbyMembershipRemovalEffects effects)
+    {
+        runtime.CancelDeadline(effects.DisconnectDeadlineKey);
+        if (effects.PreparationDeadlineKey
+            is LobbyDeadlineKey preparationDeadlineKey)
+        {
+            runtime.CancelDeadline(preparationDeadlineKey);
+        }
     }
 
     private static Func<

@@ -2,50 +2,203 @@
 /* eslint-disable */
 /* tslint:disable */
 // @ts-nocheck
-import type { HubConnection, IStreamResult, Subject } from "@microsoft/signalr";
+import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
+import type { IGameHub, IGameClient } from './GeoBingo.Contracts.SignalR';
+import type { JoinLobbyRequest, RemovePlayerRequest, TransferHostRequest, SelectGameModeRequest, UpdateLobbySettingsRequest, RequestResultsRequest, LobbySnapshot, PersonalProjection, GameModeEvent, LobbyResultsView, LobbyEnded } from '../GeoBingo.Contracts.Lobbies';
+import type { HubOperationResult, SignalRError } from '../GeoBingo.Contracts.SignalR';
+import type { UpdateCaptureChallengeSettingsRequest, AddCaptureGoalRequest, UpdateCaptureGoalRequest, RemoveCaptureGoalRequest, ReorderCaptureGoalsRequest, SubmitCaptureRequest, UpdateCaptureRequest, RemoveCaptureRequest, CastVoteRequest, ChangeVoteRequest } from '../GeoBingo.Contracts.GameModes.CaptureChallenge';
+
 
 // components
 
 export type Disposable = {
-	dispose(): void;
-};
+    dispose(): void;
+}
 
 export type HubProxyFactory<T> = {
-	createHubProxy(connection: HubConnection): T;
-};
+    createHubProxy(connection: HubConnection): T;
+}
 
 export type ReceiverRegister<T> = {
-	register(connection: HubConnection, receiver: T): Disposable;
-};
+    register(connection: HubConnection, receiver: T): Disposable;
+}
 
 type ReceiverMethod = {
-	methodName: string;
-	method: (...args: any[]) => void;
-};
+    methodName: string,
+    method: (...args: any[]) => void
+}
 
 class ReceiverMethodSubscription implements Disposable {
-	public constructor(
-		private connection: HubConnection,
-		private receiverMethod: ReceiverMethod[]
-	) {}
 
-	public readonly dispose = () => {
-		for (const it of this.receiverMethod) {
-			this.connection.off(it.methodName, it.method);
-		}
-	};
+    public constructor(
+        private connection: HubConnection,
+        private receiverMethod: ReceiverMethod[]) {
+    }
+
+    public readonly dispose = () => {
+        for (const it of this.receiverMethod) {
+            this.connection.off(it.methodName, it.method);
+        }
+    }
 }
 
 // API
 
-export type HubProxyFactoryProvider = {};
+export type HubProxyFactoryProvider = {
+    (hubType: "IGameHub"): HubProxyFactory<IGameHub>;
+}
 
-export const getHubProxyFactory = ((hubType: string) => {}) as HubProxyFactoryProvider;
+export const getHubProxyFactory = ((hubType: string) => {
+    if(hubType === "IGameHub") {
+        return IGameHub_HubProxyFactory.Instance;
+    }
+}) as HubProxyFactoryProvider;
 
-export type ReceiverRegisterProvider = {};
+export type ReceiverRegisterProvider = {
+    (receiverType: "IGameClient"): ReceiverRegister<IGameClient>;
+}
 
-export const getReceiverRegister = ((receiverType: string) => {}) as ReceiverRegisterProvider;
+export const getReceiverRegister = ((receiverType: string) => {
+    if(receiverType === "IGameClient") {
+        return IGameClient_Binder.Instance;
+    }
+}) as ReceiverRegisterProvider;
 
 // HubProxy
 
+class IGameHub_HubProxyFactory implements HubProxyFactory<IGameHub> {
+    public static Instance = new IGameHub_HubProxyFactory();
+
+    private constructor() {
+    }
+
+    public readonly createHubProxy = (connection: HubConnection): IGameHub => {
+        return new IGameHub_HubProxy(connection);
+    }
+}
+
+class IGameHub_HubProxy implements IGameHub {
+
+    public constructor(private connection: HubConnection) {
+    }
+
+    public readonly joinLobby = async (request: JoinLobbyRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("JoinLobby", request);
+    }
+
+    public readonly leaveLobby = async (): Promise<HubOperationResult> => {
+        return await this.connection.invoke("LeaveLobby");
+    }
+
+    public readonly closeLobby = async (): Promise<HubOperationResult> => {
+        return await this.connection.invoke("CloseLobby");
+    }
+
+    public readonly removePlayer = async (request: RemovePlayerRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("RemovePlayer", request);
+    }
+
+    public readonly transferHost = async (request: TransferHostRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("TransferHost", request);
+    }
+
+    public readonly selectGameMode = async (request: SelectGameModeRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("SelectGameMode", request);
+    }
+
+    public readonly updateLobbySettings = async (request: UpdateLobbySettingsRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("UpdateLobbySettings", request);
+    }
+
+    public readonly startRound = async (): Promise<HubOperationResult> => {
+        return await this.connection.invoke("StartRound");
+    }
+
+    public readonly updateCaptureChallengeSettings = async (request: UpdateCaptureChallengeSettingsRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("UpdateCaptureChallengeSettings", request);
+    }
+
+    public readonly addCaptureGoal = async (request: AddCaptureGoalRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("AddCaptureGoal", request);
+    }
+
+    public readonly updateCaptureGoal = async (request: UpdateCaptureGoalRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("UpdateCaptureGoal", request);
+    }
+
+    public readonly removeCaptureGoal = async (request: RemoveCaptureGoalRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("RemoveCaptureGoal", request);
+    }
+
+    public readonly reorderCaptureGoals = async (request: ReorderCaptureGoalsRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("ReorderCaptureGoals", request);
+    }
+
+    public readonly submitCapture = async (request: SubmitCaptureRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("SubmitCapture", request);
+    }
+
+    public readonly updateCapture = async (request: UpdateCaptureRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("UpdateCapture", request);
+    }
+
+    public readonly removeCapture = async (request: RemoveCaptureRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("RemoveCapture", request);
+    }
+
+    public readonly castVote = async (request: CastVoteRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("CastVote", request);
+    }
+
+    public readonly changeVote = async (request: ChangeVoteRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("ChangeVote", request);
+    }
+
+    public readonly requestSnapshot = async (): Promise<HubOperationResult> => {
+        return await this.connection.invoke("RequestSnapshot");
+    }
+
+    public readonly requestResults = async (request: RequestResultsRequest): Promise<HubOperationResult> => {
+        return await this.connection.invoke("RequestResults", request);
+    }
+}
+
+
 // Receiver
+
+class IGameClient_Binder implements ReceiverRegister<IGameClient> {
+
+    public static Instance = new IGameClient_Binder();
+
+    private constructor() {
+    }
+
+    public readonly register = (connection: HubConnection, receiver: IGameClient): Disposable => {
+
+        const __receiveLobbySnapshot = (...args: [LobbySnapshot]) => receiver.receiveLobbySnapshot(...args);
+        const __receivePersonalProjection = (...args: [PersonalProjection]) => receiver.receivePersonalProjection(...args);
+        const __receiveGameModeEvent = (...args: [GameModeEvent]) => receiver.receiveGameModeEvent(...args);
+        const __receiveResults = (...args: [LobbyResultsView]) => receiver.receiveResults(...args);
+        const __receiveLobbyEnded = (...args: [LobbyEnded]) => receiver.receiveLobbyEnded(...args);
+        const __receiveError = (...args: [SignalRError]) => receiver.receiveError(...args);
+
+        connection.on("ReceiveLobbySnapshot", __receiveLobbySnapshot);
+        connection.on("ReceivePersonalProjection", __receivePersonalProjection);
+        connection.on("ReceiveGameModeEvent", __receiveGameModeEvent);
+        connection.on("ReceiveResults", __receiveResults);
+        connection.on("ReceiveLobbyEnded", __receiveLobbyEnded);
+        connection.on("ReceiveError", __receiveError);
+
+        const methodList: ReceiverMethod[] = [
+            { methodName: "ReceiveLobbySnapshot", method: __receiveLobbySnapshot },
+            { methodName: "ReceivePersonalProjection", method: __receivePersonalProjection },
+            { methodName: "ReceiveGameModeEvent", method: __receiveGameModeEvent },
+            { methodName: "ReceiveResults", method: __receiveResults },
+            { methodName: "ReceiveLobbyEnded", method: __receiveLobbyEnded },
+            { methodName: "ReceiveError", method: __receiveError }
+        ]
+
+        return new ReceiverMethodSubscription(connection, methodList);
+    }
+}
+

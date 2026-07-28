@@ -39,6 +39,14 @@ public static class RequestLogging
                     diagnosticContext.Set(LoggingConstants.StatusCode, httpContext.Response.StatusCode);
                     diagnosticContext.Set(LoggingConstants.TraceId, activity?.TraceId.ToString());
                     diagnosticContext.Set(LoggingConstants.SpanId, activity?.SpanId.ToString());
+                    if (httpContext.Items.TryGetValue(
+                            LoggingConstants.CorrelationId,
+                            out var correlationId))
+                    {
+                        diagnosticContext.Set(
+                            LoggingConstants.CorrelationId,
+                            correlationId);
+                    }
                     diagnosticContext.Set(LoggingConstants.EventType, "http_request");
                 };
         });

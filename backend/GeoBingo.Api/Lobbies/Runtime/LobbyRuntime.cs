@@ -55,7 +55,7 @@ internal sealed record LobbyMutationOutcome
     }
 }
 
-internal sealed class LobbyRuntime : IAsyncDisposable
+public sealed class LobbyRuntime : IAsyncDisposable
 {
     private readonly object lifecycleSyncRoot = new();
     private readonly LobbyRuntimeState state;
@@ -63,15 +63,27 @@ internal sealed class LobbyRuntime : IAsyncDisposable
     private readonly LobbyOperationQueue operationQueue;
     private readonly LobbyDeadlineScheduler deadlineScheduler;
     private readonly ILogger<LobbyRuntime> logger;
+    private readonly Func<
+        LobbyRuntime,
+        LobbyEndedReason,
+        long,
+        CancellationToken,
+        ValueTask> closedCallback;
     private LobbyRuntimeSummary summary;
     private Task? completionTask;
     private Task? disposalTask;
 
-    public LobbyRuntime(
+    internal LobbyRuntime(
         LobbyRuntimeState state,
         LobbyProjectionPublisher projectionPublisher,
         TimeProvider timeProvider,
-        ILogger<LobbyRuntime> logger)
+        ILogger<LobbyRuntime> logger,
+        Func<
+            LobbyRuntime,
+            LobbyEndedReason,
+            long,
+            CancellationToken,
+            ValueTask> closedCallback)
     {
         this.state = state
             ?? throw new ArgumentNullException(nameof(state));
@@ -80,6 +92,9 @@ internal sealed class LobbyRuntime : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(timeProvider);
         this.logger = logger
             ?? throw new ArgumentNullException(nameof(logger));
+        this.closedCallback = closedCallback
+            ?? throw new ArgumentNullException(
+                nameof(closedCallback));
 
         operationQueue = new LobbyOperationQueue();
         deadlineScheduler = new LobbyDeadlineScheduler(
@@ -92,10 +107,9 @@ internal sealed class LobbyRuntime : IAsyncDisposable
 
     public string Code => state.Code;
 
-    public LobbyRuntimeSummary ReadSummary() =>
-        Volatile.Read(ref summary);
+    internal LobbyRuntimeSummary ReadSummary() => Volatile.Read(ref summary);
 
-    public ValueTask<LobbyOperationCompletion> EnqueueMutationAsync(
+    internal ValueTask<LobbyOperationCompletion> EnqueueMutationAsync(
         string operationName,
         LobbyActor actor,
         Func<LobbyRuntimeState, LobbyActor, CancellationToken,
@@ -115,7 +129,7 @@ internal sealed class LobbyRuntime : IAsyncDisposable
             cancellationToken);
     }
 
-    public ValueTask<TResult> EnqueueReadAsync<TResult>(
+    internal ValueTask<TResult> EnqueueReadAsync<TResult>(
         Func<LobbyRuntimeState, CancellationToken, ValueTask<TResult>> read,
         CancellationToken cancellationToken)
     {
@@ -126,7 +140,7 @@ internal sealed class LobbyRuntime : IAsyncDisposable
             cancellationToken);
     }
 
-    public void ScheduleDeadline(
+    internal void ScheduleDeadline(
         LobbyDeadlineKey key,
         DateTimeOffset deadline,
         Func<LobbyRuntimeState, LobbyDeadlineKey, CancellationToken,
@@ -160,7 +174,7 @@ internal sealed class LobbyRuntime : IAsyncDisposable
             });
     }
 
-    public bool CancelDeadline(LobbyDeadlineKey key) =>
+    internal bool CancelDeadline(LobbyDeadlineKey key) =>
         deadlineScheduler.Cancel(key);
 
     public void CancelAllDeadlines() =>
@@ -233,6 +247,13 @@ internal sealed class LobbyRuntime : IAsyncDisposable
             state.BeginClosing(LobbyEndedReason.NO_MEMBERS);
         }
 
+        if (state.IsClosing && !state.IsClosed)
+        {
+            deadlineScheduler.CancelAll();
+            state.ClearSensitiveState();
+            state.MarkClosed();
+        }
+
         state.IncrementStateVersion();
         Volatile.Write(ref summary, state.CreateSummary());
 
@@ -258,6 +279,27 @@ internal sealed class LobbyRuntime : IAsyncDisposable
                 "Lobby projection publication failed after operation {OperationName} committed state version {StateVersion}",
                 operationName,
                 state.StateVersion);
+        }
+
+        if (state.IsClosed
+            && state.CloseReason is LobbyEndedReason closeReason)
+        {
+            try
+            {
+                await closedCallback(
+                        this,
+                        closeReason,
+                        state.StateVersion,
+                        CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(
+                    exception,
+                    "Lobby termination callback failed for state version {StateVersion}",
+                    state.StateVersion);
+            }
         }
 
         return new LobbyOperationCompletion(

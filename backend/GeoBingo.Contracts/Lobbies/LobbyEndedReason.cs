@@ -11,6 +11,7 @@ public enum LobbyEndedReason
     NO_MEMBERS,
     KICKED,
     BANNED,
+    LEFT,
     SERVER_SHUTDOWN,
     SERVER_ERROR
 }

@@ -12,6 +12,10 @@ public sealed record HubOperationResult
     [Description("Whether the operation was successful.")]
     public bool Success { get; init; }
 
+    [JsonPropertyName("stateVersion")]
+    [Description("The latest lobby state version when one is available.")]
+    public long? StateVersion { get; init; }
+
     [JsonPropertyName("error")]
     [Description("The error details if the operation failed.")]
     public SignalRError? Error { get; init; }

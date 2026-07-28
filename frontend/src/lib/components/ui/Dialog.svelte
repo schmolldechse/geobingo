@@ -133,7 +133,7 @@
 	oncancel={handleCancel}
 	onpointerdown={handleDialogPointerDown}
 	class={[
-		"border-foreground bg-surface text-foreground m-0 max-h-[calc(100dvh-2rem)] w-[min(calc(100%-2rem),32rem)] overflow-hidden rounded-2xl border-2 p-0 shadow-[var(--shadow-paper-raised)]",
+		"border-foreground bg-surface text-foreground m-0 mt-auto w-full max-w-none overflow-hidden rounded-t-2xl rounded-b-none border-2 border-b-0 p-0 shadow-[var(--shadow-paper-raised)] backdrop:bg-black/45 backdrop:backdrop-blur-sm sm:m-auto sm:max-h-[calc(100dvh-2rem)] sm:w-[min(calc(100%-2rem),32rem)] sm:rounded-2xl sm:border-b-2",
 		className
 	]}
 	aria-labelledby={hasVisibleTitle ? titleId : undefined}

@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Tapper;
 
 namespace GeoBingo.Contracts.GameModes;
 
+[TranspilationSource]
 [Description("Public metadata for a registered GeoBingo game mode.")]
 public sealed record GameModeSummary
 {

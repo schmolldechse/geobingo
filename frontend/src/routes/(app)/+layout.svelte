@@ -10,7 +10,6 @@
 	const authState = new AuthState(() => ({
 		session: data.session,
 		providers: data.providers,
-		apiBaseUrl: data.apiBaseUrl,
 		returnUrl: data.returnUrl
 	}));
 	setAuthState(authState);

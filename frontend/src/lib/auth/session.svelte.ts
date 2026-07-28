@@ -1,11 +1,11 @@
 import { invalidate } from "$app/navigation";
+import { apiUrl } from "$lib/api-url";
 import type { AuthProvider, Session } from "$lib/generated/api";
 import { createContext } from "svelte";
 
 type AuthStateData = {
 	session: Readonly<Session>;
 	providers: readonly AuthProvider[];
-	apiBaseUrl: string;
 	returnUrl: string;
 };
 
@@ -27,14 +27,15 @@ class AuthState {
 	}
 
 	public getLoginUrl(providerKey: string): string {
-		const { apiBaseUrl, returnUrl } = this.#source();
-		const url = new URL(`/api/auth/login/${encodeURIComponent(providerKey)}`, apiBaseUrl);
+		const { returnUrl } = this.#source();
+
+		const url = apiUrl(`/api/auth/login/${encodeURIComponent(providerKey)}`);
 		url.searchParams.set("returnUrl", returnUrl);
 		return url.href;
 	}
 
 	public async logout(): Promise<void> {
-		const response = await fetch(new URL("/api/auth/logout", this.#source().apiBaseUrl), {
+		const response = await fetch(apiUrl("/api/auth/logout"), {
 			method: "POST",
 			credentials: "include",
 			headers: { accept: "application/json" }

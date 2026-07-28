@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GeoBingo.GameModes.Abstractions;
-using GeoBingo.GameModes.Registry;
+using GeoBingo.Api.Lobbies.Mapping;
+using GeoBingo.Contracts.Lobbies;
 
 namespace GeoBingo.Api.Lobbies.Runtime;
 
 internal sealed record LobbyProjectionBatch(
-    LobbyRuntimeSummary Lobby,
-    GameModeProjectionPair PublicProjection,
-    IReadOnlyDictionary<Guid, GameModeProjectionPair> PersonalProjections);
+    LobbySnapshot Snapshot,
+    IReadOnlyDictionary<Guid, PersonalProjection>
+        PersonalProjections,
+    bool IsClosingOrClosed);
 
 internal interface ILobbyProjectionSink
 {
@@ -23,21 +23,18 @@ internal interface ILobbyProjectionSink
 
 internal sealed class LobbyProjectionPublisher
 {
-    private readonly IGameModeRegistry gameModeRegistry;
+    private readonly LobbyProjectionMapper projectionMapper;
     private readonly IReadOnlyList<ILobbyProjectionSink> sinks;
-    private readonly TimeProvider timeProvider;
 
     public LobbyProjectionPublisher(
-        IGameModeRegistry gameModeRegistry,
-        IEnumerable<ILobbyProjectionSink> sinks,
-        TimeProvider timeProvider)
+        LobbyProjectionMapper projectionMapper,
+        IEnumerable<ILobbyProjectionSink> sinks)
     {
-        this.gameModeRegistry = gameModeRegistry
-            ?? throw new ArgumentNullException(nameof(gameModeRegistry));
+        this.projectionMapper = projectionMapper
+            ?? throw new ArgumentNullException(
+                nameof(projectionMapper));
         ArgumentNullException.ThrowIfNull(sinks);
         this.sinks = Array.AsReadOnly(sinks.ToArray());
-        this.timeProvider = timeProvider
-            ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     public async ValueTask PublishAsync(
@@ -46,45 +43,12 @@ internal sealed class LobbyProjectionPublisher
     {
         ArgumentNullException.ThrowIfNull(state);
 
-        var module = gameModeRegistry.GetRequired(
-            state.SelectedModeKey,
-            state.SelectedModeVersion);
-        var now = timeProvider.GetUtcNow();
-        var members = state.Members.Values
-            .OrderBy(member => member.JoinOrder)
-            .ToArray();
-
-        var publicProjection = module.CreateProjections(
-            CreateProjectionContext(
-                state,
-                members.Length,
-                recipientUserId: null,
-                now));
-        if (publicProjection.CaptureChallengePersonal is not null)
+        if (state.IsClosing || state.IsClosed)
         {
-            throw new InvalidOperationException(
-                "A public game-mode projection cannot contain personal state.");
+            return;
         }
 
-        var personalProjections =
-            new Dictionary<Guid, GameModeProjectionPair>();
-        foreach (var member in members)
-        {
-            personalProjections.Add(
-                member.UserId,
-                module.CreateProjections(
-                    CreateProjectionContext(
-                        state,
-                        members.Length,
-                        member.UserId,
-                        now)));
-        }
-
-        var batch = new LobbyProjectionBatch(
-            state.CreateSummary(),
-            publicProjection,
-            new ReadOnlyDictionary<Guid, GameModeProjectionPair>(
-                personalProjections));
+        var batch = projectionMapper.CreateBatch(state);
 
         List<Exception>? publicationFailures = null;
         foreach (var sink in sinks)
@@ -110,15 +74,4 @@ internal sealed class LobbyProjectionPublisher
         }
     }
 
-    private static GameModeProjectionContext CreateProjectionContext(
-        LobbyRuntimeState state,
-        int activeParticipantCount,
-        Guid? recipientUserId,
-        DateTimeOffset now) =>
-        new(
-            state.ModeLobbyState,
-            state.CurrentRound,
-            activeParticipantCount,
-            recipientUserId,
-            now);
 }

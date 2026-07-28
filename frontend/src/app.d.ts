@@ -1,4 +1,4 @@
-import type { Session } from "$lib/api/generated/rest";
+import type { Session } from "$lib/generated/api";
 
 declare global {
 	namespace App {

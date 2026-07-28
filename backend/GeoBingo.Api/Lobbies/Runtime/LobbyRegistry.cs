@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using GeoBingo.Contracts.Common;
+using GeoBingo.Contracts.Lobbies;
+using GeoBingo.Api.Lobbies.Transport;
 using GeoBingo.GameModes.Registry;
 using GeoBingo.Observability.Metrics;
 using Microsoft.Extensions.Logging;
@@ -23,6 +27,9 @@ internal sealed class LobbyRegistry : ILobbyRegistry
     private readonly TimeProvider timeProvider;
     private readonly ILoggerFactory loggerFactory;
     private readonly GameMetrics gameMetrics;
+    private readonly LobbyTerminationPublisher
+        terminationPublisher;
+    private readonly LobbyRuntimeCleanupQueue cleanupQueue;
     private bool acceptingCreations = true;
 
     public LobbyRegistry(
@@ -30,7 +37,9 @@ internal sealed class LobbyRegistry : ILobbyRegistry
         LobbyProjectionPublisher projectionPublisher,
         TimeProvider timeProvider,
         ILoggerFactory loggerFactory,
-        GameMetrics gameMetrics)
+        GameMetrics gameMetrics,
+        LobbyTerminationPublisher terminationPublisher,
+        LobbyRuntimeCleanupQueue cleanupQueue)
     {
         this.gameModeRegistry = gameModeRegistry
             ?? throw new ArgumentNullException(nameof(gameModeRegistry));
@@ -42,6 +51,12 @@ internal sealed class LobbyRegistry : ILobbyRegistry
             ?? throw new ArgumentNullException(nameof(loggerFactory));
         this.gameMetrics = gameMetrics
             ?? throw new ArgumentNullException(nameof(gameMetrics));
+        this.terminationPublisher = terminationPublisher
+            ?? throw new ArgumentNullException(
+                nameof(terminationPublisher));
+        this.cleanupQueue = cleanupQueue
+            ?? throw new ArgumentNullException(
+                nameof(cleanupQueue));
     }
 
     public bool IsAcceptingCreations
@@ -83,10 +98,12 @@ internal sealed class LobbyRegistry : ILobbyRegistry
                 runtimeState,
                 projectionPublisher,
                 timeProvider,
-                loggerFactory.CreateLogger<LobbyRuntime>());
+                loggerFactory.CreateLogger<LobbyRuntime>(),
+                HandleRuntimeClosedAsync);
 
             runtimesById.Add(lobbyId, runtime);
             lobbyIdsByCode.Add(code, lobbyId);
+
             gameMetrics.LobbyCreated(
                 "WAITING",
                 runtimesById.Count);
@@ -235,5 +252,38 @@ internal sealed class LobbyRegistry : ILobbyRegistry
         while (lobbyIdsByCode.ContainsKey(code));
 
         return code;
+    }
+
+    private async ValueTask HandleRuntimeClosedAsync(
+        LobbyRuntime runtime,
+        LobbyEndedReason reason,
+        long stateVersion,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await terminationPublisher.PublishAsync(
+                    runtime.LobbyId,
+                    reason,
+                    stateVersion,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            loggerFactory
+                .CreateLogger<LobbyRegistry>()
+                .LogError(
+                    exception,
+                    "Failed to publish termination for lobby {LobbyId}",
+                    runtime.LobbyId);
+        }
+        finally
+        {
+            if (TryRemoveClosed(runtime))
+            {
+                cleanupQueue.Enqueue(runtime);
+            }
+        }
     }
 }

@@ -10,9 +10,8 @@
 
 	const auth = getAuthState();
 
-	let logoutPending = $state(false);
-	let logoutError = $state<string | null>(null);
-	let loginDialogVisible = $state(false);
+	let logoutPending: boolean = $state(false);
+	let loginDialogVisible: boolean = $state(false);
 
 	const initials = $derived.by(() => {
 		const parts = auth.session.user?.displayName.trim().split(/\s+/).filter(Boolean) ?? [];
@@ -23,20 +22,12 @@
 		return `${firstInitial}${lastInitial}`.toLocaleUpperCase("de-DE");
 	});
 
-	async function logout(): Promise<void> {
+	const logout = async () => {
 		if (logoutPending) return;
 
 		logoutPending = true;
-		logoutError = null;
-
-		try {
-			await auth.logout();
-		} catch {
-			logoutError = "Die Abmeldung ist fehlgeschlagen. Bitte versuche es erneut.";
-		} finally {
-			logoutPending = false;
-		}
-	}
+		await auth.logout().finally(() => (logoutPending = false));
+	};
 </script>
 
 <div class="min-w-0">
@@ -80,18 +71,15 @@
 					<DropdownMenu.Separator />
 					<DropdownMenu.Item disabled={logoutPending} closeOnSelect={false} onselect={() => void logout()}>
 						<LogOut aria-hidden="true" size={17} />
-						{logoutPending ? "Abmeldung läuft …" : "Abmelden"}
+						Logout
 					</DropdownMenu.Item>
-					{#if logoutError}
-						<p class="text-primary m-0 px-3 py-2 text-xs font-semibold" role="alert">{logoutError}</p>
-					{/if}
 				</DropdownMenu.Group>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	{:else}
 		<Button onclick={() => (loginDialogVisible = true)}>
 			<LogIn aria-hidden="true" size={19} />
-			Anmelden
+			Login
 		</Button>
 	{/if}
 </div>

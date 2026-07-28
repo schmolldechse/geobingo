@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GeoBingo.Api.Lobbies.Runtime;
 
-internal interface ILobbyRegistry
+public interface ILobbyRegistry
 {
     bool IsAcceptingCreations { get; }
 

@@ -8,6 +8,8 @@ namespace GeoBingo.Api.Authentication;
 
 public static class GeoBingoAuthenticationExtensions
 {
+    public const string CorsPolicy = "GeoBingo.Frontend";
+
     public static IServiceCollection AddGeoBingoAuthentication(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -20,6 +22,13 @@ public static class GeoBingoAuthenticationExtensions
             .ValidateOnStart();
         services.AddSingleton<IValidateOptions<GeoBingoAuthenticationOptions>, GeoBingoAuthenticationOptionsValidator>();
         services.AddSingleton<IExternalAuthProviderCatalog, ExternalAuthProviderCatalog>();
+        services.AddCors(options => options.AddPolicy(
+            CorsPolicy,
+            policy => policy
+                .WithOrigins(configured.AllowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()));
 
         var authentication = services.AddAuthentication(options =>
         {

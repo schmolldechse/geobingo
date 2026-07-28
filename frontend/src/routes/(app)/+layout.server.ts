@@ -1,4 +1,4 @@
-import { getApiBaseUrl, readProviders } from "$lib/server/auth";
+import { readProviders } from "$lib/auth/auth.server";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ depends, locals, url }) => {
@@ -7,7 +7,6 @@ export const load: LayoutServerLoad = async ({ depends, locals, url }) => {
 	return {
 		session: locals.session,
 		providers: await readProviders(),
-		apiBaseUrl: getApiBaseUrl(),
 		returnUrl: `${url.pathname}${url.search}`
 	};
 };

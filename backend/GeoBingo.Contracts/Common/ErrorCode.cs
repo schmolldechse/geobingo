@@ -9,6 +9,8 @@ public enum ErrorCode
 {
     AUTH_REQUIRED,
     FORBIDDEN,
+    PROVIDER_NOT_FOUND,
+    PROVIDER_DISABLED,
     LOBBY_NOT_FOUND,
     LOBBY_CLOSED,
     LOBBY_FULL,
