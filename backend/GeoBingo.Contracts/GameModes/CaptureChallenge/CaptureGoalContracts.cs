@@ -16,11 +16,6 @@ public sealed record CaptureGoalInput
     [Description("The trimmed goal title.")]
     public required string Title { get; init; }
 
-    [JsonPropertyName("description")]
-    [MaxLength(500)]
-    [Description("An optional goal explanation.")]
-    public string? Description { get; init; }
-
     [JsonPropertyName("scoreFactor")]
     [Range(typeof(decimal), "0", "10")]
     [HalfStep]

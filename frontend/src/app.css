@@ -1,4 +1,6 @@
+@import "@fontsource-variable/fredoka/wght.css";
 @import "@fontsource-variable/inter";
+
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));

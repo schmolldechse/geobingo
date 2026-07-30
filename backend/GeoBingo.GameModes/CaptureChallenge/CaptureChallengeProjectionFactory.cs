@@ -201,7 +201,6 @@ internal static class CaptureChallengeProjectionFactory
         new(
             GoalId: goal.Id,
             Title: goal.Title,
-            Description: goal.Description,
             DisplayOrder: goal.DisplayOrder,
             ScoreFactor: goal.ScoreFactor);
 }

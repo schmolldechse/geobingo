@@ -4,10 +4,14 @@ import { LobbyEndedReason, ResultsScope } from "$lib/generated/realtime/GeoBingo
 import type { HubOperationResult, SignalRError } from "$lib/generated/realtime/GeoBingo.Contracts.SignalR";
 import { getHubProxyFactory, getReceiverRegister, type Disposable } from "$lib/generated/realtime/TypedSignalR.Client";
 import type { IGameClient, IGameHub } from "$lib/generated/realtime/TypedSignalR.Client/GeoBingo.Contracts.SignalR";
+import { isLobbyConclusionErrorCode } from "$lib/lobbies/lobby-conclusion";
+import type { LobbyEventHandler } from "$lib/lobbies/lobby-events";
 import type { LobbyState } from "$lib/lobbies/lobby-state.svelte";
 import type { ResultState } from "$lib/lobbies/result-state.svelte";
 import { HubConnectionBuilder, HubConnectionState, type HubConnection } from "@microsoft/signalr";
 import { boundedReconnectPolicy } from "./reconnection-policy";
+import { toast } from "../components/ui/toast";
+import { createLobbyToastHandler } from "../lobbies/lobby-toast-handler";
 
 export class GameConnection {
 	readonly #code: string;
@@ -15,6 +19,7 @@ export class GameConnection {
 	readonly #results: ResultState;
 	readonly #connection: HubConnection;
 	readonly #hub: IGameHub;
+	readonly #handleEvent: LobbyEventHandler;
 	#receiverSubscription: Disposable | null = null;
 	#stopPromise: Promise<void> | null = null;
 	#intentionalStop = false;
@@ -23,6 +28,7 @@ export class GameConnection {
 		this.#code = code;
 		this.#lobby = lobby;
 		this.#results = results;
+		this.#handleEvent = createLobbyToastHandler(toast);
 		this.#connection = new HubConnectionBuilder()
 			.withUrl(apiUrl("/hubs/game").href, { withCredentials: true })
 			.withAutomaticReconnect(boundedReconnectPolicy)
@@ -39,20 +45,26 @@ export class GameConnection {
 				void this.stop();
 			},
 			receiveError: async (error) => {
-				this.#lobby.lastOperationError = error;
+				this.#handleRejected(error);
 			}
 		};
 		this.#receiverSubscription = getReceiverRegister("IGameClient").register(this.#connection, receiver);
 
 		this.#connection.onreconnecting(() => {
 			this.#lobby.connectionStatus = "reconnecting";
+			this.#handleEvent({ type: "connection-interrupted" });
 		});
 		this.#connection.onreconnected(() => {
 			this.#lobby.connectionStatus = "connected";
+			this.#handleEvent({ type: "connection-restored" });
 			void this.#resynchronize();
 		});
 		this.#connection.onclose(() => {
-			if (!this.#intentionalStop && !this.#lobby.terminationReason) {
+			if (!this.#intentionalStop && !this.#lobby.conclusion) {
+				this.#handleEvent({
+					type: "connection-lost",
+					details: "The connection to the lobby could not be restored."
+				});
 				this.#lobby.terminateLocally(LobbyEndedReason.SERVER_ERROR);
 			}
 		});
@@ -67,12 +79,15 @@ export class GameConnection {
 			this.#lobby.connectionStatus = "connected";
 			await this.#joinAndRead();
 		} catch {
+			const error = this.#transportError("The connection to the lobby could not be established.");
 			this.#lobby.connectionStatus = "disconnected";
-			this.#lobby.lastOperationError = this.#transportError("Die Verbindung zur Lobby konnte nicht hergestellt werden.");
+			this.#lobby.lastOperationError = error;
+			this.#handleEvent({ type: "connection-lost", details: error.details });
+			this.#lobby.terminateLocally(LobbyEndedReason.SERVER_ERROR);
 		}
 	}
 
-	public async execute<T>(_operationName: string, operation: (hub: IGameHub) => Promise<T>): Promise<T | undefined> {
+	public async execute<T>(operationName: string, operation: (hub: IGameHub) => Promise<T>): Promise<T | undefined> {
 		this.#lobby.lastOperationError = null;
 		try {
 			const result = (await operation(this.#hub)) as T & HubOperationResult;
@@ -80,9 +95,10 @@ export class GameConnection {
 				this.#handleRejected((result as HubOperationResult).error);
 				return undefined;
 			}
+			this.#handleEvent({ type: "operation-accepted", operationName });
 			return result;
 		} catch {
-			this.#lobby.lastOperationError = this.#transportError("Die Lobby-Aktion konnte nicht übertragen werden.");
+			this.#publishOperationError(this.#transportError("The lobby action could not be sent."));
 			return undefined;
 		}
 	}
@@ -120,17 +136,18 @@ export class GameConnection {
 	}
 
 	#handleRejected(error: SignalRError | undefined): void {
-		this.#lobby.lastOperationError = error ?? this.#transportError("Die Lobby-Aktion wurde abgelehnt.");
-		if (error?.code === ErrorCode.LOBBY_NOT_FOUND || error?.code === ErrorCode.LOBBY_CLOSED) {
-			this.#lobby.terminateLocally(
-				error.code === ErrorCode.LOBBY_CLOSED ? LobbyEndedReason.CLOSED_BY_HOST : LobbyEndedReason.SERVER_ERROR
-			);
+		const rejection = error ?? this.#transportError("The lobby action was rejected.");
+		if (isLobbyConclusionErrorCode(rejection.code)) {
+			this.#lobby.rejectLocally(rejection.code);
 			void this.stop();
+			return;
 		}
-		if (error?.code === ErrorCode.LOBBY_BANNED) {
-			this.#lobby.terminateLocally(LobbyEndedReason.BANNED);
-			void this.stop();
-		}
+		this.#publishOperationError(rejection);
+	}
+
+	#publishOperationError(error: SignalRError): void {
+		this.#lobby.lastOperationError = error;
+		this.#handleEvent({ type: "operation-failed", error });
 	}
 
 	#transportError(details: string): SignalRError {

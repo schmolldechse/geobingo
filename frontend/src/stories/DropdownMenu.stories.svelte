@@ -116,7 +116,7 @@
 		</header>
 
 		<div class="grid gap-6 lg:grid-cols-3">
-			{#each alignments as align}
+			{#each alignments as align (align)}
 				<div class="border-border bg-surface min-h-72 rounded-2xl border-2 p-5">
 					<div class={align === "center" ? "text-center" : align === "end" ? "text-right" : "text-left"}>
 						<DropdownMenu.Root open closeOnInteractOutside={false}>
@@ -219,7 +219,7 @@
 			<DropdownMenu.Content matchTriggerWidth>
 				<DropdownMenu.Group aria-label="Gebiete">
 					<DropdownMenu.GroupHeading>Berlin</DropdownMenu.GroupHeading>
-					{#each longMenuItems as item, index}
+					{#each longMenuItems as item, index (item)}
 						<DropdownMenu.Item textValue={item}>
 							<span class="text-muted w-5 text-xs">{String(index + 1).padStart(2, "0")}</span>{item}
 						</DropdownMenu.Item>
@@ -227,5 +227,28 @@
 				</DropdownMenu.Group>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
+	</section>
+</Story>
+
+<Story name="Scrollcontainer und Viewportrand" asChild>
+	<section class="grid min-h-[calc(100dvh-2rem)] items-end p-4 sm:p-8">
+		<div class="border-border bg-surface h-56 overflow-y-auto rounded-2xl border-2">
+			<div class="text-muted grid h-40 place-items-center px-5 text-center text-sm font-semibold">
+				Das Menü bleibt außerhalb des Scrollcontainers vollständig sichtbar.
+			</div>
+			<div class="border-border flex justify-end border-t-2 p-4">
+				<DropdownMenu.Root open closeOnInteractOutside={false}>
+					<DropdownMenu.Trigger>Optionen <ChevronDown aria-hidden="true" size={16} /></DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end" side="auto" class="w-64">
+						<DropdownMenu.Item><UserRound aria-hidden="true" size={17} />Profil ansehen</DropdownMenu.Item>
+						<DropdownMenu.Item><Settings aria-hidden="true" size={17} />Einstellungen</DropdownMenu.Item>
+						<DropdownMenu.Separator />
+						<DropdownMenu.Item class="text-primary">
+							<LogOut aria-hidden="true" size={17} />Entfernen
+						</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			</div>
+		</div>
 	</section>
 </Story>

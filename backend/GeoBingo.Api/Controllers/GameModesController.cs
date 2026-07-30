@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Routing;
 namespace GeoBingo.Api.Controllers;
 
 [ApiController]
-[Route("api/game-modes")]
+[Route("api/v1/game-modes")]
 public sealed class GameModesController(
     IGameModeRegistry gameModeRegistry,
     GameModeMapper gameModeMapper

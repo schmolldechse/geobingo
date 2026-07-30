@@ -131,6 +131,7 @@ internal sealed class LobbyProjectionMapper(
             UserId = member.UserId,
             Handle = member.Handle,
             DisplayName = member.DisplayName,
+            AvatarUrl = member.AvatarUrl,
             JoinOrder = member.JoinOrder,
             Connected = member.IsConnected
         };
@@ -242,7 +243,6 @@ internal sealed class LobbyProjectionMapper(
         {
             GoalId = goal.GoalId,
             Title = goal.Title,
-            Description = goal.Description,
             DisplayOrder = goal.DisplayOrder,
             ScoreFactor = goal.ScoreFactor
         };

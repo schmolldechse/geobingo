@@ -114,7 +114,8 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
                     new LobbyJoinIdentity(
                         identity.UserId,
                         identity.Handle,
-                        identity.DisplayName),
+                        identity.DisplayName,
+                        identity.AvatarUrl),
                     Context.ConnectionId,
                     Context.ConnectionAborted)
                 .ConfigureAwait(false);
@@ -494,6 +495,8 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
             GeoBingoClaimTypes.Handle);
         var displayName = Context.User?.FindFirstValue(
             ClaimTypes.Name);
+        var avatarUrl = Context.User?.FindFirstValue(
+            GeoBingoClaimTypes.AvatarUrl);
         if (!Guid.TryParse(
                 Context.User?.FindFirstValue(
                     ClaimTypes.NameIdentifier),
@@ -510,11 +513,13 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
         return new HubIdentity(
             userId,
             handle,
-            displayName);
+            displayName,
+            avatarUrl);
     }
 
     private sealed record HubIdentity(
         Guid UserId,
         string Handle,
-        string DisplayName);
+        string DisplayName,
+        string? AvatarUrl);
 }

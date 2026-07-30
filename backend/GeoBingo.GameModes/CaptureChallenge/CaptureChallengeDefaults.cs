@@ -4,11 +4,11 @@ public static class CaptureChallengeDefaults
 {
     public const int MinimumCaptureDurationSeconds = 3 * 60;
     public const int MaximumCaptureDurationSeconds = 60 * 60;
-    public const int DefaultCaptureDurationSeconds = 120;
+    public const int DefaultCaptureDurationSeconds = 15 * 60;
 
     public const int MinimumSecondsPerVote = 5;
     public const int MaximumSecondsPerVote = 60;
-    public const int DefaultSecondsPerVote = 20;
+    public const int DefaultSecondsPerVote = 15;
 
     public const int MaximumCaptureSlots = 500;
 

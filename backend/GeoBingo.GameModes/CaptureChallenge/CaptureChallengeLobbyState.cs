@@ -91,6 +91,5 @@ public sealed class CaptureChallengeLobbyState : IGameModeLobbyState
 internal sealed record CaptureChallengeGoal(
     Guid Id,
     string Title,
-    string? Description,
     int DisplayOrder,
     decimal ScoreFactor);

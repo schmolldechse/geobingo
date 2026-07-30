@@ -5,7 +5,6 @@ namespace GeoBingo.GameModes.CaptureChallenge;
 public sealed record CaptureChallengeGoalProjection(
     Guid GoalId,
     string Title,
-    string? Description,
     int DisplayOrder,
     decimal ScoreFactor);
 

@@ -279,14 +279,6 @@ public sealed class CaptureChallengeModule : IGameModeModule
                     "The goal title must be trimmed and contain between 1 and 80 characters.");
             }
 
-            if (goal.Description?.Length > 500)
-            {
-                AddIssue(
-                    issues,
-                    $"{memberPrefix}.description",
-                    "The goal description must contain at most 500 characters.");
-            }
-
             if (goal.ScoreFactor is < 0m or > 10m
                 || goal.ScoreFactor % CaptureChallengeDefaults.ScoreFactorStep != 0m)
             {

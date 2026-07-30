@@ -20,6 +20,9 @@ public sealed record LobbyMemberView
     [JsonPropertyName("displayName")]
     public required string DisplayName { get; init; }
 
+    [JsonPropertyName("avatarUrl")]
+    public string? AvatarUrl { get; init; }
+
     [JsonPropertyName("joinOrder")]
     public required int JoinOrder { get; init; }
 

@@ -19,12 +19,12 @@
 	<header class="border-border bg-background/95 sticky top-0 z-40 border-b-2 backdrop-blur">
 		<nav
 			class="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6"
-			aria-label="Hauptnavigation"
+			aria-label="Main navigation"
 		>
 			<a
 				href="/"
 				class="text-foreground inline-flex min-w-0 items-center rounded-lg no-underline"
-				aria-label="GeoBingo Startseite"
+				aria-label="GeoBingo Homepage"
 			>
 				<BrandMark />
 			</a>
@@ -36,7 +36,7 @@
 		</nav>
 	</header>
 
-	<main id="hauptinhalt" class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+	<main id="main-content" class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
 		{@render children()}
 	</main>
 </div>

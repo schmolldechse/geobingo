@@ -16,7 +16,7 @@ namespace GeoBingo.Api.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("api/lobbies")]
+[Route("api/v1/lobbies")]
 public sealed class LobbyController(
     ILobbyRegistry lobbyRegistry,
     LobbyRestMapper lobbyRestMapper
@@ -39,6 +39,7 @@ public sealed class LobbyController(
                 identity.UserId,
                 identity.Handle,
                 identity.DisplayName,
+                identity.AvatarUrl,
                 new LobbySettings()));
         var response = lobbyRestMapper.MapCreated(runtime.ReadSummary());
 
@@ -89,6 +90,8 @@ public sealed class LobbyController(
         var handle = User.FindFirstValue(
             GeoBingoClaimTypes.Handle);
         var displayName = User.FindFirstValue(ClaimTypes.Name);
+        var avatarUrl = User.FindFirstValue(
+            GeoBingoClaimTypes.AvatarUrl);
         if (!Guid.TryParse(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 out var userId)
@@ -104,11 +107,13 @@ public sealed class LobbyController(
         return new LobbyControllerIdentity(
             userId,
             handle,
-            displayName);
+            displayName,
+            avatarUrl);
     }
 
     private sealed record LobbyControllerIdentity(
         Guid UserId,
         string Handle,
-        string DisplayName);
+        string DisplayName,
+        string? AvatarUrl);
 }

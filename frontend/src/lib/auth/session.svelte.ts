@@ -13,6 +13,7 @@ type AuthStateSource = () => AuthStateData;
 
 class AuthState {
 	readonly #source: AuthStateSource;
+	#loginDialogVisible: boolean = $state(false);
 
 	public constructor(source: AuthStateSource) {
 		this.#source = source;
@@ -25,6 +26,22 @@ class AuthState {
 	public get providers(): readonly AuthProvider[] {
 		return this.#source().providers;
 	}
+
+	public get loginDialogVisible(): boolean {
+		return this.#loginDialogVisible;
+	}
+
+	public set loginDialogVisible(value: boolean) {
+		this.#loginDialogVisible = value;
+	}
+
+	public openLoginDialog = (): void => {
+		this.loginDialogVisible = true;
+	};
+
+	public closeLoginDialog = (): void => {
+		this.loginDialogVisible = false;
+	};
 
 	public getLoginUrl(providerKey: string): string {
 		const { returnUrl } = this.#source();

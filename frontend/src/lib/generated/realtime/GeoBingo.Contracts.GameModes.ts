@@ -4,15 +4,14 @@
 
 /** Transpiled from GeoBingo.Contracts.GameModes.GameModeSummary */
 export type GameModeSummary = {
-    /** Transpiled from string */
-    key: string;
-    /** Transpiled from string */
-    displayName: string;
-    /** Transpiled from string */
-    description: string;
-    /** Transpiled from string */
-    version: string;
-    /** Transpiled from int */
-    order: number;
-}
-
+	/** Transpiled from string */
+	key: string;
+	/** Transpiled from string */
+	displayName: string;
+	/** Transpiled from string */
+	description: string;
+	/** Transpiled from string */
+	version: string;
+	/** Transpiled from int */
+	order: number;
+};

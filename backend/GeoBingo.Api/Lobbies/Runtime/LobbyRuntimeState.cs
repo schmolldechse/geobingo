@@ -13,6 +13,7 @@ public sealed record LobbyCreation
         Guid hostUserId,
         string hostHandle,
         string hostDisplayName,
+        string? hostAvatarUrl,
         LobbySettings settings)
     {
         var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
@@ -59,6 +60,7 @@ public sealed record LobbyCreation
         HostUserId = hostUserId;
         HostHandle = hostHandle;
         HostDisplayName = hostDisplayName;
+        HostAvatarUrl = NormalizeAvatarUrl(hostAvatarUrl);
         Settings = CopySettings(settings!);
     }
 
@@ -68,12 +70,19 @@ public sealed record LobbyCreation
 
     public string HostDisplayName { get; }
 
+    public string? HostAvatarUrl { get; }
+
     public LobbySettings Settings { get; }
 
     private static LobbySettings CopySettings(LobbySettings settings) => new()
     {
         MaxPlayers = settings.MaxPlayers
     };
+
+    private static string? NormalizeAvatarUrl(string? avatarUrl) =>
+        string.IsNullOrWhiteSpace(avatarUrl)
+            ? null
+            : avatarUrl.Trim();
 }
 
 internal sealed record LobbyActor(
@@ -120,6 +129,8 @@ internal sealed class LobbyMemberState
     public required string Handle { get; init; }
 
     public required string DisplayName { get; init; }
+
+    public string? AvatarUrl { get; init; }
 
     public required int JoinOrder { get; init; }
 
@@ -232,6 +243,7 @@ internal sealed class LobbyRuntimeState
                 UserId = creation.HostUserId,
                 Handle = creation.HostHandle,
                 DisplayName = creation.HostDisplayName,
+                AvatarUrl = creation.HostAvatarUrl,
                 JoinOrder = 1
             });
     }
@@ -325,7 +337,8 @@ internal sealed class LobbyRuntimeState
     public LobbyMemberState AddMember(
         Guid userId,
         string handle,
-        string displayName)
+        string displayName,
+        string? avatarUrl)
     {
         if (userId == Guid.Empty)
         {
@@ -348,6 +361,7 @@ internal sealed class LobbyRuntimeState
             UserId = userId,
             Handle = handle,
             DisplayName = displayName,
+            AvatarUrl = avatarUrl,
             JoinOrder = AllocateJoinOrder()
         };
 

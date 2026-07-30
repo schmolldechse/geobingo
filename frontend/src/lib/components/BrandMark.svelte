@@ -1,12 +1,13 @@
 <script lang="ts">
 	type Props = {
 		showWordmark?: boolean;
+		alwaysShowWordmark?: boolean;
 	};
 
-	let { showWordmark = true }: Props = $props();
+	let { showWordmark = true, alwaysShowWordmark = false }: Props = $props();
 	let viewportWidth = $state(0);
 
-	const wordmarkVisible = $derived(showWordmark && viewportWidth >= 640);
+	const wordmarkVisible = $derived(showWordmark && (alwaysShowWordmark || viewportWidth >= 640));
 </script>
 
 <svelte:window bind:innerWidth={viewportWidth} />
@@ -38,7 +39,7 @@
 	</svg>
 
 	{#if wordmarkVisible}
-		<span class="text-xl font-extrabold tracking-tight" aria-label="GeoBingo">
+		<span class="font-[Fredoka_Variable] text-xl font-[650] tracking-[-0.035em]" aria-label="GeoBingo">
 			<span class="text-secondary">Geo</span><span class="text-primary">Bingo</span>
 		</span>
 	{/if}

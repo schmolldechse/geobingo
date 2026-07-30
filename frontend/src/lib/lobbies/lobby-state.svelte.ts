@@ -7,6 +7,7 @@ import type {
 } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 import { LobbyStatus } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 import type { SignalRError } from "$lib/generated/realtime/GeoBingo.Contracts.SignalR";
+import type { LobbyConclusionErrorCode, LobbyConclusionSource } from "./lobby-conclusion";
 import type { ResultState } from "./result-state.svelte";
 
 export type LobbyConnectionStatus = "idle" | "connecting" | "connected" | "reconnecting" | "disconnected";
@@ -18,7 +19,7 @@ export class LobbyState {
 	connectionStatus = $state<LobbyConnectionStatus>("idle");
 	pendingOperationNames = $state<string[]>([]);
 	lastOperationError = $state<SignalRError | null>(null);
-	terminationReason = $state<LobbyEndedReason | null>(null);
+	conclusion = $state<LobbyConclusionSource | null>(null);
 
 	readonly #results: ResultState;
 
@@ -50,7 +51,7 @@ export class LobbyState {
 		if (snapshot.stateVersion < this.highestStateVersion) return;
 		this.snapshot = snapshot;
 		this.highestStateVersion = Math.max(this.highestStateVersion, snapshot.stateVersion);
-		this.terminationReason = null;
+		this.conclusion = null;
 	}
 
 	public receivePersonalProjection(projection: PersonalProjection): void {
@@ -77,20 +78,24 @@ export class LobbyState {
 	public terminate(message: LobbyEnded): void {
 		if (message.stateVersion < this.highestStateVersion) return;
 		this.highestStateVersion = message.stateVersion;
-		this.clearForTermination(message.reason);
+		this.clearForConclusion({ type: "ended", reason: message.reason });
 	}
 
 	public terminateLocally(reason: LobbyEndedReason): void {
-		this.clearForTermination(reason);
+		this.clearForConclusion({ type: "ended", reason });
 	}
 
-	private clearForTermination(reason: LobbyEndedReason): void {
+	public rejectLocally(code: LobbyConclusionErrorCode): void {
+		this.clearForConclusion({ type: "rejected", code });
+	}
+
+	private clearForConclusion(conclusion: LobbyConclusionSource): void {
 		this.snapshot = null;
 		this.personalProjection = null;
 		this.pendingOperationNames = [];
 		this.lastOperationError = null;
 		this.#results.clear();
-		this.terminationReason = reason;
+		this.conclusion = conclusion;
 		this.connectionStatus = "disconnected";
 	}
 }

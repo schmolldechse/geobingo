@@ -12,7 +12,8 @@ internal sealed record LobbyJoinIdentity
     public LobbyJoinIdentity(
         Guid userId,
         string handle,
-        string displayName)
+        string displayName,
+        string? avatarUrl)
     {
         var errors = new Dictionary<string, string[]>(
             StringComparer.Ordinal);
@@ -37,6 +38,7 @@ internal sealed record LobbyJoinIdentity
         UserId = userId;
         Handle = handle;
         DisplayName = displayName;
+        AvatarUrl = NormalizeAvatarUrl(avatarUrl);
     }
 
     public Guid UserId { get; }
@@ -44,6 +46,8 @@ internal sealed record LobbyJoinIdentity
     public string Handle { get; }
 
     public string DisplayName { get; }
+
+    public string? AvatarUrl { get; }
 
     private static void ValidateName(
         string value,
@@ -61,6 +65,11 @@ internal sealed record LobbyJoinIdentity
                 ["The value must be trimmed and contain between 1 and 64 characters."];
         }
     }
+
+    private static string? NormalizeAvatarUrl(string? avatarUrl) =>
+        string.IsNullOrWhiteSpace(avatarUrl)
+            ? null
+            : avatarUrl.Trim();
 }
 
 internal sealed class LobbyConnectionLifecycle
@@ -242,7 +251,8 @@ internal sealed class LobbyConnectionLifecycle
                 member ??= state.AddMember(
                     identity.UserId,
                     identity.Handle,
-                    identity.DisplayName);
+                    identity.DisplayName,
+                    identity.AvatarUrl);
                 member.AttachConnection(connectionId);
             }
 

@@ -6,12 +6,12 @@ import type { CreateLobbyResponse, ResolveLobbyCodeResponse } from "@/lib/genera
 
 const authRequired = () =>
 	fail(401, {
-		message: "Melde dich an, um eine Lobby zu erstellen oder ihr beizutreten.",
+		message: "Sign in to create or join a lobby.",
 		authRequired: true
 	});
 
 export const actions: Actions = {
-	createLobby: async ({ locals }) => {
+	createLobby: async ({ locals, fetch }) => {
 		if (!locals.session.authenticated) return authRequired();
 
 		const response = await fetch(apiUrl("/api/v1/lobbies"), {
@@ -21,7 +21,7 @@ export const actions: Actions = {
 		});
 		if (!response.ok)
 			return fail(response.status, {
-				message: "Lobby could not be created. ",
+				message: "Lobby could not be created.",
 				details: response.statusText
 			});
 
@@ -29,7 +29,7 @@ export const actions: Actions = {
 		redirect(303, `/lobby/${data.code}`);
 	},
 
-	resolveLobby: async ({ locals, request }) => {
+	resolveLobby: async ({ locals, request, fetch }) => {
 		if (!locals.session.authenticated) return authRequired();
 
 		const formData = await request.formData();
@@ -38,7 +38,7 @@ export const actions: Actions = {
 			return fail(400, {
 				code,
 				fieldErrors: {
-					code: ["Der Lobby-Code besteht aus genau acht Zeichen (A–Z und 0–9)."]
+					code: ["The lobby code must contain exactly eight characters (A–Z and 0–9)."]
 				}
 			});
 
@@ -57,7 +57,7 @@ export const actions: Actions = {
 		if (!data.joinable && !data.reconnectable) {
 			return fail(409, {
 				code,
-				message: "Diese Lobby nimmt aktuell keine weiteren Spieler auf."
+				message: "This lobby is not accepting additional players right now."
 			});
 		}
 

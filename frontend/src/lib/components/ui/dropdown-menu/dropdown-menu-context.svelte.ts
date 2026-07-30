@@ -261,6 +261,7 @@ class DropdownMenuContext {
 		if (!this.open || !this.closeOnInteractOutside) return;
 		if (!(event.target instanceof Node)) return;
 		if (this.rootElement?.contains(event.target)) return;
+		if (this.contentElement?.contains(event.target)) return;
 
 		this.closeMenu();
 	};

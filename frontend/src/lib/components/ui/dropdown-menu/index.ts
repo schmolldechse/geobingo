@@ -8,3 +8,4 @@ export { default as Separator } from "./DropdownMenuSeparator.svelte";
 
 export type { DropdownMenuTriggerChildProps } from "./DropdownMenuTrigger.svelte";
 export type { DropdownMenuAlign, DropdownMenuState } from "./dropdown-menu-context.svelte";
+export type { DropdownMenuSide } from "./dropdown-menu-position";

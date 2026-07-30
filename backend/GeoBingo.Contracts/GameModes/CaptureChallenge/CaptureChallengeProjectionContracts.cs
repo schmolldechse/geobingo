@@ -34,9 +34,6 @@ public sealed record CaptureChallengeGoalProjection
     [JsonPropertyName("title")]
     public required string Title { get; init; }
 
-    [JsonPropertyName("description")]
-    public string? Description { get; init; }
-
     [JsonPropertyName("displayOrder")]
     public required int DisplayOrder { get; init; }
 

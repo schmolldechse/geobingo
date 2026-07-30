@@ -11,7 +11,6 @@
 	const auth = getAuthState();
 
 	let logoutPending: boolean = $state(false);
-	let loginDialogVisible: boolean = $state(false);
 
 	const initials = $derived.by(() => {
 		const parts = auth.session.user?.displayName.trim().split(/\s+/).filter(Boolean) ?? [];
@@ -77,14 +76,14 @@
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	{:else}
-		<Button onclick={() => (loginDialogVisible = true)}>
+		<Button onclick={auth.openLoginDialog}>
 			<LogIn aria-hidden="true" size={19} />
 			Login
 		</Button>
 	{/if}
 </div>
 
-<Dialog bind:isVisible={loginDialogVisible} title="Bei GeoBingo anmelden" class="sm:max-w-md">
+<Dialog bind:isVisible={auth.loginDialogVisible} title="Bei GeoBingo anmelden" class="sm:max-w-md">
 	<div class="grid gap-5">
 		<p class="text-muted m-0 text-sm leading-relaxed sm:text-base">
 			Wähle einen Anbieter aus. Anschließend kehrst du direkt zu GeoBingo zurück.

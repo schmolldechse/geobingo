@@ -41,7 +41,6 @@ public sealed class CaptureChallengeOperations
             new CaptureChallengeGoal(
                 Guid.NewGuid(),
                 goalData.Title,
-                goalData.Description,
                 state.Goals.Count,
                 goalData.ScoreFactor));
     }
@@ -67,7 +66,6 @@ public sealed class CaptureChallengeOperations
             new CaptureChallengeGoal(
                 existingGoal.Id,
                 goalData.Title,
-                goalData.Description,
                 existingGoal.DisplayOrder,
                 goalData.ScoreFactor));
     }
@@ -510,13 +508,6 @@ public sealed class CaptureChallengeOperations
                 "The goal title must contain at most 80 characters.");
         }
 
-        if (input.Description?.Length > 500)
-        {
-            errors.Add(
-                "goal.description",
-                "The goal description must contain at most 500 characters.");
-        }
-
         var scoreFactor =
             input.ScoreFactor ?? CaptureChallengeDefaults.DefaultScoreFactor;
         if (scoreFactor is < 0m or > 10m
@@ -530,7 +521,6 @@ public sealed class CaptureChallengeOperations
         errors.ThrowIfAny("The Capture Challenge goal is invalid.");
         return new ValidatedGoal(
             title,
-            input.Description,
             scoreFactor);
     }
 
@@ -635,7 +625,6 @@ public sealed class CaptureChallengeOperations
 
     private sealed record ValidatedGoal(
         string Title,
-        string? Description,
         decimal ScoreFactor);
 
     private sealed class ValidationErrors
