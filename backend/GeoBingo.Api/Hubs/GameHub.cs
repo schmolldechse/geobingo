@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using GeoBingo.Api.Authentication;
 using GeoBingo.Api.Lobbies.Mapping;
@@ -387,9 +386,7 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
     }
 
     private async Task<HubOperationResult> ExecuteAsync(
-        Func<
-            HubIdentity,
-            ValueTask<LobbyOperationCompletion>> operation)
+        Func<GeoBingoIdentity, ValueTask<LobbyOperationCompletion>> operation)
     {
         var identity = ReadIdentity();
         var completion = await operation(identity)
@@ -399,56 +396,22 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
 
     private LobbyRuntime ResolveCurrentRuntime(Guid userId)
     {
-        if (!operationDispatcher.TryResolveForConnection(
-                Context.ConnectionId,
-                userId,
-                out var runtime,
-                out var failure)
+        if (!operationDispatcher.TryResolveForConnection(Context.ConnectionId, userId, out var runtime, out var failure)
             || runtime is null)
-        {
-            throw new LobbyRuntimeException(
-                failure!.Code,
-                failure.Message,
-                failure.Errors);
-        }
-
+            throw new LobbyRuntimeException(failure!.Code, failure.Message, failure.Errors);
         return runtime;
     }
 
     private Guid ResolveCurrentLobbyId(Guid userId) =>
         ResolveCurrentRuntime(userId).LobbyId;
 
-    private HubIdentity ReadIdentity()
+    private GeoBingoIdentity ReadIdentity()
     {
-        var handle = Context.User?.FindFirstValue(
-            GeoBingoClaimTypes.Handle);
-        var displayName = Context.User?.FindFirstValue(
-            ClaimTypes.Name);
-        var avatarUrl = Context.User?.FindFirstValue(
-            GeoBingoClaimTypes.AvatarUrl);
-        if (!Guid.TryParse(
-                Context.User?.FindFirstValue(
-                    ClaimTypes.NameIdentifier),
-                out var userId)
-            || userId == Guid.Empty
-            || string.IsNullOrWhiteSpace(handle)
-            || string.IsNullOrWhiteSpace(displayName))
-        {
+        if (!GeoBingoIdentityClaims.TryRead(Context.User, out var identity) || identity is null)
             throw new LobbyRuntimeException(
                 ErrorCode.AUTH_REQUIRED,
                 "The current connection has no valid authenticated identity.");
-        }
 
-        return new HubIdentity(
-            userId,
-            handle,
-            displayName,
-            avatarUrl);
+        return identity;
     }
-
-    private sealed record HubIdentity(
-        Guid UserId,
-        string Handle,
-        string DisplayName,
-        string? AvatarUrl);
 }

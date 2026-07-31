@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using GeoBingo.Api.Authentication;
 using GeoBingo.Api.Lobbies.Mapping;
@@ -85,35 +84,13 @@ public sealed class LobbyController(
         return Ok(response);
     }
 
-    private LobbyControllerIdentity ReadIdentity()
+    private GeoBingoIdentity ReadIdentity()
     {
-        var handle = User.FindFirstValue(
-            GeoBingoClaimTypes.Handle);
-        var displayName = User.FindFirstValue(ClaimTypes.Name);
-        var avatarUrl = User.FindFirstValue(
-            GeoBingoClaimTypes.AvatarUrl);
-        if (!Guid.TryParse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                out var userId)
-            || userId == Guid.Empty
-            || string.IsNullOrWhiteSpace(handle)
-            || string.IsNullOrWhiteSpace(displayName))
-        {
+        if (!GeoBingoIdentityClaims.TryRead(User, out var identity) || identity is null)
             throw new LobbyRuntimeException(
                 ErrorCode.AUTH_REQUIRED,
                 "The current session could not be validated.");
-        }
 
-        return new LobbyControllerIdentity(
-            userId,
-            handle,
-            displayName,
-            avatarUrl);
+        return identity;
     }
-
-    private sealed record LobbyControllerIdentity(
-        Guid UserId,
-        string Handle,
-        string DisplayName,
-        string? AvatarUrl);
 }

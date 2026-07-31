@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using GeoBingo.Api.Authentication;
 using GeoBingo.Api.Mapping;
@@ -71,8 +70,7 @@ public sealed class AuthController(
         if (User.Identity?.IsAuthenticated != true)
             return Ok(new Session { Authenticated = false, User = null });
 
-        var handle = User.FindFirstValue(GeoBingoClaimTypes.Handle);
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out _) || string.IsNullOrWhiteSpace(handle))
+        if (!GeoBingoIdentityClaims.TryRead(User, out var identity) || identity is null)
             return Problem(
                 statusCode: StatusCodes.Status401Unauthorized,
                 title: "Invalid session",
@@ -83,9 +81,9 @@ public sealed class AuthController(
             Authenticated = true,
             User = new SessionUser
             {
-                Handle = handle,
-                DisplayName = User.FindFirstValue(ClaimTypes.Name) ?? "GeoBingo Player",
-                AvatarUrl = User.FindFirstValue(GeoBingoClaimTypes.AvatarUrl)
+                Handle = identity.Handle,
+                DisplayName = identity.DisplayName,
+                AvatarUrl = identity.AvatarUrl
             }
         });
     }

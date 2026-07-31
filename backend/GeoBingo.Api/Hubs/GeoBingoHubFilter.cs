@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using GeoBingo.Api.Authentication;
 using GeoBingo.Api.Lobbies.Runtime;
 using GeoBingo.Contracts.SignalR;
 using GeoBingo.Observability.Logging;
@@ -57,8 +57,9 @@ internal sealed class GeoBingoHubFilter : IHubFilter
     {
         var startedAt = Stopwatch.GetTimestamp();
         var correlationId = Guid.NewGuid().ToString("N");
-        var userId = invocationContext.Context.User
-            ?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GeoBingoIdentityClaims.TryReadUserId(invocationContext.Context.User, out var parsedUserId)
+            ? parsedUserId.ToString("D")
+            : null;
         connectionRegistry.TryGet(
             invocationContext.Context.ConnectionId,
             out var connectionContext);
