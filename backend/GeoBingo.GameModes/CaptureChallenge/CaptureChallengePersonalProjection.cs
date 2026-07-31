@@ -11,20 +11,24 @@ public sealed record CaptureChallengeCaptureSlotProjection(
     DateTimeOffset? SubmittedAt,
     DateTimeOffset? UpdatedAt);
 
-public sealed record CaptureChallengeCurrentAssignmentProjection(
-    Guid AssignmentId,
+public sealed record CaptureChallengeCurrentCaptureProjection(
+    Guid CaptureId,
+    Guid OwnerUserId,
     CaptureChallengeGoalProjection Goal,
     StreetViewPosition Position,
-    int Sequence);
+    int Sequence,
+    bool IsOwner,
+    VoteValue? SelectedValue);
 
 public sealed record CaptureChallengeVoteHistoryEntryProjection(
-    Guid AssignmentId,
+    Guid CaptureId,
+    int Sequence,
     VoteValue Value);
 
 public sealed record CaptureChallengePersonalProjection(
     CaptureChallengeStatus? Status,
     IReadOnlyList<CaptureChallengeCaptureSlotProjection> CaptureSlots,
-    CaptureChallengeCurrentAssignmentProjection? CurrentAssignment,
-    int TotalAssignmentCount,
-    int CompletedAssignmentCount,
+    CaptureChallengeCurrentCaptureProjection? CurrentCapture,
+    int TotalEligibleVoteCount,
+    int SubmittedVoteCount,
     IReadOnlyList<CaptureChallengeVoteHistoryEntryProjection> VoteHistory);

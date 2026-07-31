@@ -20,6 +20,7 @@
 	import type { LobbyState } from "$lib/lobbies/lobby-state.svelte";
 	import type { ResultState } from "$lib/lobbies/result-state.svelte";
 	import LobbyModeSummary from "./LobbyModeSummary.svelte";
+	import LobbyResultsPanel from "./LobbyResultsPanel.svelte";
 	import LobbyStartCommandBar from "./LobbyStartCommandBar.svelte";
 	import LobbyWaitingPlayerList from "./LobbyWaitingPlayerList.svelte";
 	import LobbyWaitingSettings from "./LobbyWaitingSettings.svelte";
@@ -281,7 +282,7 @@
 				<LobbyWaitingSettings {lobby} {snapshot} {actions} {availableGameModes} {gameModeCatalogAvailable} />
 			</Tabs.Content>
 			<Tabs.Content value="results" class="min-h-0 flex-1 min-[900px]:overflow-hidden">
-				<p class="sr-only">Results content</p>
+				<LobbyResultsPanel {snapshot} {results} {actions} />
 			</Tabs.Content>
 		</Tabs.Root>
 

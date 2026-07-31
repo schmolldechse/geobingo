@@ -514,8 +514,95 @@ internal sealed class LobbyRuntimeState
         return roundId;
     }
 
+    public void CompleteRound(CompletedRoundResults results)
+    {
+        ArgumentNullException.ThrowIfNull(results);
+        if (Status != LobbyStatus.PLAYING
+            || CurrentRound is not IGameModeRoundState currentRound
+            || CurrentRoundNumber is not int currentRoundNumber
+            || results.RoundId != currentRound.RoundId
+            || results.RoundNumber != currentRoundNumber
+            || CompletedRoundResults.Any(
+                completed => completed.RoundId == results.RoundId)
+            || CompletedRoundSummaries.Any(
+                completed => completed.RoundId == results.RoundId))
+        {
+            throw new InvalidOperationException(
+                "Only the active, not-yet-completed round may be finalized.");
+        }
+
+        CompletedRoundResults.Add(results);
+        CompletedRoundSummaries.Add(
+            new CompletedRoundSummary
+            {
+                RoundId = results.RoundId,
+                RoundNumber = results.RoundNumber,
+                CompletedAt = results.CompletedAt
+            });
+        RebuildCumulativeResults();
+
+        CurrentRound = null;
+        CurrentRoundNumber = null;
+        PreparationDeadline = null;
+        ModeDeadline = null;
+        ModeDeadlineRoundId = null;
+        TransitionTo(LobbyStatus.WAITING);
+    }
+
     public void IncrementStateVersion() =>
         StateVersion = checked(StateVersion + 1);
+
+    private void RebuildCumulativeResults()
+    {
+        var firstAppearanceOrder = CompletedRoundResults
+            .SelectMany(
+                (round, roundIndex) => round.Players.Select(
+                    (player, playerIndex) => new
+                    {
+                        player.UserId,
+                        Order = (roundIndex, playerIndex)
+                    }))
+            .GroupBy(entry => entry.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Min(entry => entry.Order));
+        var orderedTotals = CompletedRoundResults
+            .SelectMany(round => round.Players)
+            .GroupBy(player => player.UserId)
+            .Select(
+                group => new
+                {
+                    UserId = group.Key,
+                    Score = Math.Round(
+                        group.Sum(player => player.Score),
+                        2,
+                        MidpointRounding.AwayFromZero),
+                    Order = firstAppearanceOrder[group.Key]
+                })
+            .OrderByDescending(entry => entry.Score)
+            .ThenBy(entry => entry.Order)
+            .ToArray();
+
+        CumulativeResults.Clear();
+        decimal? previousScore = null;
+        var rank = 0;
+        foreach (var entry in orderedTotals)
+        {
+            if (previousScore != entry.Score)
+            {
+                rank = CumulativeResults.Count + 1;
+                previousScore = entry.Score;
+            }
+
+            CumulativeResults.Add(
+                new CumulativePlayerResult
+                {
+                    UserId = entry.UserId,
+                    Score = entry.Score,
+                    Rank = rank
+                });
+        }
+    }
 
     public void TransitionTo(LobbyStatus nextStatus)
     {

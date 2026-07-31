@@ -517,10 +517,12 @@ internal sealed class LobbyOperationDispatcher
             connectionId,
             userId,
             (state, context) =>
+            {
                 captureChallengeOperations.CastVote(
                     state,
                     request,
-                    context),
+                    context);
+            },
             cancellationToken);
 
     public ValueTask<LobbyOperationCompletion> ChangeVoteAsync(
@@ -731,6 +733,7 @@ internal sealed class LobbyOperationDispatcher
                     new GameModeAdvanceContext(
                         state.ModeLobbyState,
                         round,
+                        state.Members.Keys.ToHashSet(),
                         now));
                 if (advance.Kind != GameModeAdvanceKind.STATE_CHANGED
                     || advance.NextDeadline
@@ -801,6 +804,7 @@ internal sealed class LobbyOperationDispatcher
                     new GameModeAdvanceContext(
                         state.ModeLobbyState,
                         round,
+                        state.Members.Keys.ToHashSet(),
                         now));
 
                 return ValueTask.FromResult(
@@ -864,8 +868,12 @@ internal sealed class LobbyOperationDispatcher
 
                 return LobbyMutationOutcome.Applied;
             case GameModeAdvanceKind.COMPLETED:
-                throw new InvalidOperationException(
-                    "Completed game-mode outcomes require the result finalization flow.");
+                var completedRoundResults = advance.CompletedRoundResults
+                    ?? throw new InvalidOperationException(
+                        "A completed game-mode outcome requires round results.");
+                state.CompleteRound(completedRoundResults);
+                return LobbyMutationOutcome.AppliedWithCompletedRound(
+                    completedRoundResults.RoundId);
             default:
                 throw new ArgumentOutOfRangeException(
                     nameof(advance),

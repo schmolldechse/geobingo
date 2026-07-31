@@ -24,6 +24,7 @@ internal sealed class LobbyRegistry : ILobbyRegistry
         new(StringComparer.Ordinal);
     private readonly IGameModeRegistry gameModeRegistry;
     private readonly LobbyProjectionPublisher projectionPublisher;
+    private readonly LobbyResultsPublisher resultsPublisher;
     private readonly TimeProvider timeProvider;
     private readonly ILoggerFactory loggerFactory;
     private readonly GameMetrics gameMetrics;
@@ -35,6 +36,7 @@ internal sealed class LobbyRegistry : ILobbyRegistry
     public LobbyRegistry(
         IGameModeRegistry gameModeRegistry,
         LobbyProjectionPublisher projectionPublisher,
+        LobbyResultsPublisher resultsPublisher,
         TimeProvider timeProvider,
         ILoggerFactory loggerFactory,
         GameMetrics gameMetrics,
@@ -45,6 +47,8 @@ internal sealed class LobbyRegistry : ILobbyRegistry
             ?? throw new ArgumentNullException(nameof(gameModeRegistry));
         this.projectionPublisher = projectionPublisher
             ?? throw new ArgumentNullException(nameof(projectionPublisher));
+        this.resultsPublisher = resultsPublisher
+            ?? throw new ArgumentNullException(nameof(resultsPublisher));
         this.timeProvider = timeProvider
             ?? throw new ArgumentNullException(nameof(timeProvider));
         this.loggerFactory = loggerFactory
@@ -97,6 +101,7 @@ internal sealed class LobbyRegistry : ILobbyRegistry
             runtime = new LobbyRuntime(
                 runtimeState,
                 projectionPublisher,
+                resultsPublisher,
                 timeProvider,
                 loggerFactory.CreateLogger<LobbyRuntime>(),
                 HandleRuntimeClosedAsync);

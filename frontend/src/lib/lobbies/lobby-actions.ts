@@ -1,6 +1,8 @@
 import type {
 	CaptureGoalInput,
-	CaptureChallengeSettings
+	CaptureChallengeSettings,
+	StreetViewPosition,
+	VoteValue
 } from "$lib/generated/realtime/GeoBingo.Contracts.GameModes.CaptureChallenge";
 import { PlayerRemovalKind, ResultsScope, type LobbySettings } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 import type { IGameHub } from "$lib/generated/realtime/TypedSignalR.Client/GeoBingo.Contracts.SignalR";
@@ -38,6 +40,21 @@ export class LobbyActions {
 
 	public reorderGoals = (goalIdsInDisplayOrder: string[]) =>
 		this.#mutate("reorderGoals", (hub) => hub.reorderCaptureGoals({ goalIdsInDisplayOrder }));
+
+	public submitCapture = (roundGoalId: string, position: StreetViewPosition) =>
+		this.#mutate(`submitCapture:${roundGoalId}`, (hub) => hub.submitCapture({ roundGoalId, position }));
+
+	public updateCapture = (captureId: string, position: StreetViewPosition) =>
+		this.#mutate(`updateCapture:${captureId}`, (hub) => hub.updateCapture({ captureId, position }));
+
+	public removeCapture = (captureId: string) =>
+		this.#mutate(`removeCapture:${captureId}`, (hub) => hub.removeCapture({ captureId }));
+
+	public castVote = (captureId: string, value: VoteValue) =>
+		this.#mutate(`castVote:${captureId}`, (hub) => hub.castVote({ captureId, value }));
+
+	public changeVote = (captureId: string, value: VoteValue) =>
+		this.#mutate(`changeVote:${captureId}`, (hub) => hub.changeVote({ captureId, value }));
 
 	public transferHost = (userId: string) => this.#mutate(`transferHost:${userId}`, (hub) => hub.transferHost({ userId }));
 

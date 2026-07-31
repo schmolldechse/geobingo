@@ -14,6 +14,8 @@ public sealed record CaptureChallengePublicProjection(
     CaptureChallengeStatus? Status,
     DateTimeOffset? CaptureEndsAt,
     DateTimeOffset? VotingEndsAt,
+    DateTimeOffset? CurrentCaptureEndsAt,
+    int? CurrentCaptureSequence,
     IReadOnlyList<CaptureChallengeParticipantCaptureProgress> ParticipantCaptureProgress,
     int SubmittedCaptureCount,
     int ReleasedCaptureCount,

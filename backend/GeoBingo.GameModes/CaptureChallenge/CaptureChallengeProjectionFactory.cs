@@ -34,6 +34,8 @@ internal static class CaptureChallengeProjectionFactory
             Status: roundState?.Status,
             CaptureEndsAt: roundState?.CaptureEndsAt,
             VotingEndsAt: roundState?.VotingEndsAt,
+            CurrentCaptureEndsAt: roundState?.CurrentCaptureEndsAt,
+            CurrentCaptureSequence: roundState?.CurrentCaptureSequence,
             ParticipantCaptureProgress: CreateParticipantCaptureProgress(roundState),
             SubmittedCaptureCount: roundState?.Captures.Count ?? 0,
             ReleasedCaptureCount:
@@ -58,9 +60,9 @@ internal static class CaptureChallengeProjectionFactory
             return new CaptureChallengePersonalProjection(
                 Status: null,
                 CaptureSlots: [],
-                CurrentAssignment: null,
-                TotalAssignmentCount: 0,
-                CompletedAssignmentCount: 0,
+                CurrentCapture: null,
+                TotalEligibleVoteCount: 0,
+                SubmittedVoteCount: 0,
                 VoteHistory: []);
         }
 
@@ -68,26 +70,32 @@ internal static class CaptureChallengeProjectionFactory
             roundState.Status == CaptureChallengeStatus.CAPTURING
                 ? CreateCaptureSlots(roundState, recipientUserId)
                 : [];
-        var assignments = roundState.Assignments
-            .Where(assignment => assignment.VoterUserId == recipientUserId)
-            .OrderBy(assignment => assignment.Sequence)
-            .ToArray();
-        var currentAssignment =
+        var currentCapture =
             roundState.Status == CaptureChallengeStatus.VOTING
-                ? CreateCurrentAssignment(roundState, recipientUserId)
+                ? CreateCurrentCapture(roundState, recipientUserId)
                 : null;
         var voteHistory =
             roundState.Status == CaptureChallengeStatus.VOTING
-                ? CreateVoteHistory(roundState, assignments)
+                ? CreateVoteHistory(roundState, recipientUserId)
                 : [];
+        var foreignCaptureIds = roundState.Captures
+            .Where(
+                capture =>
+                    capture.ReleasedForVoting
+                    && capture.OwnerUserId != recipientUserId)
+            .Select(capture => capture.CaptureId)
+            .ToHashSet();
 
         return new CaptureChallengePersonalProjection(
             Status: roundState.Status,
             CaptureSlots: captureSlots,
-            CurrentAssignment: currentAssignment,
-            TotalAssignmentCount: assignments.Length,
-            CompletedAssignmentCount:
-                assignments.Count(assignment => assignment.CompletedAt is not null),
+            CurrentCapture: currentCapture,
+            TotalEligibleVoteCount: foreignCaptureIds.Count,
+            SubmittedVoteCount:
+                roundState.Votes.Count(
+                    vote =>
+                        vote.VoterUserId == recipientUserId
+                        && foreignCaptureIds.Contains(vote.CaptureId)),
             VoteHistory: voteHistory);
     }
 
@@ -113,19 +121,14 @@ internal static class CaptureChallengeProjectionFactory
                 })
             .ToArray();
 
-    private static CaptureChallengeCurrentAssignmentProjection?
-        CreateCurrentAssignment(
+    private static CaptureChallengeCurrentCaptureProjection?
+        CreateCurrentCapture(
             CaptureChallengeRoundState roundState,
             Guid recipientUserId)
     {
-        var assignment = roundState.FindCurrentAssignment(recipientUserId);
-        if (assignment is null)
-        {
-            return null;
-        }
-
-        var capture = roundState.FindCapture(assignment.CaptureId);
-        if (capture is null)
+        var capture = roundState.FindCurrentVotingCapture();
+        var sequence = roundState.CurrentCaptureSequence;
+        if (capture is null || sequence is null)
         {
             return null;
         }
@@ -133,33 +136,45 @@ internal static class CaptureChallengeProjectionFactory
         var goal = roundState.FindGoal(capture.RoundGoalId);
         if (goal is null)
         {
-            return null;
+            throw new InvalidOperationException(
+                "The current voting capture must reference a round goal.");
         }
 
-        return new CaptureChallengeCurrentAssignmentProjection(
-            AssignmentId: assignment.AssignmentId,
+        return new CaptureChallengeCurrentCaptureProjection(
+            CaptureId: capture.CaptureId,
+            OwnerUserId: capture.OwnerUserId,
             Goal: CreateGoalProjection(goal),
             Position: CaptureChallengeRoundState.CopyPosition(capture.Position),
-            Sequence: assignment.Sequence);
+            Sequence: sequence.Value,
+            IsOwner: capture.OwnerUserId == recipientUserId,
+            SelectedValue:
+                roundState.FindVote(capture.CaptureId, recipientUserId)?.Value);
     }
 
     private static IReadOnlyList<CaptureChallengeVoteHistoryEntryProjection>
         CreateVoteHistory(
             CaptureChallengeRoundState roundState,
-            IEnumerable<CaptureChallengeAssignment> assignments) =>
-        assignments
+            Guid recipientUserId)
+    {
+        var currentSequence = roundState.CurrentCaptureSequence
+            ?? roundState.VotingCaptureIds.Count + 1;
+        return roundState.Votes
+            .Where(vote => vote.VoterUserId == recipientUserId)
             .Select(
-                assignment =>
-                    (
-                        Assignment: assignment,
-                        Vote: roundState.FindVote(assignment.AssignmentId)))
-            .Where(entry => entry.Vote is not null)
+                vote => new
+                {
+                    Vote = vote,
+                    Sequence = roundState.FindVotingSequence(vote.CaptureId)
+                })
+            .Where(entry => entry.Sequence > 0 && entry.Sequence < currentSequence)
+            .OrderBy(entry => entry.Sequence)
             .Select(
-                entry =>
-                    new CaptureChallengeVoteHistoryEntryProjection(
-                        entry.Assignment.AssignmentId,
-                        entry.Vote!.Value))
+                entry => new CaptureChallengeVoteHistoryEntryProjection(
+                    entry.Vote.CaptureId,
+                    entry.Sequence,
+                    entry.Vote.Value))
             .ToArray();
+    }
 
     private static IReadOnlyList<CaptureChallengeParticipantCaptureProgress>
         CreateParticipantCaptureProgress(CaptureChallengeRoundState? roundState)
@@ -190,10 +205,11 @@ internal static class CaptureChallengeProjectionFactory
         }
 
         return new CaptureChallengeVotingProgress(
-            CompletedAssignmentCount:
-                roundState.Assignments.Count(
-                    assignment => assignment.CompletedAt is not null),
-            TotalAssignmentCount: roundState.Assignments.Count);
+            SubmittedVoteCount: roundState.Votes.Count,
+            EligibleVoteCount:
+                roundState.Captures
+                    .Where(capture => capture.ReleasedForVoting)
+                    .Sum(roundState.CountEligibleVoters));
     }
 
     private static CaptureChallengeGoalProjection CreateGoalProjection(

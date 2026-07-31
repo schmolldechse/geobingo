@@ -2,6 +2,7 @@
 	import { goto } from "$app/navigation";
 	import ErrorScreen from "$lib/components/ErrorScreen.svelte";
 	import LobbyLoadingScreen from "$lib/components/lobby/LobbyLoadingScreen.svelte";
+	import LobbyPlayingState from "$lib/components/lobby/state/playing/LobbyPlayingState.svelte";
 	import LobbyPreparingState from "$lib/components/lobby/state/preparing/LobbyPreparingState.svelte";
 	import LobbyWaitingState from "$lib/components/lobby/state/waiting/LobbyWaitingState.svelte";
 	import { LobbyStatus } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
@@ -61,7 +62,7 @@
 	{:else if lobby.snapshot.status === LobbyStatus.PREPARING}
 		<LobbyPreparingState snapshot={lobby.snapshot} />
 	{:else if lobby.snapshot.status === LobbyStatus.PLAYING}
-		<p>{lobby.snapshot.status}</p>
+		<LobbyPlayingState {lobby} snapshot={lobby.snapshot} {actions} />
 	{/if}
 {:else}
 	<LobbyLoadingScreen code={data.code} connectionStatus={lobby.connectionStatus} />

@@ -14,5 +14,5 @@ public sealed record CaptureChallengeParticipantCaptureProgress(
     int TotalGoalCount);
 
 public sealed record CaptureChallengeVotingProgress(
-    int CompletedAssignmentCount,
-    int TotalAssignmentCount);
+    int SubmittedVoteCount,
+    int EligibleVoteCount);

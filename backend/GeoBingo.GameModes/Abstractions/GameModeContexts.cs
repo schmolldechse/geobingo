@@ -28,4 +28,5 @@ public sealed record GameModeProjectionContext(
 public sealed record GameModeAdvanceContext(
     IGameModeLobbyState LobbyState,
     IGameModeRoundState RoundState,
+    IReadOnlySet<Guid> CurrentMemberUserIds,
     DateTimeOffset Now);

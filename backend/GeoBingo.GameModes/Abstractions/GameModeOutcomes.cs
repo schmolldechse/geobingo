@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GeoBingo.Contracts.Common;
+using GeoBingo.Contracts.Lobbies;
 
 namespace GeoBingo.GameModes.Abstractions;
 
@@ -25,4 +26,5 @@ public enum GameModeAdvanceKind
 
 public sealed record GameModeAdvanceOutcome(
     GameModeAdvanceKind Kind,
-    DateTimeOffset? NextDeadline);
+    DateTimeOffset? NextDeadline,
+    CompletedRoundResults? CompletedRoundResults = null);

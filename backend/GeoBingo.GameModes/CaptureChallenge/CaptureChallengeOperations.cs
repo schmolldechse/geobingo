@@ -224,36 +224,31 @@ public sealed class CaptureChallengeOperations
         ArgumentNullException.ThrowIfNull(context);
 
         EnsureVotingParticipant(state, context);
-        var assignment = FindOwnedAssignment(
+        var capture = FindCurrentVotingCapture(
             state,
-            request.AssignmentId,
-            context.ActorUserId);
-        var currentAssignment = state.FindCurrentAssignment(context.ActorUserId);
-        if (assignment.RevealedAt is null
-            || assignment.CompletedAt is not null
-            || currentAssignment?.AssignmentId != assignment.AssignmentId)
+            request.CaptureId,
+            context);
+        if (capture.OwnerUserId == context.ActorUserId)
         {
             throw new GameModeDomainException(
-                ErrorCode.ASSIGNMENT_NOT_FOUND,
-                "The active voting assignment was not found.");
+                ErrorCode.FORBIDDEN,
+                "Players cannot vote on their own capture.");
         }
 
-        if (state.FindVote(assignment.AssignmentId) is not null)
+        if (state.FindVote(capture.CaptureId, context.ActorUserId) is not null)
         {
             throw new GameModeDomainException(
                 ErrorCode.VOTE_ALREADY_EXISTS,
-                "A vote already exists for this assignment.");
+                "A vote already exists for this capture.");
         }
 
-        EnsureVotingDeadline(state, context);
         ValidateVoteValue(request.Value);
-        state.AddVoteAndAdvance(
+        state.AddVote(
             new CaptureChallengeVote(
-                assignment.AssignmentId,
+                capture.CaptureId,
                 context.ActorUserId,
                 request.Value,
-                context.Now),
-            context.Now);
+                context.Now));
     }
 
     public void ChangeVote(
@@ -266,28 +261,35 @@ public sealed class CaptureChallengeOperations
         ArgumentNullException.ThrowIfNull(context);
 
         EnsureVotingParticipant(state, context);
-        var assignment = FindOwnedAssignment(
+        var capture = FindCurrentVotingCapture(
             state,
-            request.AssignmentId,
-            context.ActorUserId);
-        if (assignment.RevealedAt is null
-            || assignment.CompletedAt is null)
+            request.CaptureId,
+            context);
+        if (capture.OwnerUserId == context.ActorUserId)
         {
             throw new GameModeDomainException(
-                ErrorCode.VOTE_NOT_FOUND,
-                "A completed vote was not found for this assignment.");
+                ErrorCode.FORBIDDEN,
+                "Players cannot vote on their own capture.");
         }
 
-        var existingVote = state.FindVote(assignment.AssignmentId);
+        var existingVote = state.FindVote(
+            capture.CaptureId,
+            context.ActorUserId);
         if (existingVote is null)
         {
             throw new GameModeDomainException(
                 ErrorCode.VOTE_NOT_FOUND,
-                "A completed vote was not found for this assignment.");
+                "A vote was not found for this capture.");
         }
 
-        EnsureVotingDeadline(state, context);
         ValidateVoteValue(request.Value);
+        if (existingVote.Value == request.Value)
+        {
+            throw new GameModeDomainException(
+                ErrorCode.VOTE_ALREADY_EXISTS,
+                "The selected vote is already saved for this capture.");
+        }
+
         state.ReplaceVote(
             existingVote with
             {
@@ -403,17 +405,29 @@ public sealed class CaptureChallengeOperations
         }
     }
 
-    private static void EnsureVotingDeadline(
+    private static CaptureChallengeCapture FindCurrentVotingCapture(
         CaptureChallengeRoundState state,
+        Guid captureId,
         LobbyOperationContext context)
     {
-        if (state.VotingEndsAt is not DateTimeOffset votingEndsAt
-            || context.Now >= votingEndsAt)
+        if (captureId == Guid.Empty
+            || state.CurrentCaptureEndsAt is not DateTimeOffset slotEndsAt
+            || context.Now >= slotEndsAt)
         {
             throw new GameModeDomainException(
                 ErrorCode.INVALID_MODE_STATUS,
-                "The voting phase is closed.");
+                "The current capture's voting window is closed.");
         }
+
+        var capture = state.FindCurrentVotingCapture();
+        if (capture is null || capture.CaptureId != captureId)
+        {
+            throw new GameModeDomainException(
+                ErrorCode.CAPTURE_NOT_FOUND,
+                "The requested capture is not the current voting capture.");
+        }
+
+        return capture;
     }
 
     private static CaptureChallengeCapture FindOwnedCapture(
@@ -437,22 +451,6 @@ public sealed class CaptureChallengeOperations
         }
 
         return capture;
-    }
-
-    private static CaptureChallengeAssignment FindOwnedAssignment(
-        CaptureChallengeRoundState state,
-        Guid assignmentId,
-        Guid actorUserId)
-    {
-        var assignment = state.FindAssignment(assignmentId);
-        if (assignment is null || assignment.VoterUserId != actorUserId)
-        {
-            throw new GameModeDomainException(
-                ErrorCode.ASSIGNMENT_NOT_FOUND,
-                "The requested voting assignment was not found.");
-        }
-
-        return assignment;
     }
 
     private static CaptureChallengeSettings ValidateSettings(

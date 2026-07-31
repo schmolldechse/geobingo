@@ -60,9 +60,9 @@ export type CaptureChallengeParticipantCaptureProgress = {
 /** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeVotingProgress */
 export type CaptureChallengeVotingProgress = {
 	/** Transpiled from int */
-	completedAssignmentCount: number;
+	submittedVoteCount: number;
 	/** Transpiled from int */
-	totalAssignmentCount: number;
+	eligibleVoteCount: number;
 };
 
 /** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengePublicProjection */
@@ -83,6 +83,10 @@ export type CaptureChallengePublicProjection = {
 	captureEndsAt?: Date | string;
 	/** Transpiled from System.DateTimeOffset */
 	votingEndsAt?: Date | string;
+	/** Transpiled from System.DateTimeOffset */
+	currentCaptureEndsAt?: Date | string;
+	/** Transpiled from int */
+	currentCaptureSequence?: number;
 	/** Transpiled from System.Collections.Generic.IReadOnlyList<GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeParticipantCaptureProgress> */
 	participantCaptureProgress: CaptureChallengeParticipantCaptureProgress[];
 	/** Transpiled from int */
@@ -107,22 +111,30 @@ export type CaptureChallengeCaptureSlotProjection = {
 	updatedAt?: Date | string;
 };
 
-/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeCurrentAssignmentProjection */
-export type CaptureChallengeCurrentAssignmentProjection = {
+/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeCurrentCaptureProjection */
+export type CaptureChallengeCurrentCaptureProjection = {
 	/** Transpiled from System.Guid */
-	assignmentId: string;
+	captureId: string;
+	/** Transpiled from System.Guid */
+	ownerUserId: string;
 	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeGoalProjection */
 	goal: CaptureChallengeGoalProjection;
 	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.StreetViewPosition */
 	position: StreetViewPosition;
 	/** Transpiled from int */
 	sequence: number;
+	/** Transpiled from bool */
+	isOwner: boolean;
+	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.VoteValue */
+	selectedValue?: VoteValue;
 };
 
 /** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeVoteHistoryEntryProjection */
 export type CaptureChallengeVoteHistoryEntryProjection = {
 	/** Transpiled from System.Guid */
-	assignmentId: string;
+	captureId: string;
+	/** Transpiled from int */
+	sequence: number;
 	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.VoteValue */
 	value: VoteValue;
 };
@@ -133,12 +145,12 @@ export type CaptureChallengePersonalProjection = {
 	status?: CaptureChallengeStatus;
 	/** Transpiled from System.Collections.Generic.IReadOnlyList<GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeCaptureSlotProjection> */
 	captureSlots: CaptureChallengeCaptureSlotProjection[];
-	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeCurrentAssignmentProjection? */
-	currentAssignment?: CaptureChallengeCurrentAssignmentProjection;
+	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeCurrentCaptureProjection? */
+	currentCapture?: CaptureChallengeCurrentCaptureProjection;
 	/** Transpiled from int */
-	totalAssignmentCount: number;
+	totalEligibleVoteCount: number;
 	/** Transpiled from int */
-	completedAssignmentCount: number;
+	submittedVoteCount: number;
 	/** Transpiled from System.Collections.Generic.IReadOnlyList<GeoBingo.Contracts.GameModes.CaptureChallenge.CaptureChallengeVoteHistoryEntryProjection> */
 	voteHistory: CaptureChallengeVoteHistoryEntryProjection[];
 };
@@ -160,7 +172,7 @@ export enum CaptureChallengeStatus {
 /** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.CastVoteRequest */
 export type CastVoteRequest = {
 	/** Transpiled from System.Guid */
-	assignmentId: string;
+	captureId: string;
 	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.VoteValue */
 	value: VoteValue;
 };
@@ -168,7 +180,7 @@ export type CastVoteRequest = {
 /** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.ChangeVoteRequest */
 export type ChangeVoteRequest = {
 	/** Transpiled from System.Guid */
-	assignmentId: string;
+	captureId: string;
 	/** Transpiled from GeoBingo.Contracts.GameModes.CaptureChallenge.VoteValue */
 	value: VoteValue;
 };

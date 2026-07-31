@@ -57,11 +57,11 @@ public sealed record CaptureChallengeParticipantCaptureProgress
 [TranspilationSource]
 public sealed record CaptureChallengeVotingProgress
 {
-    [JsonPropertyName("completedAssignmentCount")]
-    public required int CompletedAssignmentCount { get; init; }
+    [JsonPropertyName("submittedVoteCount")]
+    public required int SubmittedVoteCount { get; init; }
 
-    [JsonPropertyName("totalAssignmentCount")]
-    public required int TotalAssignmentCount { get; init; }
+    [JsonPropertyName("eligibleVoteCount")]
+    public required int EligibleVoteCount { get; init; }
 }
 
 [TranspilationSource]
@@ -91,6 +91,12 @@ public sealed record CaptureChallengePublicProjection
 
     [JsonPropertyName("votingEndsAt")]
     public DateTimeOffset? VotingEndsAt { get; init; }
+
+    [JsonPropertyName("currentCaptureEndsAt")]
+    public DateTimeOffset? CurrentCaptureEndsAt { get; init; }
+
+    [JsonPropertyName("currentCaptureSequence")]
+    public int? CurrentCaptureSequence { get; init; }
 
     [JsonPropertyName("participantCaptureProgress")]
     public required IReadOnlyList<CaptureChallengeParticipantCaptureProgress> ParticipantCaptureProgress { get; init; }
@@ -125,10 +131,13 @@ public sealed record CaptureChallengeCaptureSlotProjection
 }
 
 [TranspilationSource]
-public sealed record CaptureChallengeCurrentAssignmentProjection
+public sealed record CaptureChallengeCurrentCaptureProjection
 {
-    [JsonPropertyName("assignmentId")]
-    public required Guid AssignmentId { get; init; }
+    [JsonPropertyName("captureId")]
+    public required Guid CaptureId { get; init; }
+
+    [JsonPropertyName("ownerUserId")]
+    public required Guid OwnerUserId { get; init; }
 
     [JsonPropertyName("goal")]
     public required CaptureChallengeGoalProjection Goal { get; init; }
@@ -138,13 +147,22 @@ public sealed record CaptureChallengeCurrentAssignmentProjection
 
     [JsonPropertyName("sequence")]
     public required int Sequence { get; init; }
+
+    [JsonPropertyName("isOwner")]
+    public required bool IsOwner { get; init; }
+
+    [JsonPropertyName("selectedValue")]
+    public VoteValue? SelectedValue { get; init; }
 }
 
 [TranspilationSource]
 public sealed record CaptureChallengeVoteHistoryEntryProjection
 {
-    [JsonPropertyName("assignmentId")]
-    public required Guid AssignmentId { get; init; }
+    [JsonPropertyName("captureId")]
+    public required Guid CaptureId { get; init; }
+
+    [JsonPropertyName("sequence")]
+    public required int Sequence { get; init; }
 
     [JsonPropertyName("value")]
     public required VoteValue Value { get; init; }
@@ -160,14 +178,14 @@ public sealed record CaptureChallengePersonalProjection
     [JsonPropertyName("captureSlots")]
     public required IReadOnlyList<CaptureChallengeCaptureSlotProjection> CaptureSlots { get; init; }
 
-    [JsonPropertyName("currentAssignment")]
-    public CaptureChallengeCurrentAssignmentProjection? CurrentAssignment { get; init; }
+    [JsonPropertyName("currentCapture")]
+    public CaptureChallengeCurrentCaptureProjection? CurrentCapture { get; init; }
 
-    [JsonPropertyName("totalAssignmentCount")]
-    public required int TotalAssignmentCount { get; init; }
+    [JsonPropertyName("totalEligibleVoteCount")]
+    public required int TotalEligibleVoteCount { get; init; }
 
-    [JsonPropertyName("completedAssignmentCount")]
-    public required int CompletedAssignmentCount { get; init; }
+    [JsonPropertyName("submittedVoteCount")]
+    public required int SubmittedVoteCount { get; init; }
 
     [JsonPropertyName("voteHistory")]
     public required IReadOnlyList<CaptureChallengeVoteHistoryEntryProjection> VoteHistory { get; init; }

@@ -80,6 +80,7 @@ public sealed class CaptureChallengeModule : IGameModeModule
             captureChallengeState.Settings,
             captureChallengeState.CreateGoalSnapshot(),
             context.Participants,
+            Guid.NewGuid(),
             context.CreatedAt);
         return new GameModeRoundCreation(roundState);
     }
@@ -112,6 +113,7 @@ public sealed class CaptureChallengeModule : IGameModeModule
     public GameModeAdvanceOutcome Advance(GameModeAdvanceContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(context.CurrentMemberUserIds);
         _ = RequireLobbyState(context.LobbyState);
         var roundState = context.RoundState as CaptureChallengeRoundState
             ?? throw new ArgumentException(
@@ -136,20 +138,35 @@ public sealed class CaptureChallengeModule : IGameModeModule
                     captureDeadline);
             }
 
-            var votingDeadline = roundState.EnterVoting(context.Now);
+            var firstVotingDeadline = roundState.EnterVoting(
+                context.CurrentMemberUserIds,
+                context.Now);
             return new GameModeAdvanceOutcome(
                 GameModeAdvanceKind.STATE_CHANGED,
-                votingDeadline);
+                firstVotingDeadline);
         }
 
         if (roundState.Status == Contracts.GameModes.CaptureChallenge.CaptureChallengeStatus.VOTING)
         {
-            var votingDeadline = roundState.VotingEndsAt
-                ?? throw new InvalidOperationException(
-                    "A voting round must have a voting deadline.");
+            var votingAdvance = roundState.AdvanceVoting(context.Now);
+            if (votingAdvance.Completed)
+            {
+                var completedAt = roundState.VotingEndsAt
+                    ?? throw new InvalidOperationException(
+                        "A completed voting round must have a voting deadline.");
+                return new GameModeAdvanceOutcome(
+                    GameModeAdvanceKind.COMPLETED,
+                    NextDeadline: null,
+                    CompletedRoundResults: CaptureChallengeScoring.CreateResults(
+                        roundState,
+                        completedAt));
+            }
+
             return new GameModeAdvanceOutcome(
-                GameModeAdvanceKind.NO_CHANGE,
-                context.Now < votingDeadline ? votingDeadline : null);
+                votingAdvance.StateChanged
+                    ? GameModeAdvanceKind.STATE_CHANGED
+                    : GameModeAdvanceKind.NO_CHANGE,
+                votingAdvance.NextDeadline);
         }
 
         throw new InvalidOperationException("The Capture Challenge round has an unsupported status.");

@@ -25,6 +25,7 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
     private readonly LobbyConnectionLifecycle connectionLifecycle;
     private readonly LobbyOperationDispatcher operationDispatcher;
     private readonly LobbyProjectionMapper projectionMapper;
+    private readonly LobbyResultsProjectionFactory resultsProjectionFactory;
     private readonly LobbyMemberTransportEjector memberEjector;
     private readonly SignalRErrorMapper errorMapper;
     private readonly GameMetrics gameMetrics;
@@ -42,6 +43,8 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
             services.GetRequiredService<LobbyOperationDispatcher>();
         projectionMapper =
             services.GetRequiredService<LobbyProjectionMapper>();
+        resultsProjectionFactory =
+            services.GetRequiredService<LobbyResultsProjectionFactory>();
         memberEjector =
             services.GetRequiredService<LobbyMemberTransportEjector>();
         errorMapper =
@@ -371,7 +374,7 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
         var runtime = ResolveCurrentRuntime(identity.UserId);
         var results = await runtime.EnqueueReadAsync(
                 (state, _) => ValueTask.FromResult(
-                    CreateResultsView(
+                    resultsProjectionFactory.CreateForMember(
                         state,
                         identity.UserId,
                         request)),
@@ -414,80 +417,6 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
 
     private Guid ResolveCurrentLobbyId(Guid userId) =>
         ResolveCurrentRuntime(userId).LobbyId;
-
-    private LobbyResultsView CreateResultsView(
-        LobbyRuntimeState state,
-        Guid userId,
-        RequestResultsRequest request)
-    {
-        if (!state.Members.ContainsKey(userId))
-        {
-            throw new LobbyRuntimeException(
-                ErrorCode.NOT_A_MEMBER,
-                "The current user is not a lobby member.");
-        }
-
-        if (request.Scope == ResultsScope.SPECIFIC_ROUND
-            && request.RoundId is null
-            || request.Scope != ResultsScope.SPECIFIC_ROUND
-            && request.RoundId is not null)
-        {
-            throw new LobbyRuntimeException(
-                ErrorCode.VALIDATION_FAILED,
-                "The result scope and round identifier do not match.");
-        }
-
-        CompletedRoundResults? roundResults =
-            request.Scope switch
-            {
-                ResultsScope.CUMULATIVE => null,
-                ResultsScope.LAST_COMPLETED_ROUND =>
-                    state.CompletedRoundResults
-                        .LastOrDefault()
-                    ?? throw new LobbyRuntimeException(
-                        ErrorCode.ROUND_NOT_FOUND,
-                        "No completed round is available."),
-                ResultsScope.SPECIFIC_ROUND =>
-                    state.CompletedRoundResults
-                        .FirstOrDefault(result =>
-                            result.RoundId == request.RoundId)
-                    ?? ResolveMissingRound(state, request.RoundId),
-                _ => throw new LobbyRuntimeException(
-                    ErrorCode.VALIDATION_FAILED,
-                    "The result scope is invalid.")
-            };
-
-        return new LobbyResultsView
-        {
-            LobbyId = state.LobbyId,
-            StateVersion = state.StateVersion,
-            Scope = request.Scope,
-            RoundId = roundResults?.RoundId,
-            RoundNumber = roundResults?.RoundNumber,
-            CompletedAt = roundResults?.CompletedAt,
-            RoundResults = roundResults,
-            CumulativeResults =
-                state.CumulativeResults.ToArray()
-        };
-    }
-
-    private static CompletedRoundResults ResolveMissingRound(
-        LobbyRuntimeState state,
-        Guid? roundId)
-    {
-        if (roundId is Guid requestedRoundId
-            && state.CurrentRound?.RoundId
-                == requestedRoundId)
-        {
-            throw new LobbyRuntimeException(
-                ErrorCode.ROUND_NOT_COMPLETED,
-                "The requested round is not complete.");
-        }
-
-        throw new LobbyRuntimeException(
-            ErrorCode.ROUND_NOT_FOUND,
-            "The requested round was not found.");
-    }
 
     private HubIdentity ReadIdentity()
     {

@@ -162,6 +162,8 @@ internal sealed class LobbyProjectionMapper(
             Status = projection.Status,
             CaptureEndsAt = projection.CaptureEndsAt,
             VotingEndsAt = projection.VotingEndsAt,
+            CurrentCaptureEndsAt = projection.CurrentCaptureEndsAt,
+            CurrentCaptureSequence = projection.CurrentCaptureSequence,
             ParticipantCaptureProgress = projection.ParticipantCaptureProgress
                     .Select(progress =>
                         new CaptureChallengeParticipantCaptureProgress
@@ -179,8 +181,8 @@ internal sealed class LobbyProjectionMapper(
                 ? null
                 : new CaptureChallengeVotingProgress
                 {
-                    CompletedAssignmentCount = projection.VotingProgress.CompletedAssignmentCount,
-                    TotalAssignmentCount = projection.VotingProgress.TotalAssignmentCount
+                    SubmittedVoteCount = projection.VotingProgress.SubmittedVoteCount,
+                    EligibleVoteCount = projection.VotingProgress.EligibleVoteCount
                 }
         };
     }
@@ -208,29 +210,36 @@ internal sealed class LobbyProjectionMapper(
                         UpdatedAt = slot.UpdatedAt
                     })
                 .ToArray(),
-            CurrentAssignment =
-                projection.CurrentAssignment is null
+            CurrentCapture =
+                projection.CurrentCapture is null
                     ? null
-                    : new CaptureChallengeCurrentAssignmentProjection
+                    : new CaptureChallengeCurrentCaptureProjection
                     {
-                        AssignmentId =
-                            projection.CurrentAssignment.AssignmentId,
+                        CaptureId =
+                            projection.CurrentCapture.CaptureId,
+                        OwnerUserId =
+                            projection.CurrentCapture.OwnerUserId,
                         Goal = MapGoal(
-                            projection.CurrentAssignment.Goal),
+                            projection.CurrentCapture.Goal),
                         Position =
-                            projection.CurrentAssignment.Position,
+                            projection.CurrentCapture.Position,
                         Sequence =
-                            projection.CurrentAssignment.Sequence
+                            projection.CurrentCapture.Sequence,
+                        IsOwner =
+                            projection.CurrentCapture.IsOwner,
+                        SelectedValue =
+                            projection.CurrentCapture.SelectedValue
                     },
-            TotalAssignmentCount =
-                projection.TotalAssignmentCount,
-            CompletedAssignmentCount =
-                projection.CompletedAssignmentCount,
+            TotalEligibleVoteCount =
+                projection.TotalEligibleVoteCount,
+            SubmittedVoteCount =
+                projection.SubmittedVoteCount,
             VoteHistory = projection.VoteHistory
                 .Select(entry =>
                     new CaptureChallengeVoteHistoryEntryProjection
                     {
-                        AssignmentId = entry.AssignmentId,
+                        CaptureId = entry.CaptureId,
+                        Sequence = entry.Sequence,
                         Value = entry.Value
                     })
                 .ToArray()

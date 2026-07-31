@@ -13,6 +13,8 @@ const successTitles: Record<string, string> = {
 	updateGoal: "Goal updated",
 	removeGoal: "Goal removed",
 	reorderGoals: "Goal order updated",
+	submitCapture: "Capture submitted",
+	updateCapture: "Capture updated",
 	selectGameMode: "Game mode updated",
 	transferHost: "Host transferred",
 	kick: "Player kicked",

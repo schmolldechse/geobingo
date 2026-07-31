@@ -29,21 +29,41 @@ internal sealed record LobbyMutationOutcome
 {
     private LobbyMutationOutcome(
         LobbyOperationDisposition disposition,
-        LobbyOperationFailure? failure)
+        LobbyOperationFailure? failure,
+        Guid? completedRoundId = null)
     {
         Disposition = disposition;
         Failure = failure;
+        CompletedRoundId = completedRoundId;
     }
 
     public LobbyOperationDisposition Disposition { get; }
 
     public LobbyOperationFailure? Failure { get; }
 
+    public Guid? CompletedRoundId { get; }
+
     public static LobbyMutationOutcome Applied { get; } =
         new(LobbyOperationDisposition.APPLIED, null);
 
     public static LobbyMutationOutcome Ignored { get; } =
         new(LobbyOperationDisposition.IGNORED, null);
+
+    public static LobbyMutationOutcome AppliedWithCompletedRound(
+        Guid roundId)
+    {
+        if (roundId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "The completed round identifier cannot be empty.",
+                nameof(roundId));
+        }
+
+        return new LobbyMutationOutcome(
+            LobbyOperationDisposition.APPLIED,
+            failure: null,
+            roundId);
+    }
 
     public static LobbyMutationOutcome Rejected(
         LobbyOperationFailure failure)
@@ -60,6 +80,7 @@ public sealed class LobbyRuntime : IAsyncDisposable
     private readonly object lifecycleSyncRoot = new();
     private readonly LobbyRuntimeState state;
     private readonly LobbyProjectionPublisher projectionPublisher;
+    private readonly LobbyResultsPublisher resultsPublisher;
     private readonly LobbyOperationQueue operationQueue;
     private readonly LobbyDeadlineScheduler deadlineScheduler;
     private readonly ILogger<LobbyRuntime> logger;
@@ -76,6 +97,7 @@ public sealed class LobbyRuntime : IAsyncDisposable
     internal LobbyRuntime(
         LobbyRuntimeState state,
         LobbyProjectionPublisher projectionPublisher,
+        LobbyResultsPublisher resultsPublisher,
         TimeProvider timeProvider,
         ILogger<LobbyRuntime> logger,
         Func<
@@ -89,6 +111,8 @@ public sealed class LobbyRuntime : IAsyncDisposable
             ?? throw new ArgumentNullException(nameof(state));
         this.projectionPublisher = projectionPublisher
             ?? throw new ArgumentNullException(nameof(projectionPublisher));
+        this.resultsPublisher = resultsPublisher
+            ?? throw new ArgumentNullException(nameof(resultsPublisher));
         ArgumentNullException.ThrowIfNull(timeProvider);
         this.logger = logger
             ?? throw new ArgumentNullException(nameof(logger));
@@ -281,6 +305,36 @@ public sealed class LobbyRuntime : IAsyncDisposable
                 state.StateVersion);
         }
 
+        if (outcome.CompletedRoundId is Guid completedRoundId)
+        {
+            try
+            {
+                await resultsPublisher
+                    .PublishCompletedRoundAsync(
+                        state,
+                        completedRoundId,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException exception)
+                when (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Lobby result publication was canceled after operation {OperationName} committed state version {StateVersion}",
+                    operationName,
+                    state.StateVersion);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(
+                    exception,
+                    "Lobby result publication failed after operation {OperationName} committed state version {StateVersion}",
+                    operationName,
+                    state.StateVersion);
+            }
+        }
+
         if (state.IsClosed
             && state.CloseReason is LobbyEndedReason closeReason)
         {
@@ -360,6 +414,13 @@ public sealed class LobbyRuntime : IAsyncDisposable
         {
             throw new InvalidOperationException(
                 "Only a trusted system operation may be ignored.");
+        }
+
+        if (outcome.CompletedRoundId is not null
+            && outcome.Disposition != LobbyOperationDisposition.APPLIED)
+        {
+            throw new InvalidOperationException(
+                "Only an applied lobby operation may complete a round.");
         }
     }
 

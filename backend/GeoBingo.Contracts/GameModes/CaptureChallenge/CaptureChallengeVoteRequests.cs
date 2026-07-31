@@ -6,12 +6,12 @@ using Tapper;
 namespace GeoBingo.Contracts.GameModes.CaptureChallenge;
 
 [TranspilationSource]
-[Description("Casts the caller's first vote for the current assignment.")]
+[Description("Casts the caller's first vote for the current capture.")]
 public sealed record CastVoteRequest
 {
-    [JsonPropertyName("assignmentId")]
-    [Description("The voting assignment currently shown to the caller.")]
-    public required Guid AssignmentId { get; init; }
+    [JsonPropertyName("captureId")]
+    [Description("The capture currently shown to every voter.")]
+    public required Guid CaptureId { get; init; }
 
     [JsonPropertyName("value")]
     [Description("The selected vote value.")]
@@ -19,12 +19,12 @@ public sealed record CastVoteRequest
 }
 
 [TranspilationSource]
-[Description("Changes the caller's existing vote for a completed assignment.")]
+[Description("Changes the caller's vote for the current capture.")]
 public sealed record ChangeVoteRequest
 {
-    [JsonPropertyName("assignmentId")]
-    [Description("The previously completed voting assignment.")]
-    public required Guid AssignmentId { get; init; }
+    [JsonPropertyName("captureId")]
+    [Description("The capture currently shown to every voter.")]
+    public required Guid CaptureId { get; init; }
 
     [JsonPropertyName("value")]
     [Description("The replacement vote value.")]

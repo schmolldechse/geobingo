@@ -16,6 +16,6 @@ public sealed record CaptureChallengeSettings
 
     [JsonPropertyName("secondsPerVote")]
     [Range(5, 60)]
-    [Description("The voting time budget per assignment in seconds.")]
+    [Description("The fixed voting time budget for each presented capture in seconds.")]
     public required int SecondsPerVote { get; init; }
 }
