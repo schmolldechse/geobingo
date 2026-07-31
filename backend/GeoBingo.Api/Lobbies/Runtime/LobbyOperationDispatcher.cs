@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GeoBingo.Contracts.Common;
@@ -303,18 +304,73 @@ internal sealed class LobbyOperationDispatcher
             "start-round",
             connectionId,
             userId,
-            (_, state, actor, _) =>
+            (runtime, state, actor, _) =>
             {
                 LobbyOperationRules.EnsureAllowed(
                     state,
                     actor,
                     LobbyOperationKind.START_ROUND);
+
+                if (state.CurrentRound is not null
+                    || state.CurrentRoundNumber is not null)
+                {
+                    throw new InvalidOperationException(
+                        "A waiting lobby cannot start a second active round.");
+                }
+
+                var module = gameModeRegistry.GetRequired(
+                    state.SelectedModeKey,
+                    state.SelectedModeVersion);
+                var participants = state.Members.Values
+                    .OrderBy(member => member.JoinOrder)
+                    .Select(member =>
+                        new GameModeParticipant(
+                            member.UserId,
+                            member.Handle,
+                            member.DisplayName,
+                            member.JoinOrder))
+                    .ToArray();
+                var acceptedAt = timeProvider.GetUtcNow();
+                var roundId = Guid.NewGuid();
+                var roundNumber = state.GetNextRoundNumber();
+                var roundCreation = module.CreateRound(
+                    state.ModeLobbyState,
+                    new GameModeRoundCreationContext(
+                        roundId,
+                        roundNumber,
+                        participants,
+                        acceptedAt));
+                var round = roundCreation.RoundState
+                    ?? throw new InvalidOperationException(
+                        "The selected game mode returned no round state.");
+
+                if (round.RoundId != roundId
+                    || round.RoundNumber != roundNumber
+                    || !string.Equals(
+                        round.ModeKey,
+                        module.Key,
+                        StringComparison.Ordinal)
+                    || round.ModeVersion != module.Version)
+                {
+                    throw new InvalidOperationException(
+                        "The created round state does not match the accepted round metadata.");
+                }
+
+                var preparationDeadline =
+                    acceptedAt.Add(
+                        LobbyRuntimeState.PreparationDuration);
+                state.BeginPreparation(
+                    round,
+                    roundNumber,
+                    preparationDeadline);
+                SchedulePreparationDeadline(
+                    runtime,
+                    state.LobbyId,
+                    roundId,
+                    preparationDeadline);
+
                 return ValueTask.FromResult(
-                    LobbyMutationOutcome.Rejected(
-                        new LobbyOperationFailure(
-                            ErrorCode.MODE_OPERATION_NOT_SUPPORTED,
-                            "Round start is not available in this implementation slice.",
-                            Errors: null)));
+                    LobbyMutationOutcome.Applied);
             },
             cancellationToken);
 
@@ -627,6 +683,236 @@ internal sealed class LobbyOperationDispatcher
         ?? throw new LobbyRuntimeException(
             ErrorCode.MODE_OPERATION_NOT_SUPPORTED,
             "This operation is not supported by the selected game mode.");
+
+    private void SchedulePreparationDeadline(
+        LobbyRuntime runtime,
+        Guid lobbyId,
+        Guid roundId,
+        DateTimeOffset deadline)
+    {
+        var deadlineKey = new LobbyDeadlineKey(
+            LobbyDeadlineKind.PREPARATION,
+            roundId,
+            UserId: null);
+
+        runtime.ScheduleDeadline(
+            deadlineKey,
+            deadline,
+            (state, key, _) =>
+            {
+                if (!MatchesPreparationDeadline(
+                        state,
+                        key,
+                        lobbyId,
+                        roundId,
+                        deadline))
+                {
+                    return ValueTask.FromResult(
+                        LobbyMutationOutcome.Ignored);
+                }
+
+                var now = timeProvider.GetUtcNow();
+                if (now < deadline)
+                {
+                    SchedulePreparationDeadline(
+                        runtime,
+                        lobbyId,
+                        roundId,
+                        deadline);
+                    return ValueTask.FromResult(
+                        LobbyMutationOutcome.Ignored);
+                }
+
+                var round = state.CurrentRound!;
+                var module = gameModeRegistry.GetRequired(
+                    round.ModeKey,
+                    round.ModeVersion);
+                var advance = module.Advance(
+                    new GameModeAdvanceContext(
+                        state.ModeLobbyState,
+                        round,
+                        now));
+                if (advance.Kind != GameModeAdvanceKind.STATE_CHANGED
+                    || advance.NextDeadline
+                        is not DateTimeOffset modeDeadline)
+                {
+                    throw new InvalidOperationException(
+                        "A prepared round must enter its first playing phase with a deadline.");
+                }
+
+                state.TransitionTo(LobbyStatus.PLAYING);
+                state.PreparationDeadline = null;
+                state.ModeDeadline = modeDeadline;
+                state.ModeDeadlineRoundId = roundId;
+                ScheduleModeDeadline(
+                    runtime,
+                    lobbyId,
+                    roundId,
+                    modeDeadline);
+                return ValueTask.FromResult(
+                    LobbyMutationOutcome.Applied);
+            });
+    }
+
+    private void ScheduleModeDeadline(
+        LobbyRuntime runtime,
+        Guid lobbyId,
+        Guid roundId,
+        DateTimeOffset deadline)
+    {
+        var deadlineKey = new LobbyDeadlineKey(
+            LobbyDeadlineKind.MODE,
+            roundId,
+            UserId: null);
+
+        runtime.ScheduleDeadline(
+            deadlineKey,
+            deadline,
+            (state, key, _) =>
+            {
+                if (!MatchesModeDeadline(
+                        state,
+                        key,
+                        lobbyId,
+                        roundId,
+                        deadline))
+                {
+                    return ValueTask.FromResult(
+                        LobbyMutationOutcome.Ignored);
+                }
+
+                var now = timeProvider.GetUtcNow();
+                if (now < deadline)
+                {
+                    ScheduleModeDeadline(
+                        runtime,
+                        lobbyId,
+                        roundId,
+                        deadline);
+                    return ValueTask.FromResult(
+                        LobbyMutationOutcome.Ignored);
+                }
+
+                var round = state.CurrentRound!;
+                var module = gameModeRegistry.GetRequired(
+                    round.ModeKey,
+                    round.ModeVersion);
+                var advance = module.Advance(
+                    new GameModeAdvanceContext(
+                        state.ModeLobbyState,
+                        round,
+                        now));
+
+                return ValueTask.FromResult(
+                    ApplyModeAdvance(
+                        runtime,
+                        state,
+                        lobbyId,
+                        roundId,
+                        deadline,
+                        now,
+                        advance));
+            });
+    }
+
+    private LobbyMutationOutcome ApplyModeAdvance(
+        LobbyRuntime runtime,
+        LobbyRuntimeState state,
+        Guid lobbyId,
+        Guid roundId,
+        DateTimeOffset elapsedDeadline,
+        DateTimeOffset now,
+        GameModeAdvanceOutcome advance)
+    {
+        switch (advance.Kind)
+        {
+            case GameModeAdvanceKind.NO_CHANGE:
+                if (advance.NextDeadline
+                    is not DateTimeOffset retryDeadline
+                    || retryDeadline <= now)
+                {
+                    return LobbyMutationOutcome.Ignored;
+                }
+
+                ScheduleModeDeadline(
+                    runtime,
+                    lobbyId,
+                    roundId,
+                    retryDeadline);
+                if (retryDeadline == elapsedDeadline)
+                {
+                    return LobbyMutationOutcome.Ignored;
+                }
+
+                state.ModeDeadline = retryDeadline;
+                return LobbyMutationOutcome.Applied;
+            case GameModeAdvanceKind.STATE_CHANGED:
+                state.ModeDeadline = advance.NextDeadline;
+                state.ModeDeadlineRoundId =
+                    advance.NextDeadline is null
+                        ? null
+                        : roundId;
+                if (advance.NextDeadline
+                    is DateTimeOffset nextDeadline)
+                {
+                    ScheduleModeDeadline(
+                        runtime,
+                        lobbyId,
+                        roundId,
+                        nextDeadline);
+                }
+
+                return LobbyMutationOutcome.Applied;
+            case GameModeAdvanceKind.COMPLETED:
+                throw new InvalidOperationException(
+                    "Completed game-mode outcomes require the result finalization flow.");
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(advance),
+                    advance.Kind,
+                    "The game-mode advance kind is unsupported.");
+        }
+    }
+
+    private static bool MatchesPreparationDeadline(
+        LobbyRuntimeState state,
+        LobbyDeadlineKey key,
+        Guid lobbyId,
+        Guid roundId,
+        DateTimeOffset deadline) =>
+        state.LobbyId == lobbyId
+        && key.Kind == LobbyDeadlineKind.PREPARATION
+        && key.RoundId == roundId
+        && key.UserId is null
+        && state.Status == LobbyStatus.PREPARING
+        && state.CurrentRound
+            is IGameModeRoundState round
+        && round.RoundId == roundId
+        && state.CurrentRoundNumber == round.RoundNumber
+        && state.PreparationDeadline == deadline;
+
+    private static bool MatchesModeDeadline(
+        LobbyRuntimeState state,
+        LobbyDeadlineKey key,
+        Guid lobbyId,
+        Guid roundId,
+        DateTimeOffset deadline) =>
+        state.LobbyId == lobbyId
+        && key.Kind == LobbyDeadlineKind.MODE
+        && key.RoundId == roundId
+        && key.UserId is null
+        && state.Status == LobbyStatus.PLAYING
+        && state.CurrentRound
+            is IGameModeRoundState round
+        && round.RoundId == roundId
+        && state.CurrentRoundNumber == round.RoundNumber
+        && string.Equals(
+            round.ModeKey,
+            state.SelectedModeKey,
+            StringComparison.Ordinal)
+        && round.ModeVersion == state.SelectedModeVersion
+        && state.ModeDeadlineRoundId == roundId
+        && state.ModeDeadline == deadline;
 
     private LobbyOperationContext CreateOperationContext(
         LobbyRuntimeState state,

@@ -229,18 +229,12 @@ internal sealed class LobbyMembershipPolicy
             case LobbyStatus.WAITING:
                 return;
             case LobbyStatus.PREPARING:
-                var preparingRound = state.CurrentRound
-                    ?? throw new InvalidOperationException(
-                        "A preparing lobby requires an active round.");
+                var preparingRoundId =
+                    state.DiscardPreparingRound();
                 preparationDeadlineKey = new LobbyDeadlineKey(
                     LobbyDeadlineKind.PREPARATION,
-                    preparingRound.RoundId,
+                    preparingRoundId,
                     UserId: null);
-                state.PreparationDeadline = null;
-                state.ModeDeadline = null;
-                state.ModeDeadlineRoundId = null;
-                state.CurrentRound = null;
-                state.TransitionTo(LobbyStatus.WAITING);
                 return;
             case LobbyStatus.PLAYING:
                 var playingRound = state.CurrentRound

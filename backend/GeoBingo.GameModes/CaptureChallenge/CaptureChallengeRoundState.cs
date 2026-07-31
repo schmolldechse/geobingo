@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using GeoBingo.Contracts.GameModes.CaptureChallenge;
+using GeoBingo.Contracts.Lobbies;
 using GeoBingo.GameModes.Abstractions;
 
 namespace GeoBingo.GameModes.CaptureChallenge;
@@ -18,16 +19,46 @@ public sealed class CaptureChallengeRoundState : IGameModeRoundState
     private readonly ReadOnlyCollection<CaptureChallengeAssignment> _assignmentsView;
     private readonly List<CaptureChallengeVote> _votes = [];
     private readonly ReadOnlyCollection<CaptureChallengeVote> _votesView;
+    private readonly List<CaptureResult> _captureResults = [];
+    private readonly ReadOnlyCollection<CaptureResult> _captureResultsView;
+    private readonly List<PlayerRoundResult> _playerResults = [];
+    private readonly ReadOnlyCollection<PlayerRoundResult> _playerResultsView;
     private readonly HashSet<Guid> _eligibleVoterIds = [];
 
     internal CaptureChallengeRoundState(
         Guid roundId,
+        int roundNumber,
+        string modeKey,
+        Version modeVersion,
         CaptureChallengeSettings settings,
         IEnumerable<CaptureChallengeGoal> goals,
         IEnumerable<GameModeParticipant> participants,
         DateTimeOffset createdAt)
     {
+        if (roundId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "The round identifier cannot be empty.",
+                nameof(roundId));
+        }
+
+        if (roundNumber <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(roundNumber),
+                "The round number must be positive.");
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(modeKey);
+        ArgumentNullException.ThrowIfNull(modeVersion);
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(goals);
+        ArgumentNullException.ThrowIfNull(participants);
+
         RoundId = roundId;
+        RoundNumber = roundNumber;
+        ModeKey = modeKey;
+        ModeVersion = modeVersion;
         _settings = CaptureChallengeLobbyState.CopySettings(settings);
         _goals = Array.AsReadOnly(
             goals
@@ -43,14 +74,24 @@ public sealed class CaptureChallengeRoundState : IGameModeRoundState
         _capturesView = _captures.AsReadOnly();
         _assignmentsView = _assignments.AsReadOnly();
         _votesView = _votes.AsReadOnly();
+        _captureResultsView = _captureResults.AsReadOnly();
+        _playerResultsView = _playerResults.AsReadOnly();
     }
 
     public Guid RoundId { get; }
+
+    public int RoundNumber { get; }
+
+    public string ModeKey { get; }
+
+    public Version ModeVersion { get; }
 
     public CaptureChallengeSettings Settings =>
         CaptureChallengeLobbyState.CopySettings(_settings);
 
     public DateTimeOffset CreatedAt { get; }
+
+    public DateTimeOffset? PlayingStartedAt { get; private set; }
 
     public CaptureChallengeStatus? Status { get; private set; }
 
@@ -67,6 +108,12 @@ public sealed class CaptureChallengeRoundState : IGameModeRoundState
     internal IReadOnlyList<CaptureChallengeAssignment> Assignments => _assignmentsView;
 
     internal IReadOnlyList<CaptureChallengeVote> Votes => _votesView;
+
+    internal IReadOnlyList<CaptureResult> CaptureResults =>
+        _captureResultsView;
+
+    internal IReadOnlyList<PlayerRoundResult> PlayerResults =>
+        _playerResultsView;
 
     internal IReadOnlySet<Guid> EligibleVoterIds => _eligibleVoterIds;
 
@@ -115,8 +162,19 @@ public sealed class CaptureChallengeRoundState : IGameModeRoundState
 
     internal DateTimeOffset EnterCapturing(DateTimeOffset now)
     {
+        if (Status is not null
+            || PlayingStartedAt is not null
+            || CaptureEndsAt is not null
+            || VotingEndsAt is not null)
+        {
+            throw new InvalidOperationException(
+                "Only a prepared Capture Challenge round may enter capturing.");
+        }
+
+        PlayingStartedAt = now;
         Status = CaptureChallengeStatus.CAPTURING;
-        CaptureEndsAt = now.AddSeconds(_settings.CaptureDurationSeconds);
+        CaptureEndsAt = PlayingStartedAt.Value.AddSeconds(
+            _settings.CaptureDurationSeconds);
         VotingEndsAt = null;
         return CaptureEndsAt.Value;
     }

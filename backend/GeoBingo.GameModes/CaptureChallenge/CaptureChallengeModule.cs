@@ -74,6 +74,9 @@ public sealed class CaptureChallengeModule : IGameModeModule
 
         var roundState = new CaptureChallengeRoundState(
             context.RoundId,
+            context.RoundNumber,
+            Key,
+            Version,
             captureChallengeState.Settings,
             captureChallengeState.CreateGoalSnapshot(),
             context.Participants,

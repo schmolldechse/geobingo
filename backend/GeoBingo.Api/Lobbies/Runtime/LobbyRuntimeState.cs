@@ -205,6 +205,9 @@ internal sealed class LobbyRuntimeState
 {
     private LobbySettings settings;
 
+    internal static TimeSpan PreparationDuration { get; } =
+        TimeSpan.FromSeconds(5);
+
     public LobbyRuntimeState(
         Guid lobbyId,
         string code,
@@ -414,6 +417,101 @@ internal sealed class LobbyRuntimeState
         var joinOrder = NextJoinOrder;
         NextJoinOrder = checked(NextJoinOrder + 1);
         return joinOrder;
+    }
+
+    public int GetNextRoundNumber()
+    {
+        if (Status != LobbyStatus.WAITING
+            || CurrentRound is not null
+            || CurrentRoundNumber is not null)
+        {
+            throw new InvalidOperationException(
+                "A round number can only be allocated for an idle waiting lobby.");
+        }
+
+        var latestCompletedRoundNumber = CompletedRoundSummaries
+            .Select(summary => summary.RoundNumber)
+            .DefaultIfEmpty(0)
+            .Max();
+        return checked(latestCompletedRoundNumber + 1);
+    }
+
+    public void BeginPreparation(
+        IGameModeRoundState round,
+        int roundNumber,
+        DateTimeOffset deadline)
+    {
+        ArgumentNullException.ThrowIfNull(round);
+
+        if (round.RoundId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "The round identifier cannot be empty.",
+                nameof(round));
+        }
+
+        if (roundNumber <= 0 || round.RoundNumber != roundNumber)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(roundNumber),
+                "The round number must be positive and match the round snapshot.");
+        }
+
+        if (!string.Equals(
+                round.ModeKey,
+                SelectedModeKey,
+                StringComparison.Ordinal)
+            || round.ModeVersion != SelectedModeVersion)
+        {
+            throw new InvalidOperationException(
+                "The round snapshot must match the selected game mode and version.");
+        }
+
+        if (deadline == default
+            || deadline
+            != round.CreatedAt.Add(
+                PreparationDuration))
+        {
+            throw new ArgumentException(
+                "The preparation deadline must be exactly five seconds after preparation starts.",
+                nameof(deadline));
+        }
+
+        if (Status != LobbyStatus.WAITING
+            || CurrentRound is not null
+            || CurrentRoundNumber is not null)
+        {
+            throw new InvalidOperationException(
+                "Only an idle waiting lobby may begin preparation.");
+        }
+
+        CurrentRound = round;
+        CurrentRoundNumber = roundNumber;
+        PreparationDeadline = deadline;
+        ModeDeadline = null;
+        ModeDeadlineRoundId = null;
+        TransitionTo(LobbyStatus.PREPARING);
+    }
+
+    public Guid DiscardPreparingRound()
+    {
+        if (Status != LobbyStatus.PREPARING
+            || CurrentRound is not IGameModeRoundState round
+            || CurrentRoundNumber is not int roundNumber
+            || round.RoundNumber != roundNumber)
+        {
+            throw new InvalidOperationException(
+                "Only a coherent preparing round may be discarded.");
+        }
+
+        var roundId = round.RoundId;
+        CurrentRound = null;
+        CurrentRoundNumber = null;
+        PreparationDeadline = null;
+        ModeDeadline = null;
+        ModeDeadlineRoundId = null;
+        TransitionTo(LobbyStatus.WAITING);
+        return roundId;
     }
 
     public void IncrementStateVersion() =>

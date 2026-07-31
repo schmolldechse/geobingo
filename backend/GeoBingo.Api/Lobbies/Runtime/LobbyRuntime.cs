@@ -151,9 +151,9 @@ public sealed class LobbyRuntime : IAsyncDisposable
         deadlineScheduler.Schedule(
             key,
             deadline,
-            async (invocation, cancellationToken) =>
+            async (invocation, _) =>
             {
-                _ = await EnqueueMutationAsync(
+                await EnqueueMutationAsync(
                         $"deadline:{invocation.Key.Kind}",
                         LobbyActor.System,
                         (runtimeState, _, runtimeCancellationToken) =>
@@ -169,7 +169,7 @@ public sealed class LobbyRuntime : IAsyncDisposable
                                 invocation.Key,
                                 runtimeCancellationToken);
                         },
-                        cancellationToken)
+                        CancellationToken.None)
                     .ConfigureAwait(false);
             });
     }
