@@ -1,0 +1,162 @@
+name: Build Projects
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "deploy/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "deploy/**"
+      - ".github/workflows/build.yml"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}
+
+jobs:
+  check-backend-formatting:
+    name: Check Code Formatting for Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Run dotnet-format
+        run: dotnet format GeoBingo.slnx --verify-no-changes
+        working-directory: backend
+
+  check-frontend-formatting:
+    name: Check Code Formatting for Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun --bun install --dev
+        working-directory: frontend
+
+      - name: Run prettier lint
+        run: bun --bun run lint
+        working-directory: frontend
+
+      - name: Run Svelte checks
+        run: bun --bun run check
+        working-directory: frontend
+
+  validate-production-compose:
+    name: Validate Production Compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Render Compose configuration
+        env:
+          POSTGRES_PASSWORD: test-password
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
+          FRONTEND_ORIGIN: https://geobingo.example.com
+          PUBLIC_API_URL: https://api.geobingo.example.com
+          PUBLIC_GOOGLE_MAPS_API_KEY: test-maps-key
+        # exclude_from_hc is a Coolify extension, not part of the Compose specification.
+        run: sed '/exclude_from_hc:/d' deploy/production/compose.yml | docker compose -f - config --quiet
+
+  build-backend-images:
+    name: Build Backend Docker Images
+    runs-on: ubuntu-latest
+    needs: [check-backend-formatting, validate-production-compose]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - image: geobingo-api
+            target: final
+          - image: geobingo-migrations
+            target: migrations
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extracting metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=sha,format=short
+
+      - name: Build and push Backend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/GeoBingo.Api/Dockerfile
+          target: ${{ matrix.target }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-frontend-image:
+    name: Build Frontend Docker Image
+    runs-on: ubuntu-latest
+    needs: [check-frontend-formatting, validate-production-compose]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extracting metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/geobingo-frontend
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=sha,format=short
+
+      - name: Build and push Frontend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
