@@ -2,6 +2,7 @@ import type {
 	LobbyEnded,
 	LobbyEndedReason,
 	LobbyMemberView,
+	LobbyProjection,
 	LobbySnapshot,
 	PersonalProjection
 } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
@@ -13,8 +14,7 @@ import type { ResultState } from "./result-state.svelte";
 export type LobbyConnectionStatus = "idle" | "connecting" | "connected" | "reconnecting" | "disconnected";
 
 export class LobbyState {
-	snapshot = $state<LobbySnapshot | null>(null);
-	personalProjection = $state<PersonalProjection | null>(null);
+	#projection = $state<LobbyProjection | null>(null);
 	highestStateVersion = $state(0);
 	connectionStatus = $state<LobbyConnectionStatus>("idle");
 	pendingOperationNames = $state<string[]>([]);
@@ -25,6 +25,14 @@ export class LobbyState {
 
 	public constructor(results: ResultState) {
 		this.#results = results;
+	}
+
+	public get snapshot(): LobbySnapshot | null {
+		return this.#projection?.snapshot ?? null;
+	}
+
+	public get personalProjection(): PersonalProjection | null {
+		return this.#projection?.personalProjection ?? null;
 	}
 
 	public get isHost(): boolean {
@@ -47,17 +55,20 @@ export class LobbyState {
 		return this.isHost && this.isWaiting;
 	}
 
-	public receiveSnapshot(snapshot: LobbySnapshot): void {
-		if (snapshot.stateVersion < this.highestStateVersion) return;
-		this.snapshot = snapshot;
-		this.highestStateVersion = Math.max(this.highestStateVersion, snapshot.stateVersion);
-		this.conclusion = null;
-	}
+	public receiveProjection(projection: LobbyProjection): void {
+		const { snapshot, personalProjection } = projection;
+		if (
+			snapshot.lobbyId !== personalProjection.lobbyId ||
+			snapshot.stateVersion !== personalProjection.stateVersion ||
+			snapshot.stateVersion < this.highestStateVersion ||
+			(this.snapshot !== null && snapshot.lobbyId !== this.snapshot.lobbyId)
+		) {
+			return;
+		}
 
-	public receivePersonalProjection(projection: PersonalProjection): void {
-		if (projection.stateVersion < this.highestStateVersion) return;
-		this.personalProjection = projection;
-		this.highestStateVersion = Math.max(this.highestStateVersion, projection.stateVersion);
+		this.#projection = projection;
+		this.highestStateVersion = snapshot.stateVersion;
+		this.conclusion = null;
 	}
 
 	public setPending(operationName: string, pending: boolean): void {
@@ -90,8 +101,7 @@ export class LobbyState {
 	}
 
 	private clearForConclusion(conclusion: LobbyConclusionSource): void {
-		this.snapshot = null;
-		this.personalProjection = null;
+		this.#projection = null;
 		this.pendingOperationNames = [];
 		this.lastOperationError = null;
 		this.#results.clear();

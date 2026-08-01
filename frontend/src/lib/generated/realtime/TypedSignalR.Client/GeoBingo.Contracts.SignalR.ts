@@ -10,8 +10,7 @@ import type {
 	SelectGameModeRequest,
 	UpdateLobbySettingsRequest,
 	RequestRoundResultsRequest,
-	LobbySnapshot,
-	PersonalProjection,
+	LobbyProjection,
 	GameModeEvent,
 	LobbyRoundResultsView,
 	LobbyEnded
@@ -131,15 +130,10 @@ export type IGameHub = {
 
 export type IGameClient = {
 	/**
-	 * @param snapshot Transpiled from GeoBingo.Contracts.Lobbies.LobbySnapshot
+	 * @param projection Transpiled from GeoBingo.Contracts.Lobbies.LobbyProjection
 	 * @returns Transpiled from System.Threading.Tasks.Task
 	 */
-	receiveLobbySnapshot(snapshot: LobbySnapshot): Promise<void>;
-	/**
-	 * @param projection Transpiled from GeoBingo.Contracts.Lobbies.PersonalProjection
-	 * @returns Transpiled from System.Threading.Tasks.Task
-	 */
-	receivePersonalProjection(projection: PersonalProjection): Promise<void>;
+	receiveLobbyProjection(projection: LobbyProjection): Promise<void>;
 	/**
 	 * @param message Transpiled from GeoBingo.Contracts.Lobbies.GameModeEvent
 	 * @returns Transpiled from System.Threading.Tasks.Task

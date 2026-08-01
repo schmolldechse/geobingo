@@ -70,6 +70,17 @@ public sealed record PersonalProjection
 }
 
 [TranspilationSource]
+[Description("The atomic public and member-specific projection for one lobby member.")]
+public sealed record LobbyProjection
+{
+    [JsonPropertyName("snapshot")]
+    public required LobbySnapshot Snapshot { get; init; }
+
+    [JsonPropertyName("personalProjection")]
+    public required PersonalProjection PersonalProjection { get; init; }
+}
+
+[TranspilationSource]
 [Description("The authoritative public lobby projection.")]
 public sealed record LobbySnapshot
 {

@@ -13,10 +13,6 @@ using InternalCapture = GeoBingo.GameModes.CaptureChallenge;
 
 namespace GeoBingo.Api.Lobbies.Mapping;
 
-internal sealed record LobbyConnectionProjection(
-    LobbySnapshot Snapshot,
-    PersonalProjection PersonalProjection);
-
 internal sealed class LobbyProjectionMapper(
     IGameModeRegistry gameModeRegistry,
     GameModeMapper gameModeMapper,
@@ -63,7 +59,9 @@ internal sealed class LobbyProjectionMapper(
             state.IsClosing || state.IsClosed);
     }
 
-    public LobbyConnectionProjection CreateForMember(LobbyRuntimeState state, Guid userId)
+    public LobbyProjection CreateForMember(
+        LobbyRuntimeState state,
+        Guid userId)
     {
         ArgumentNullException.ThrowIfNull(state);
         if (!state.Members.ContainsKey(userId))
@@ -74,7 +72,11 @@ internal sealed class LobbyProjectionMapper(
         }
 
         var batch = CreateBatch(state);
-        return new LobbyConnectionProjection(batch.Snapshot, batch.PersonalProjections[userId]);
+        return new LobbyProjection
+        {
+            Snapshot = batch.Snapshot,
+            PersonalProjection = batch.PersonalProjections[userId]
+        };
     }
 
     private LobbySnapshot MapSnapshot(

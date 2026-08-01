@@ -36,8 +36,7 @@ export class GameConnection {
 		this.#hub = getHubProxyFactory("IGameHub").createHubProxy(this.#connection);
 
 		const receiver: IGameClient = {
-			receiveLobbySnapshot: async (snapshot) => this.#lobby.receiveSnapshot(snapshot),
-			receivePersonalProjection: async (projection) => this.#lobby.receivePersonalProjection(projection),
+			receiveLobbyProjection: async (projection) => this.#lobby.receiveProjection(projection),
 			receiveGameModeEvent: async () => undefined,
 			receiveRoundResults: async (results) => {
 				if (results.lobbyId === this.#lobby.snapshot?.lobbyId) this.#results.receive(results);
@@ -79,7 +78,7 @@ export class GameConnection {
 		try {
 			await this.#connection.start();
 			this.#lobby.connectionStatus = "connected";
-			await this.#joinAndRead();
+			await this.#join();
 		} catch {
 			const error = this.#transportError("The connection to the lobby could not be established.");
 			this.#lobby.connectionStatus = "disconnected";
@@ -115,14 +114,11 @@ export class GameConnection {
 		return this.#stopPromise;
 	}
 
-	async #joinAndRead(): Promise<void> {
+	async #join(): Promise<void> {
 		const joined = await this.#hub.joinLobby({ code: this.#code });
 		if (!joined.success) {
 			this.#handleRejected(joined.error);
-			return;
 		}
-		await this.execute("requestSnapshot", (hub) => hub.requestSnapshot());
-		await this.execute("requestResults", (hub) => hub.requestResults({ scope: ResultsScope.CUMULATIVE }));
 	}
 
 	async #resynchronize(): Promise<void> {

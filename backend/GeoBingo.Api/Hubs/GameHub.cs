@@ -139,11 +139,7 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
                 Context.ConnectionAborted)
             .ConfigureAwait(false);
         await Clients.Caller
-            .ReceiveLobbySnapshot(projection.Snapshot)
-            .ConfigureAwait(false);
-        await Clients.Caller
-            .ReceivePersonalProjection(
-                projection.PersonalProjection)
+            .ReceiveLobbyProjection(projection)
             .ConfigureAwait(false);
         return result;
     }
@@ -347,11 +343,7 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
                 Context.ConnectionAborted)
             .ConfigureAwait(false);
         await Clients.Caller
-            .ReceiveLobbySnapshot(projection.Snapshot)
-            .ConfigureAwait(false);
-        await Clients.Caller
-            .ReceivePersonalProjection(
-                projection.PersonalProjection)
+            .ReceiveLobbyProjection(projection)
             .ConfigureAwait(false);
         return errorMapper.Success(
             projection.Snapshot.StateVersion);

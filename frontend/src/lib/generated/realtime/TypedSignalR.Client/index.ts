@@ -11,8 +11,7 @@ import type {
 	SelectGameModeRequest,
 	UpdateLobbySettingsRequest,
 	RequestRoundResultsRequest,
-	LobbySnapshot,
-	PersonalProjection,
+	LobbyProjection,
 	GameModeEvent,
 	LobbyRoundResultsView,
 	LobbyEnded
@@ -191,23 +190,20 @@ class IGameClient_Binder implements ReceiverRegister<IGameClient> {
 	private constructor() {}
 
 	public readonly register = (connection: HubConnection, receiver: IGameClient): Disposable => {
-		const __receiveLobbySnapshot = (...args: [LobbySnapshot]) => receiver.receiveLobbySnapshot(...args);
-		const __receivePersonalProjection = (...args: [PersonalProjection]) => receiver.receivePersonalProjection(...args);
+		const __receiveLobbyProjection = (...args: [LobbyProjection]) => receiver.receiveLobbyProjection(...args);
 		const __receiveGameModeEvent = (...args: [GameModeEvent]) => receiver.receiveGameModeEvent(...args);
 		const __receiveRoundResults = (...args: [LobbyRoundResultsView]) => receiver.receiveRoundResults(...args);
 		const __receiveLobbyEnded = (...args: [LobbyEnded]) => receiver.receiveLobbyEnded(...args);
 		const __receiveError = (...args: [SignalRError]) => receiver.receiveError(...args);
 
-		connection.on("ReceiveLobbySnapshot", __receiveLobbySnapshot);
-		connection.on("ReceivePersonalProjection", __receivePersonalProjection);
+		connection.on("ReceiveLobbyProjection", __receiveLobbyProjection);
 		connection.on("ReceiveGameModeEvent", __receiveGameModeEvent);
 		connection.on("ReceiveRoundResults", __receiveRoundResults);
 		connection.on("ReceiveLobbyEnded", __receiveLobbyEnded);
 		connection.on("ReceiveError", __receiveError);
 
 		const methodList: ReceiverMethod[] = [
-			{ methodName: "ReceiveLobbySnapshot", method: __receiveLobbySnapshot },
-			{ methodName: "ReceivePersonalProjection", method: __receivePersonalProjection },
+			{ methodName: "ReceiveLobbyProjection", method: __receiveLobbyProjection },
 			{ methodName: "ReceiveGameModeEvent", method: __receiveGameModeEvent },
 			{ methodName: "ReceiveRoundResults", method: __receiveRoundResults },
 			{ methodName: "ReceiveLobbyEnded", method: __receiveLobbyEnded },

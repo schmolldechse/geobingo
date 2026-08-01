@@ -131,6 +131,14 @@ export type PersonalProjection = {
 	captureChallenge?: CaptureChallengePersonalProjection;
 };
 
+/** Transpiled from GeoBingo.Contracts.Lobbies.LobbyProjection */
+export type LobbyProjection = {
+	/** Transpiled from GeoBingo.Contracts.Lobbies.LobbySnapshot */
+	snapshot: LobbySnapshot;
+	/** Transpiled from GeoBingo.Contracts.Lobbies.PersonalProjection */
+	personalProjection: PersonalProjection;
+};
+
 /** Transpiled from GeoBingo.Contracts.Lobbies.LobbySnapshot */
 export type LobbySnapshot = {
 	/** Transpiled from System.Guid */

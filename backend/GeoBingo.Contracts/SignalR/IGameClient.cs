@@ -7,8 +7,7 @@ namespace GeoBingo.Contracts.SignalR;
 [Receiver]
 public interface IGameClient
 {
-    Task ReceiveLobbySnapshot(LobbySnapshot snapshot);
-    Task ReceivePersonalProjection(PersonalProjection projection);
+    Task ReceiveLobbyProjection(LobbyProjection projection);
     Task ReceiveGameModeEvent(GameModeEvent message);
     Task ReceiveRoundResults(LobbyRoundResultsView results);
     Task ReceiveLobbyEnded(LobbyEnded message);

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GeoBingo.Api.Hubs;
 using GeoBingo.Api.Lobbies.Runtime;
+using GeoBingo.Contracts.Lobbies;
 using GeoBingo.Contracts.SignalR;
 using Microsoft.AspNetCore.SignalR;
 
@@ -30,20 +31,18 @@ internal sealed class SignalRLobbyProjectionSink
             return;
         }
 
-        await hubContext.Clients
-            .Group(LobbyHubGroups.Lobby(
-                batch.Snapshot.LobbyId))
-            .ReceiveLobbySnapshot(batch.Snapshot)
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
         foreach (var entry in batch.PersonalProjections)
         {
             await hubContext.Clients
                 .Group(LobbyHubGroups.Personal(
                     batch.Snapshot.LobbyId,
                     entry.Key))
-                .ReceivePersonalProjection(entry.Value)
+                .ReceiveLobbyProjection(
+                    new LobbyProjection
+                    {
+                        Snapshot = batch.Snapshot,
+                        PersonalProjection = entry.Value
+                    })
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
