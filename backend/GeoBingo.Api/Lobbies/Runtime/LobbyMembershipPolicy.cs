@@ -16,11 +16,8 @@ internal enum LobbyMemberRemovalReason
 }
 
 internal sealed record LobbyMembershipRemovalEffects(
-    Guid RemovedUserId,
     LobbyDeadlineKey DisconnectDeadlineKey,
-    LobbyDeadlineKey? PreparationDeadlineKey,
-    Guid? NewHostUserId,
-    bool BeganLobbyClosing);
+    LobbyDeadlineKey? PreparationDeadlineKey);
 
 internal sealed class LobbyMembershipPolicy
 {
@@ -94,31 +91,25 @@ internal sealed class LobbyMembershipPolicy
                 "The validated lobby member could not be removed.");
         }
 
-        Guid? newHostUserId = null;
         if (removedHost && state.Members.Count > 0)
         {
-            newHostUserId = state.FindHostSuccessorUserId()
+            var newHostUserId = state.FindHostSuccessorUserId()
                 ?? throw new InvalidOperationException(
                     "A non-empty lobby requires a host successor.");
-            state.HostUserId = newHostUserId.Value;
+            state.HostUserId = newHostUserId;
         }
 
-        var beganLobbyClosing = false;
         if (state.Members.Count == 0)
         {
             state.BeginClosing(LobbyEndedReason.NO_MEMBERS);
-            beganLobbyClosing = true;
         }
 
         return new LobbyMembershipRemovalEffects(
-            targetUserId,
             new LobbyDeadlineKey(
                 LobbyDeadlineKind.DISCONNECT_GRACE,
                 RoundId: null,
                 UserId: targetUserId),
-            preparationDeadlineKey,
-            newHostUserId,
-            beganLobbyClosing);
+            preparationDeadlineKey);
     }
 
     public IReadOnlyList<LobbyMembershipRemovalEffects>
