@@ -26,17 +26,18 @@ export interface GoogleMapsRuntimeSink {
 }
 
 const MAP_TYPES: GoogleMapsMapType[] = ["roadmap", "satellite", "hybrid", "terrain"];
-const LOOKUP_TIMEOUT_MS = 12_000;
+const STREET_VIEW_SEARCH_RADIUS_METERS = 50;
 
 export class GoogleMapsRuntime {
 	readonly #container: HTMLDivElement;
 	readonly #event: typeof google.maps.event;
 	readonly #streetViewStatus: typeof google.maps.StreetViewStatus;
+	readonly #streetViewPreference: typeof google.maps.StreetViewPreference;
 	readonly #sink: GoogleMapsRuntimeSink;
 	readonly #map: google.maps.Map;
 	readonly #panorama: google.maps.StreetViewPanorama;
+	readonly #streetViewService: google.maps.StreetViewService;
 	readonly #listeners: google.maps.MapsEventListener[] = [];
-	readonly #pendingLookupCancels = new Set<() => void>();
 
 	#requestSerial = 0;
 	#destroyed = false;
@@ -56,9 +57,11 @@ export class GoogleMapsRuntime {
 		this.#container = container;
 		this.#event = libraries.core.event;
 		this.#streetViewStatus = libraries.streetView.StreetViewStatus;
+		this.#streetViewPreference = libraries.streetView.StreetViewPreference;
 		this.#sink = sink;
 		this.#map = new libraries.maps.Map(container, toGoogleMapOptions(initialCamera, mapConfiguration, mapOptions));
 		this.#panorama = this.#map.getStreetView();
+		this.#streetViewService = new libraries.streetView.StreetViewService();
 		this.#panorama.setOptions(toGoogleStreetViewOptions(streetViewOptions));
 
 		this.#listen(this.#map, "idle", () => this.#syncCamera());
@@ -121,7 +124,6 @@ export class GoogleMapsRuntime {
 	showMap(): void {
 		this.#assertActive();
 		this.#requestSerial += 1;
-		this.#cancelPendingLookups();
 		this.#panorama.setVisible(false);
 		this.#sink.onViewChange("map");
 		this.#sink.onStreetViewChange("hidden");
@@ -136,24 +138,14 @@ export class GoogleMapsRuntime {
 		validateStreetViewTarget(target);
 
 		const serial = ++this.#requestSerial;
-		this.#cancelPendingLookups();
 		this.#sink.onStreetViewChange("loading");
 
-		let resolved = false;
-		if ("panoramaId" in target && target.panoramaId) {
-			resolved = await this.#lookup(() => this.#panorama.setPano(target.panoramaId), target.panoramaId);
-		}
-
+		const panoramaData = await this.#resolveStreetViewTarget(target, options, serial);
 		this.#assertCurrentRequest(serial);
-		const hasCoordinates = target.latitude !== undefined && target.longitude !== undefined;
-		const shouldTryCoordinates =
-			hasCoordinates && (!("panoramaId" in target) || !target.panoramaId || options.fallbackToCoordinates !== false);
-		if (!resolved && shouldTryCoordinates) {
-			resolved = await this.#lookup(() => this.#panorama.setPosition({ lat: target.latitude!, lng: target.longitude! }));
-		}
-
-		this.#assertCurrentRequest(serial);
-		if (!resolved) {
+		const resolvedLocation = panoramaData?.location;
+		const panoramaId = resolvedLocation?.pano?.trim();
+		const resolvedCoordinates = resolvedLocation?.latLng;
+		if (!panoramaId || !resolvedCoordinates) {
 			this.#panorama.setVisible(false);
 			this.#sink.onViewChange("map");
 			this.#sink.onStreetViewChange("unavailable");
@@ -161,21 +153,23 @@ export class GoogleMapsRuntime {
 		}
 
 		const currentPov = this.#panorama.getPov();
-		if (target.heading !== undefined || target.pitch !== undefined) {
-			this.#panorama.setPov({
-				heading: target.heading === undefined ? currentPov.heading : normalizeHeading(target.heading),
-				pitch: target.pitch ?? currentPov.pitch
-			});
-		}
-		if (target.zoom !== undefined) this.#panorama.setZoom(target.zoom);
+		const heading = target.heading === undefined ? currentPov.heading : normalizeHeading(target.heading);
+		const pitch = target.pitch ?? currentPov.pitch;
+		const zoom = target.zoom ?? this.#panorama.getZoom();
 
+		this.#panorama.setPano(panoramaId);
+		this.#panorama.setPov({ heading, pitch });
+		this.#panorama.setZoom(zoom);
 		this.#panorama.setVisible(true);
 		this.#sink.onViewChange("street-view");
-		const position = this.#readStreetViewPosition();
-		if (!position) {
-			this.#sink.onStreetViewChange("loading");
-			throw new GoogleMapsError("street-view-unavailable", "Street View did not provide a complete panorama position.");
-		}
+		const position: GoogleMapsStreetViewPosition = {
+			panoramaId,
+			latitude: resolvedCoordinates.lat(),
+			longitude: resolvedCoordinates.lng(),
+			heading,
+			pitch,
+			zoom
+		};
 
 		this.#sink.onStreetViewChange("ready", position);
 		return { ...position };
@@ -202,7 +196,6 @@ export class GoogleMapsRuntime {
 		if (this.#destroyed) return;
 		this.#destroyed = true;
 		this.#requestSerial += 1;
-		this.#cancelPendingLookups();
 		for (const listener of this.#listeners.splice(0)) listener.remove();
 	}
 
@@ -285,37 +278,39 @@ export class GoogleMapsRuntime {
 		};
 	}
 
-	#lookup(apply: () => void, panoramaId?: string): Promise<boolean> {
-		if (panoramaId && this.#panorama.getPano() === panoramaId && this.#panorama.getStatus() === this.#streetViewStatus.OK) {
-			return Promise.resolve(true);
+	async #resolveStreetViewTarget(
+		target: GoogleMapsStreetViewTarget,
+		options: GoogleMapsStreetViewLookupOptions,
+		serial: number
+	): Promise<google.maps.StreetViewPanoramaData | null> {
+		if ("panoramaId" in target && target.panoramaId) {
+			const panoramaData = await this.#findPanorama({ pano: target.panoramaId });
+			this.#assertCurrentRequest(serial);
+			if (panoramaData) return panoramaData;
 		}
 
-		return new Promise((resolve) => {
-			let settled = false;
-			let listener: google.maps.MapsEventListener | null = null;
-			let timeout: number | null = null;
+		const hasCoordinates = target.latitude !== undefined && target.longitude !== undefined;
+		const shouldTryCoordinates =
+			hasCoordinates && (!("panoramaId" in target) || !target.panoramaId || options.fallbackToCoordinates !== false);
+		if (!shouldTryCoordinates) return null;
 
-			const finish = (result: boolean) => {
-				if (settled) return;
-				settled = true;
-				listener?.remove();
-				if (timeout !== null) window.clearTimeout(timeout);
-				this.#pendingLookupCancels.delete(cancel);
-				resolve(result);
-			};
-			const cancel = () => finish(false);
-
-			listener = this.#panorama.addListener("status_changed", () => {
-				finish(this.#panorama.getStatus() === this.#streetViewStatus.OK);
-			});
-			timeout = window.setTimeout(() => finish(false), LOOKUP_TIMEOUT_MS);
-			this.#pendingLookupCancels.add(cancel);
-			apply();
+		const panoramaData = await this.#findPanorama({
+			location: { lat: target.latitude!, lng: target.longitude! },
+			preference: this.#streetViewPreference.NEAREST,
+			radius: STREET_VIEW_SEARCH_RADIUS_METERS
 		});
+		this.#assertCurrentRequest(serial);
+		return panoramaData;
 	}
 
-	#cancelPendingLookups(): void {
-		for (const cancel of [...this.#pendingLookupCancels]) cancel();
+	async #findPanorama(
+		request: google.maps.StreetViewLocationRequest | google.maps.StreetViewPanoRequest
+	): Promise<google.maps.StreetViewPanoramaData | null> {
+		try {
+			return (await this.#streetViewService.getPanorama(request)).data;
+		} catch {
+			return null;
+		}
 	}
 
 	#assertCurrentRequest(serial: number): void {

@@ -119,8 +119,13 @@
 					bind:controller={googleMaps}
 					initialView="street-view"
 					initialCamera={{ center: currentCapture.position, zoom: 18 }}
-					initialStreetView={currentCapture.position}
-					initialStreetViewOptions={{ fallbackToCoordinates: false }}
+					initialStreetView={{
+						latitude: currentCapture.position.latitude,
+						longitude: currentCapture.position.longitude,
+						heading: currentCapture.position.heading,
+						pitch: currentCapture.position.pitch,
+						zoom: currentCapture.position.zoom
+					}}
 					showUnavailableMapAction={false}
 					mapOptions={{
 						gestureHandling: "none",
@@ -158,9 +163,7 @@
 					<div class="grid max-w-sm justify-items-center gap-3">
 						<MapPinned class="text-primary" size={36} aria-hidden="true" />
 						<h1 class="m-0 font-[Fredoka_Variable] text-2xl font-[650]">Capture unavailable</h1>
-						<p class="text-muted m-0 text-sm leading-6">
-							This exact Street View panorama is no longer available. It will not be replaced with a nearby view.
-						</p>
+						<p class="text-muted m-0 text-sm leading-6">Street View imagery is unavailable near this capture location.</p>
 					</div>
 				</div>
 			{/if}
