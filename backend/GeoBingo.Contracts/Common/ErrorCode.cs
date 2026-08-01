@@ -1,0 +1,37 @@
+using System.ComponentModel;
+using Tapper;
+
+namespace GeoBingo.Contracts.Common;
+
+[TranspilationSource]
+[Description("A stable machine-readable error code for SignalR operations and events.")]
+public enum ErrorCode
+{
+    AUTH_REQUIRED,
+    FORBIDDEN,
+    PROVIDER_NOT_FOUND,
+    PROVIDER_DISABLED,
+    LOBBY_NOT_FOUND,
+    LOBBY_CLOSED,
+    LOBBY_FULL,
+    LOBBY_NOT_JOINABLE,
+    LOBBY_BANNED,
+    ALREADY_IN_ANOTHER_LOBBY,
+    NOT_A_MEMBER,
+    HOST_ONLY,
+    INVALID_LOBBY_STATUS,
+    INVALID_MODE_STATUS,
+    MODE_NOT_FOUND,
+    MODE_VERSION_MISMATCH,
+    MODE_OPERATION_NOT_SUPPORTED,
+    ROUND_NOT_FOUND,
+    ROUND_NOT_COMPLETED,
+    CAPTURE_NOT_FOUND,
+    CAPTURE_ALREADY_EXISTS,
+    VOTE_NOT_FOUND,
+    VOTE_ALREADY_EXISTS,
+    VALIDATION_FAILED,
+    RATE_LIMITED,
+    SERVER_SHUTTING_DOWN,
+    INTERNAL_ERROR
+}

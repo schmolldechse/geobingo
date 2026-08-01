@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="text-scale" content="scale" />
+
+		<!-- Initializing of theme -->
+		<script nonce="%sveltekit.nonce%">
+			(() => {
+				const STORAGE_KEY = "theme";
+				const SYSTEM_QUERY = "(prefers-color-scheme: dark)";
+				const root = document.documentElement;
+
+				let theme = window.matchMedia(SYSTEM_QUERY).matches ? "dark" : "light";
+
+				try {
+					const shared = localStorage.getItem(STORAGE_KEY);
+					if (shared === "light" || shared === "dark") theme = shared;
+				} catch (error) {
+					console.error("Failed to read theme from localStorage:", error);
+				}
+
+				root.dataset.theme = theme;
+			})();
+		</script>
+
+		%sveltekit.head%
+	</head>
+
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

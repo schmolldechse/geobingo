@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="GeoBingo.Api/GeoBingo.Api.csproj" />
+  <Project Path="GeoBingo.Contracts/GeoBingo.Contracts.csproj" />
+  <Project Path="GeoBingo.Data/GeoBingo.Data.csproj" />
+  <Project Path="GeoBingo.GameModes/GeoBingo.GameModes.csproj" />
+  <Project Path="GeoBingo.Observability/GeoBingo.Observability.csproj" />
+</Solution>
