@@ -24,43 +24,29 @@ internal sealed class LobbyRegistry : ILobbyRegistry
         new(StringComparer.Ordinal);
     private readonly IGameModeRegistry gameModeRegistry;
     private readonly LobbyProjectionPublisher projectionPublisher;
-    private readonly LobbyResultsPublisher resultsPublisher;
     private readonly TimeProvider timeProvider;
     private readonly ILoggerFactory loggerFactory;
     private readonly GameMetrics gameMetrics;
-    private readonly LobbyTerminationPublisher
-        terminationPublisher;
+    private readonly LobbyTerminationPublisher terminationPublisher;
     private readonly LobbyRuntimeCleanupQueue cleanupQueue;
     private bool acceptingCreations = true;
 
     public LobbyRegistry(
         IGameModeRegistry gameModeRegistry,
         LobbyProjectionPublisher projectionPublisher,
-        LobbyResultsPublisher resultsPublisher,
         TimeProvider timeProvider,
         ILoggerFactory loggerFactory,
         GameMetrics gameMetrics,
         LobbyTerminationPublisher terminationPublisher,
         LobbyRuntimeCleanupQueue cleanupQueue)
     {
-        this.gameModeRegistry = gameModeRegistry
-            ?? throw new ArgumentNullException(nameof(gameModeRegistry));
-        this.projectionPublisher = projectionPublisher
-            ?? throw new ArgumentNullException(nameof(projectionPublisher));
-        this.resultsPublisher = resultsPublisher
-            ?? throw new ArgumentNullException(nameof(resultsPublisher));
-        this.timeProvider = timeProvider
-            ?? throw new ArgumentNullException(nameof(timeProvider));
-        this.loggerFactory = loggerFactory
-            ?? throw new ArgumentNullException(nameof(loggerFactory));
-        this.gameMetrics = gameMetrics
-            ?? throw new ArgumentNullException(nameof(gameMetrics));
-        this.terminationPublisher = terminationPublisher
-            ?? throw new ArgumentNullException(
-                nameof(terminationPublisher));
-        this.cleanupQueue = cleanupQueue
-            ?? throw new ArgumentNullException(
-                nameof(cleanupQueue));
+        this.gameModeRegistry = gameModeRegistry ?? throw new ArgumentNullException(nameof(gameModeRegistry));
+        this.projectionPublisher = projectionPublisher ?? throw new ArgumentNullException(nameof(projectionPublisher));
+        this.timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+        this.loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+        this.gameMetrics = gameMetrics ?? throw new ArgumentNullException(nameof(gameMetrics));
+        this.terminationPublisher = terminationPublisher ?? throw new ArgumentNullException(nameof(terminationPublisher));
+        this.cleanupQueue = cleanupQueue ?? throw new ArgumentNullException(nameof(cleanupQueue));
     }
 
     public bool IsAcceptingCreations
@@ -101,7 +87,6 @@ internal sealed class LobbyRegistry : ILobbyRegistry
             runtime = new LobbyRuntime(
                 runtimeState,
                 projectionPublisher,
-                resultsPublisher,
                 timeProvider,
                 loggerFactory.CreateLogger<LobbyRuntime>(),
                 HandleRuntimeClosedAsync);

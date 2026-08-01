@@ -68,14 +68,10 @@ public sealed record UpdateLobbySettingsRequest
 }
 
 [TranspilationSource]
-[Description("Selects which result projection should be sent to the caller.")]
-public sealed record RequestResultsRequest
+[Description("Requests one completed historical round for the current lobby member.")]
+public sealed record RequestRoundResultsRequest
 {
-    [JsonPropertyName("scope")]
-    [Description("The requested result scope.")]
-    public required ResultsScope Scope { get; init; }
-
     [JsonPropertyName("roundId")]
-    [Description("The round identifier required only for SPECIFIC_ROUND.")]
-    public Guid? RoundId { get; init; }
+    [Description("The completed round identifier.")]
+    public required Guid RoundId { get; init; }
 }

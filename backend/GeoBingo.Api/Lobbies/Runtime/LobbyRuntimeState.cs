@@ -570,14 +570,21 @@ internal sealed class LobbyRuntimeState
             .SelectMany(round => round.Players)
             .GroupBy(player => player.UserId)
             .Select(
-                group => new
+                group =>
                 {
-                    UserId = group.Key,
-                    Score = Math.Round(
-                        group.Sum(player => player.Score),
-                        2,
-                        MidpointRounding.AwayFromZero),
-                    Order = firstAppearanceOrder[group.Key]
+                    var latestPlayer = group.Last();
+                    return new
+                    {
+                        UserId = group.Key,
+                        latestPlayer.Handle,
+                        latestPlayer.DisplayName,
+                        latestPlayer.AvatarUrl,
+                        Score = Math.Round(
+                            group.Sum(player => player.Score),
+                            2,
+                            MidpointRounding.AwayFromZero),
+                        Order = firstAppearanceOrder[group.Key]
+                    };
                 })
             .OrderByDescending(entry => entry.Score)
             .ThenBy(entry => entry.Order)
@@ -598,6 +605,9 @@ internal sealed class LobbyRuntimeState
                 new CumulativePlayerResult
                 {
                     UserId = entry.UserId,
+                    Handle = entry.Handle,
+                    DisplayName = entry.DisplayName,
+                    AvatarUrl = entry.AvatarUrl,
                     Score = entry.Score,
                     Rank = rank
                 });

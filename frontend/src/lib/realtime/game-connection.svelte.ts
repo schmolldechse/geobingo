@@ -1,6 +1,6 @@
 import { apiUrl } from "$lib/api-url";
 import { ErrorCode } from "$lib/generated/realtime/GeoBingo.Contracts.Common";
-import { LobbyEndedReason, ResultsScope } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
+import { LobbyEndedReason } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 import type { HubOperationResult, SignalRError } from "$lib/generated/realtime/GeoBingo.Contracts.SignalR";
 import { getHubProxyFactory, getReceiverRegister, type Disposable } from "$lib/generated/realtime/TypedSignalR.Client";
 import type { IGameClient, IGameHub } from "$lib/generated/realtime/TypedSignalR.Client/GeoBingo.Contracts.SignalR";
@@ -39,7 +39,9 @@ export class GameConnection {
 			receiveLobbySnapshot: async (snapshot) => this.#lobby.receiveSnapshot(snapshot),
 			receivePersonalProjection: async (projection) => this.#lobby.receivePersonalProjection(projection),
 			receiveGameModeEvent: async () => undefined,
-			receiveResults: async (results) => this.#results.receive(results),
+			receiveRoundResults: async (results) => {
+				if (results.lobbyId === this.#lobby.snapshot?.lobbyId) this.#results.receive(results);
+			},
 			receiveLobbyEnded: async (message) => {
 				this.#lobby.terminate(message);
 				void this.stop();
@@ -129,10 +131,13 @@ export class GameConnection {
 			this.#handleRejected(joined.error);
 			return;
 		}
-		await this.execute("requestSnapshot", (hub) => hub.requestSnapshot());
-		const roundId =
-			this.#results.visibleScope === ResultsScope.SPECIFIC_ROUND ? (this.#results.visibleRoundId ?? undefined) : undefined;
-		await this.execute("requestResults", (hub) => hub.requestResults({ scope: this.#results.visibleScope, roundId }));
+
+		const selection = this.#results.selection;
+		if (selection.kind === "round" && !this.#results.hasHistoricalRound(selection.roundId)) {
+			await this.execute(`requestRoundResults:${selection.roundId}`, (hub) =>
+				hub.requestRoundResults({ roundId: selection.roundId })
+			);
+		}
 	}
 
 	#handleRejected(error: SignalRError | undefined): void {

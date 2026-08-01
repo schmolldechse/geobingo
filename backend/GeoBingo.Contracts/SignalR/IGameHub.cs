@@ -27,5 +27,5 @@ public interface IGameHub
     Task<HubOperationResult> CastVote(CastVoteRequest request);
     Task<HubOperationResult> ChangeVote(ChangeVoteRequest request);
     Task<HubOperationResult> RequestSnapshot();
-    Task<HubOperationResult> RequestResults(RequestResultsRequest request);
+    Task<HubOperationResult> RequestRoundResults(RequestRoundResultsRequest request);
 }

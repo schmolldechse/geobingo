@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GeoBingo.Contracts.Lobbies;
+using GeoBingo.GameModes.Abstractions;
 
 namespace GeoBingo.GameModes.CaptureChallenge;
 
@@ -41,11 +42,8 @@ internal static class CaptureChallengeScoring
                 participant => scoreByUserId.GetValueOrDefault(participant.UserId))
             .ThenBy(participant => participant.JoinOrder)
             .ToArray();
-        var playerResults = CreatePlayerResults(
-            orderedPlayers.Select(
-                participant => new PlayerScore(
-                    participant.UserId,
-                    scoreByUserId.GetValueOrDefault(participant.UserId))));
+        var playerResults = CreatePlayerResults(orderedPlayers.Select(
+            participant => new PlayerScore(participant, scoreByUserId.GetValueOrDefault(participant.UserId))));
 
         return new CompletedRoundResults
         {
@@ -124,7 +122,10 @@ internal static class CaptureChallengeScoring
             results.Add(
                 new PlayerRoundResult
                 {
-                    UserId = player.UserId,
+                    UserId = player.Participant.UserId,
+                    Handle = player.Participant.Handle,
+                    DisplayName = player.Participant.DisplayName,
+                    AvatarUrl = player.Participant.AvatarUrl,
                     Score = player.Score,
                     Rank = rank
                 });
@@ -133,5 +134,7 @@ internal static class CaptureChallengeScoring
         return results;
     }
 
-    private sealed record PlayerScore(Guid UserId, decimal Score);
+    private sealed record PlayerScore(
+        GameModeParticipant Participant,
+        decimal Score);
 }

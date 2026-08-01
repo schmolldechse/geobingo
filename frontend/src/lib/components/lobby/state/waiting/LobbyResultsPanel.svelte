@@ -6,9 +6,17 @@
 	import ThumbsDown from "@lucide/svelte/icons/thumbs-down";
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
 	import Trophy from "@lucide/svelte/icons/trophy";
-	import { ResultsScope, type LobbySnapshot } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
+	import {
+		type CompletedRoundResults,
+		type CumulativePlayerResult,
+		type LobbySnapshot,
+		type PlayerRoundResult
+	} from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 	import type { LobbyActions } from "$lib/lobbies/lobby-actions";
 	import type { ResultState } from "$lib/lobbies/result-state.svelte";
+	import { getPlayerInitials } from "./lobby-waiting-presentation";
+
+	type ResultPlayer = PlayerRoundResult | CumulativePlayerResult;
 
 	let {
 		snapshot,
@@ -19,28 +27,65 @@
 		results: ResultState;
 		actions: LobbyActions;
 	} = $props();
+	let failedAvatarKeys = $state<string[]>([]);
+	let loadedAvatarKeys = $state<string[]>([]);
 
-	const visibleView = $derived.by(() => {
-		switch (results.visibleScope) {
-			case ResultsScope.LAST_COMPLETED_ROUND:
-				return results.latestRound;
-			case ResultsScope.SPECIFIC_ROUND:
-				return results.visibleRoundId ? (results.specificRounds.get(results.visibleRoundId) ?? null) : null;
-			default:
-				return results.cumulative;
-		}
+	const historicalView = $derived.by(() => {
+		if (results.selection.kind !== "round") return null;
+		return results.historicalRounds.get(results.selection.roundId) ?? null;
 	});
-	const leaderboard = $derived(
-		visibleView?.roundResults?.players ?? visibleView?.cumulativeResults ?? snapshot.cumulativeResults
+	const roundResults = $derived.by((): CompletedRoundResults | null => {
+		if (results.selection.kind === "latest") return snapshot.lastCompletedRoundResults ?? null;
+		if (results.selection.kind === "round") return historicalView?.results ?? null;
+		return null;
+	});
+	const leaderboard = $derived<ResultPlayer[]>(
+		results.selection.kind === "cumulative" ? snapshot.cumulativeResults : (roundResults?.players ?? [])
 	);
-	const captureResults = $derived(visibleView?.roundResults?.captures ?? []);
+	const captureResults = $derived(roundResults?.captures ?? []);
 	const completedRounds = $derived(
 		[...snapshot.completedRoundSummaries].sort((left, right) => right.roundNumber - left.roundNumber)
 	);
-	const selectedRoundNumber = $derived(visibleView?.roundNumber ?? null);
+	const selectedRoundNumber = $derived.by(() => {
+		if (roundResults) return roundResults.roundNumber;
+		const selection = results.selection;
+		if (selection.kind !== "round") return null;
+		return completedRounds.find((round) => round.roundId === selection.roundId)?.roundNumber ?? null;
+	});
+	const historicalLoading = $derived(results.selection.kind === "round" && historicalView === null);
 
-	function playerName(userId: string): string {
-		return snapshot.members.find((member) => member.userId === userId)?.displayName ?? "Former player";
+	function playerName(player: ResultPlayer | null): string {
+		return player?.displayName.trim() || "Former player";
+	}
+
+	function playerHandle(player: ResultPlayer): string {
+		return player.handle.trim().replace(/^@/, "");
+	}
+
+	function captureOwner(userId: string): PlayerRoundResult | null {
+		return roundResults?.players.find((player) => player.userId === userId) ?? null;
+	}
+
+	function avatarKey(player: ResultPlayer): string {
+		return `${player.userId}:${player.avatarUrl?.trim() ?? ""}`;
+	}
+
+	function hasAvatarSource(player: ResultPlayer): boolean {
+		return Boolean(player.avatarUrl?.trim()) && !failedAvatarKeys.includes(avatarKey(player));
+	}
+
+	function avatarIsLoaded(player: ResultPlayer): boolean {
+		return loadedAvatarKeys.includes(avatarKey(player));
+	}
+
+	function markAvatarLoaded(player: ResultPlayer): void {
+		const key = avatarKey(player);
+		if (!loadedAvatarKeys.includes(key)) loadedAvatarKeys = [...loadedAvatarKeys, key];
+	}
+
+	function markAvatarFailed(player: ResultPlayer): void {
+		const key = avatarKey(player);
+		if (!failedAvatarKeys.includes(key)) failedAvatarKeys = [...failedAvatarKeys, key];
 	}
 
 	function goalTitle(goalId: string): string {
@@ -51,6 +96,32 @@
 		return new Intl.NumberFormat("en", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(score);
 	}
 </script>
+
+{#snippet playerAvatar(player: ResultPlayer | null, compact: boolean)}
+	<div
+		class={[
+			"border-foreground bg-accent text-accent-foreground relative grid shrink-0 place-items-center overflow-hidden rounded-full border-2 font-[Fredoka_Variable] font-[650]",
+			compact ? "size-8 text-[0.68rem]" : "size-10 text-xs sm:size-11 sm:text-sm"
+		]}
+	>
+		<span aria-hidden="true">{player ? getPlayerInitials(player.displayName, player.handle) : "?"}</span>
+		{#if player && hasAvatarSource(player)}
+			<img
+				src={player.avatarUrl}
+				alt=""
+				class={[
+					"absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-150 motion-reduce:transition-none",
+					avatarIsLoaded(player) && "opacity-100"
+				]}
+				loading="lazy"
+				decoding="async"
+				referrerpolicy="no-referrer"
+				onload={() => markAvatarLoaded(player)}
+				onerror={() => markAvatarFailed(player)}
+			/>
+		{/if}
+	</div>
+{/snippet}
 
 <section
 	class="grid min-h-0 gap-2.5 min-[900px]:h-full min-[900px]:grid-cols-[minmax(15rem,0.72fr)_minmax(0,2fr)] min-[900px]:overflow-hidden"
@@ -70,9 +141,9 @@
 			<button
 				type="button"
 				class="border-border bg-surface-muted hover:border-foreground flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 text-left text-sm font-black transition-colors"
-				class:border-foreground={results.visibleScope === ResultsScope.CUMULATIVE}
-				class:bg-accent={results.visibleScope === ResultsScope.CUMULATIVE}
-				onclick={() => void actions.selectResults(ResultsScope.CUMULATIVE)}
+				class:border-foreground={results.selection.kind === "cumulative"}
+				class:bg-accent={results.selection.kind === "cumulative"}
+				onclick={() => void actions.selectResults({ kind: "cumulative" })}
 			>
 				<ChartNoAxesCombined size={18} aria-hidden="true" />
 				Overall standings
@@ -80,10 +151,10 @@
 			<button
 				type="button"
 				class="border-border bg-surface-muted hover:border-foreground flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 text-left text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-				class:border-foreground={results.visibleScope === ResultsScope.LAST_COMPLETED_ROUND}
-				class:bg-accent={results.visibleScope === ResultsScope.LAST_COMPLETED_ROUND}
+				class:border-foreground={results.selection.kind === "latest"}
+				class:bg-accent={results.selection.kind === "latest"}
 				disabled={completedRounds.length === 0}
-				onclick={() => void actions.selectResults(ResultsScope.LAST_COMPLETED_ROUND)}
+				onclick={() => void actions.selectResults({ kind: "latest" })}
 			>
 				<Trophy size={18} aria-hidden="true" />
 				Latest round
@@ -98,13 +169,11 @@
 						<button
 							type="button"
 							class="border-border bg-surface hover:border-foreground min-h-9 cursor-pointer rounded-lg border-2 px-3 text-xs font-black"
-							class:border-foreground={results.visibleScope === ResultsScope.SPECIFIC_ROUND &&
-								results.visibleRoundId === round.roundId}
-							class:bg-secondary={results.visibleScope === ResultsScope.SPECIFIC_ROUND &&
-								results.visibleRoundId === round.roundId}
-							class:text-secondary-foreground={results.visibleScope === ResultsScope.SPECIFIC_ROUND &&
-								results.visibleRoundId === round.roundId}
-							onclick={() => void actions.selectResults(ResultsScope.SPECIFIC_ROUND, round.roundId)}
+							class:border-foreground={results.selection.kind === "round" && results.selection.roundId === round.roundId}
+							class:bg-secondary={results.selection.kind === "round" && results.selection.roundId === round.roundId}
+							class:text-secondary-foreground={results.selection.kind === "round" &&
+								results.selection.roundId === round.roundId}
+							onclick={() => void actions.selectResults({ kind: "round", roundId: round.roundId })}
 						>
 							Round {round.roundNumber}
 						</button>
@@ -133,72 +202,83 @@
 						{selectedRoundNumber === null ? "Overall standings" : "Round standings"}
 					</h3>
 				</div>
-				{#if visibleView?.completedAt}
-					<time class="text-muted text-xs font-bold" datetime={String(visibleView.completedAt)}>
-						Completed {new Date(visibleView.completedAt).toLocaleString("en")}
+				{#if roundResults?.completedAt}
+					<time class="text-muted text-xs font-bold" datetime={String(roundResults.completedAt)}>
+						Completed {new Date(roundResults.completedAt).toLocaleString("en")}
 					</time>
 				{/if}
 			</header>
 
-			<div class="grid gap-2" aria-label="Player rankings">
-				{#each leaderboard as player (player.userId)}
-					<div
-						class="border-border bg-surface-muted grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border-2 px-3 py-2.5"
-						class:border-accent={player.rank === 1}
-						class:bg-accent={player.rank === 1}
-					>
+			{#if historicalLoading}
+				<div class="text-muted grid min-h-48 place-items-center text-sm font-bold" role="status">Loading round results…</div>
+			{:else}
+				<div class="grid gap-2" aria-label="Player rankings">
+					{#each leaderboard as player (player.userId)}
 						<div
-							class="border-foreground bg-surface grid size-9 place-items-center rounded-full border-2 font-[Fredoka_Variable] text-sm font-[650]"
+							class="border-border bg-surface-muted grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border-2 px-2.5 py-2.5 sm:gap-3 sm:px-3"
+							class:border-accent={player.rank === 1}
+							class:bg-accent={player.rank === 1}
 						>
-							{#if player.rank === 1}<Crown size={18} aria-label="First place" />{:else}{player.rank}{/if}
-						</div>
-						<div class="min-w-0">
-							<p class="m-0 overflow-hidden font-[Fredoka_Variable] font-[650] text-ellipsis whitespace-nowrap">
-								{playerName(player.userId)}
+							<div
+								class="border-foreground bg-surface grid size-8 place-items-center rounded-full border-2 font-[Fredoka_Variable] text-xs font-[650] sm:size-9 sm:text-sm"
+							>
+								{#if player.rank === 1}<Crown size={18} aria-label="First place" />{:else}{player.rank}{/if}
+							</div>
+							{@render playerAvatar(player, false)}
+							<div class="min-w-0">
+								<p class="m-0 overflow-hidden font-[Fredoka_Variable] font-[650] text-ellipsis whitespace-nowrap">
+									{playerName(player)}
+								</p>
+								<p class="text-muted m-0 overflow-hidden text-[0.68rem] font-bold text-ellipsis whitespace-nowrap">
+									@{playerHandle(player)} · Rank {player.rank}
+								</p>
+							</div>
+							<p class="m-0 font-[Fredoka_Variable] text-base font-[650] whitespace-nowrap tabular-nums sm:text-xl">
+								{formatScore(player.score)} <span class="text-muted text-[0.62rem] font-black uppercase">pts</span>
 							</p>
-							<p class="text-muted m-0 text-[0.68rem] font-bold">Rank {player.rank}</p>
 						</div>
-						<p class="m-0 font-[Fredoka_Variable] text-xl font-[650] tabular-nums">
-							{formatScore(player.score)} <span class="text-muted text-[0.62rem] font-black uppercase">pts</span>
-						</p>
-					</div>
-				{/each}
-			</div>
+					{/each}
+				</div>
 
-			{#if captureResults.length > 0}
-				<section class="border-border mt-5 border-t-2 border-dashed pt-4" aria-labelledby="capture-results-heading">
-					<div class="mb-3 flex items-center gap-2">
-						<Camera class="text-primary" size={19} aria-hidden="true" />
-						<h4 id="capture-results-heading" class="m-0 font-[Fredoka_Variable] text-lg font-[650]">Capture breakdown</h4>
-					</div>
-					<div class="grid gap-2 sm:grid-cols-2">
-						{#each captureResults as result (result.captureId)}
-							<article class="border-border bg-surface-muted grid gap-2 rounded-xl border-2 p-3">
-								<div class="flex items-start justify-between gap-3">
-									<div class="min-w-0">
-										<p class="text-secondary m-0 text-[0.58rem] font-black tracking-[0.1em] uppercase">
-											{playerName(result.ownerUserId)}
-										</p>
-										<h5 class="mt-0.5 mb-0 line-clamp-2 font-[Fredoka_Variable] font-[650]">{goalTitle(result.goalId)}</h5>
+				{#if captureResults.length > 0}
+					<section class="border-border mt-5 border-t-2 border-dashed pt-4" aria-labelledby="capture-results-heading">
+						<div class="mb-3 flex items-center gap-2">
+							<Camera class="text-primary" size={19} aria-hidden="true" />
+							<h4 id="capture-results-heading" class="m-0 font-[Fredoka_Variable] text-lg font-[650]">Capture breakdown</h4>
+						</div>
+						<div class="grid gap-2 sm:grid-cols-2">
+							{#each captureResults as result (result.captureId)}
+								{@const owner = captureOwner(result.ownerUserId)}
+								<article class="border-border bg-surface-muted grid gap-2 rounded-xl border-2 p-3">
+									<div class="flex items-start justify-between gap-3">
+										<div class="flex min-w-0 items-start gap-2.5">
+											{@render playerAvatar(owner, true)}
+											<div class="min-w-0">
+												<p class="text-secondary m-0 truncate text-sm font-black">{playerName(owner)}</p>
+												<h5 class="mt-0.5 mb-0 line-clamp-2 font-[Fredoka_Variable] font-[650]">
+													{goalTitle(result.goalId)}
+												</h5>
+											</div>
+										</div>
+										<span class="border-foreground bg-accent shrink-0 rounded-full border px-2 py-1 text-xs font-black"
+											>{formatScore(result.score)} pts</span
+										>
 									</div>
-									<span class="border-foreground bg-accent shrink-0 rounded-full border px-2 py-1 text-xs font-black"
-										>{formatScore(result.score)} pts</span
-									>
-								</div>
-								<div class="text-muted flex flex-wrap items-center gap-3 text-xs font-black">
-									<span class="inline-flex items-center gap-1"><ThumbsUp size={14} aria-hidden="true" /> {result.good}</span>
-									<span class="inline-flex items-center gap-1"><ThumbsDown size={14} aria-hidden="true" /> {result.bad}</span>
-									<span class="inline-flex items-center gap-1"
-										><Medal size={14} aria-hidden="true" /> {result.eligible} eligible</span
-									>
-								</div>
-								{#if result.noEligibleVoters}
-									<p class="text-muted m-0 text-xs">No eligible voters; this capture scores 0 points.</p>
-								{/if}
-							</article>
-						{/each}
-					</div>
-				</section>
+									<div class="text-muted flex flex-wrap items-center gap-3 text-xs font-black">
+										<span class="inline-flex items-center gap-1"><ThumbsUp size={14} aria-hidden="true" /> {result.good}</span>
+										<span class="inline-flex items-center gap-1"><ThumbsDown size={14} aria-hidden="true" /> {result.bad}</span>
+										<span class="inline-flex items-center gap-1"
+											><Medal size={14} aria-hidden="true" /> {result.eligible} eligible</span
+										>
+									</div>
+									{#if result.noEligibleVoters}
+										<p class="text-muted m-0 text-xs">No eligible voters; this capture scores 0 points.</p>
+									{/if}
+								</article>
+							{/each}
+						</div>
+					</section>
+				{/if}
 			{/if}
 		{/if}
 	</div>

@@ -10,11 +10,11 @@ import type {
 	TransferHostRequest,
 	SelectGameModeRequest,
 	UpdateLobbySettingsRequest,
-	RequestResultsRequest,
+	RequestRoundResultsRequest,
 	LobbySnapshot,
 	PersonalProjection,
 	GameModeEvent,
-	LobbyResultsView,
+	LobbyRoundResultsView,
 	LobbyEnded
 } from "../GeoBingo.Contracts.Lobbies";
 import type { HubOperationResult, SignalRError } from "../GeoBingo.Contracts.SignalR";
@@ -178,8 +178,8 @@ class IGameHub_HubProxy implements IGameHub {
 		return await this.connection.invoke("RequestSnapshot");
 	};
 
-	public readonly requestResults = async (request: RequestResultsRequest): Promise<HubOperationResult> => {
-		return await this.connection.invoke("RequestResults", request);
+	public readonly requestRoundResults = async (request: RequestRoundResultsRequest): Promise<HubOperationResult> => {
+		return await this.connection.invoke("RequestRoundResults", request);
 	};
 }
 
@@ -194,14 +194,14 @@ class IGameClient_Binder implements ReceiverRegister<IGameClient> {
 		const __receiveLobbySnapshot = (...args: [LobbySnapshot]) => receiver.receiveLobbySnapshot(...args);
 		const __receivePersonalProjection = (...args: [PersonalProjection]) => receiver.receivePersonalProjection(...args);
 		const __receiveGameModeEvent = (...args: [GameModeEvent]) => receiver.receiveGameModeEvent(...args);
-		const __receiveResults = (...args: [LobbyResultsView]) => receiver.receiveResults(...args);
+		const __receiveRoundResults = (...args: [LobbyRoundResultsView]) => receiver.receiveRoundResults(...args);
 		const __receiveLobbyEnded = (...args: [LobbyEnded]) => receiver.receiveLobbyEnded(...args);
 		const __receiveError = (...args: [SignalRError]) => receiver.receiveError(...args);
 
 		connection.on("ReceiveLobbySnapshot", __receiveLobbySnapshot);
 		connection.on("ReceivePersonalProjection", __receivePersonalProjection);
 		connection.on("ReceiveGameModeEvent", __receiveGameModeEvent);
-		connection.on("ReceiveResults", __receiveResults);
+		connection.on("ReceiveRoundResults", __receiveRoundResults);
 		connection.on("ReceiveLobbyEnded", __receiveLobbyEnded);
 		connection.on("ReceiveError", __receiveError);
 
@@ -209,7 +209,7 @@ class IGameClient_Binder implements ReceiverRegister<IGameClient> {
 			{ methodName: "ReceiveLobbySnapshot", method: __receiveLobbySnapshot },
 			{ methodName: "ReceivePersonalProjection", method: __receivePersonalProjection },
 			{ methodName: "ReceiveGameModeEvent", method: __receiveGameModeEvent },
-			{ methodName: "ReceiveResults", method: __receiveResults },
+			{ methodName: "ReceiveRoundResults", method: __receiveRoundResults },
 			{ methodName: "ReceiveLobbyEnded", method: __receiveLobbyEnded },
 			{ methodName: "ReceiveError", method: __receiveError }
 		];

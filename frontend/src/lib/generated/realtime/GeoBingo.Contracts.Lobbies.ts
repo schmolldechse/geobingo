@@ -79,12 +79,10 @@ export type UpdateLobbySettingsRequest = {
 	settings: LobbySettings;
 };
 
-/** Transpiled from GeoBingo.Contracts.Lobbies.RequestResultsRequest */
-export type RequestResultsRequest = {
-	/** Transpiled from GeoBingo.Contracts.Lobbies.ResultsScope */
-	scope: ResultsScope;
+/** Transpiled from GeoBingo.Contracts.Lobbies.RequestRoundResultsRequest */
+export type RequestRoundResultsRequest = {
 	/** Transpiled from System.Guid */
-	roundId?: string;
+	roundId: string;
 };
 
 /** Transpiled from GeoBingo.Contracts.Lobbies.LobbyMemberView */
@@ -191,6 +189,12 @@ export type CaptureResult = {
 export type PlayerRoundResult = {
 	/** Transpiled from System.Guid */
 	userId: string;
+	/** Transpiled from string */
+	handle: string;
+	/** Transpiled from string */
+	displayName: string;
+	/** Transpiled from string? */
+	avatarUrl?: string;
 	/** Transpiled from decimal */
 	score: number;
 	/** Transpiled from int */
@@ -225,30 +229,26 @@ export type CompletedRoundSummary = {
 export type CumulativePlayerResult = {
 	/** Transpiled from System.Guid */
 	userId: string;
+	/** Transpiled from string */
+	handle: string;
+	/** Transpiled from string */
+	displayName: string;
+	/** Transpiled from string? */
+	avatarUrl?: string;
 	/** Transpiled from decimal */
 	score: number;
 	/** Transpiled from int */
 	rank: number;
 };
 
-/** Transpiled from GeoBingo.Contracts.Lobbies.LobbyResultsView */
-export type LobbyResultsView = {
+/** Transpiled from GeoBingo.Contracts.Lobbies.LobbyRoundResultsView */
+export type LobbyRoundResultsView = {
 	/** Transpiled from System.Guid */
 	lobbyId: string;
 	/** Transpiled from long */
 	stateVersion: number;
-	/** Transpiled from GeoBingo.Contracts.Lobbies.ResultsScope */
-	scope: ResultsScope;
-	/** Transpiled from System.Guid */
-	roundId?: string;
-	/** Transpiled from int */
-	roundNumber?: number;
-	/** Transpiled from System.DateTimeOffset */
-	completedAt?: Date | string;
-	/** Transpiled from GeoBingo.Contracts.Lobbies.CompletedRoundResults? */
-	roundResults?: CompletedRoundResults;
-	/** Transpiled from System.Collections.Generic.IReadOnlyList<GeoBingo.Contracts.Lobbies.CumulativePlayerResult> */
-	cumulativeResults: CumulativePlayerResult[];
+	/** Transpiled from GeoBingo.Contracts.Lobbies.CompletedRoundResults */
+	results: CompletedRoundResults;
 };
 
 /** Transpiled from GeoBingo.Contracts.Lobbies.LobbySettings */
@@ -268,11 +268,4 @@ export enum LobbyStatus {
 export enum PlayerRemovalKind {
 	KICK = "KICK",
 	BAN = "BAN"
-}
-
-/** Transpiled from GeoBingo.Contracts.Lobbies.ResultsScope */
-export enum ResultsScope {
-	LAST_COMPLETED_ROUND = "LAST_COMPLETED_ROUND",
-	SPECIFIC_ROUND = "SPECIFIC_ROUND",
-	CUMULATIVE = "CUMULATIVE"
 }

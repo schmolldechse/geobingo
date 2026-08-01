@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using GeoBingo.Api.Authentication;
 using GeoBingo.Api.Lobbies.Mapping;
@@ -24,7 +23,7 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
     private readonly LobbyConnectionLifecycle connectionLifecycle;
     private readonly LobbyOperationDispatcher operationDispatcher;
     private readonly LobbyProjectionMapper projectionMapper;
-    private readonly LobbyResultsProjectionFactory resultsProjectionFactory;
+    private readonly LobbyRoundResultsProjectionFactory roundResultsProjectionFactory;
     private readonly LobbyMemberTransportEjector memberEjector;
     private readonly SignalRErrorMapper errorMapper;
     private readonly GameMetrics gameMetrics;
@@ -32,22 +31,14 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
     public GameHub(IServiceProvider services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        lobbyRegistry =
-            services.GetRequiredService<ILobbyRegistry>();
-        connectionRegistry =
-            services.GetRequiredService<LobbyConnectionRegistry>();
-        connectionLifecycle =
-            services.GetRequiredService<LobbyConnectionLifecycle>();
-        operationDispatcher =
-            services.GetRequiredService<LobbyOperationDispatcher>();
-        projectionMapper =
-            services.GetRequiredService<LobbyProjectionMapper>();
-        resultsProjectionFactory =
-            services.GetRequiredService<LobbyResultsProjectionFactory>();
-        memberEjector =
-            services.GetRequiredService<LobbyMemberTransportEjector>();
-        errorMapper =
-            services.GetRequiredService<SignalRErrorMapper>();
+        lobbyRegistry = services.GetRequiredService<ILobbyRegistry>();
+        connectionRegistry = services.GetRequiredService<LobbyConnectionRegistry>();
+        connectionLifecycle = services.GetRequiredService<LobbyConnectionLifecycle>();
+        operationDispatcher = services.GetRequiredService<LobbyOperationDispatcher>();
+        projectionMapper = services.GetRequiredService<LobbyProjectionMapper>();
+        roundResultsProjectionFactory = services.GetRequiredService<LobbyRoundResultsProjectionFactory>();
+        memberEjector = services.GetRequiredService<LobbyMemberTransportEjector>();
+        errorMapper = services.GetRequiredService<SignalRErrorMapper>();
         gameMetrics = services.GetRequiredService<GameMetrics>();
     }
 
@@ -366,23 +357,20 @@ public sealed class GameHub : Hub<IGameClient>, IGameHub
             projection.Snapshot.StateVersion);
     }
 
-    public async Task<HubOperationResult> RequestResults(
-        RequestResultsRequest request)
+    public async Task<HubOperationResult> RequestRoundResults(RequestRoundResultsRequest request)
     {
         var identity = ReadIdentity();
+
         var runtime = ResolveCurrentRuntime(identity.UserId);
-        var results = await runtime.EnqueueReadAsync(
+        var resultsView = await runtime.EnqueueReadAsync(
                 (state, _) => ValueTask.FromResult(
-                    resultsProjectionFactory.CreateForMember(
-                        state,
-                        identity.UserId,
-                        request)),
+                    roundResultsProjectionFactory.CreateForMember(state, identity.UserId, request)),
                 Context.ConnectionAborted)
             .ConfigureAwait(false);
         await Clients.Caller
-            .ReceiveResults(results)
+            .ReceiveRoundResults(resultsView)
             .ConfigureAwait(false);
-        return errorMapper.Success(results.StateVersion);
+        return errorMapper.Success(resultsView.StateVersion);
     }
 
     private async Task<HubOperationResult> ExecuteAsync(

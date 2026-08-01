@@ -4,11 +4,11 @@ import type {
 	StreetViewPosition,
 	VoteValue
 } from "$lib/generated/realtime/GeoBingo.Contracts.GameModes.CaptureChallenge";
-import { PlayerRemovalKind, ResultsScope, type LobbySettings } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
+import { PlayerRemovalKind, type LobbySettings } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 import type { IGameHub } from "$lib/generated/realtime/TypedSignalR.Client/GeoBingo.Contracts.SignalR";
 import type { GameConnection } from "$lib/realtime/game-connection.svelte";
 import type { LobbyState } from "./lobby-state.svelte";
-import type { ResultState } from "./result-state.svelte";
+import type { ResultSelection, ResultState } from "./result-state.svelte";
 
 export class LobbyActions {
 	readonly #connection: GameConnection;
@@ -67,17 +67,13 @@ export class LobbyActions {
 	public selectGameMode = (modeKey: string, confirmModeStateReset = false) =>
 		this.#mutate("selectGameMode", (hub) => hub.selectGameMode({ modeKey, confirmModeStateReset }));
 
-	public requestVisibleResults = async (): Promise<void> => {
-		const roundId =
-			this.#results.visibleScope === ResultsScope.SPECIFIC_ROUND ? (this.#results.visibleRoundId ?? undefined) : undefined;
-		await this.#connection.execute("requestResults", (hub) =>
-			hub.requestResults({ scope: this.#results.visibleScope, roundId })
-		);
-	};
+	public selectResults = async (selection: ResultSelection): Promise<void> => {
+		this.#results.select(selection);
+		if (selection.kind !== "round" || this.#results.hasHistoricalRound(selection.roundId)) return;
 
-	public selectResults = async (scope: ResultsScope, roundId: string | null = null) => {
-		this.#results.select(scope, roundId);
-		await this.requestVisibleResults();
+		await this.#connection.execute(`requestRoundResults:${selection.roundId}`, (hub) =>
+			hub.requestRoundResults({ roundId: selection.roundId })
+		);
 	};
 
 	#mutate(operationName: string, operation: (hub: IGameHub) => Promise<unknown>): Promise<void> {

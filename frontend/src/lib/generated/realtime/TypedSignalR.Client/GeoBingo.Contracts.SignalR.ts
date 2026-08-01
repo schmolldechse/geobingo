@@ -9,11 +9,11 @@ import type {
 	TransferHostRequest,
 	SelectGameModeRequest,
 	UpdateLobbySettingsRequest,
-	RequestResultsRequest,
+	RequestRoundResultsRequest,
 	LobbySnapshot,
 	PersonalProjection,
 	GameModeEvent,
-	LobbyResultsView,
+	LobbyRoundResultsView,
 	LobbyEnded
 } from "../GeoBingo.Contracts.Lobbies";
 import type { HubOperationResult, SignalRError } from "../GeoBingo.Contracts.SignalR";
@@ -123,10 +123,10 @@ export type IGameHub = {
 	 */
 	requestSnapshot(): Promise<HubOperationResult>;
 	/**
-	 * @param request Transpiled from GeoBingo.Contracts.Lobbies.RequestResultsRequest
+	 * @param request Transpiled from GeoBingo.Contracts.Lobbies.RequestRoundResultsRequest
 	 * @returns Transpiled from System.Threading.Tasks.Task<GeoBingo.Contracts.SignalR.HubOperationResult>
 	 */
-	requestResults(request: RequestResultsRequest): Promise<HubOperationResult>;
+	requestRoundResults(request: RequestRoundResultsRequest): Promise<HubOperationResult>;
 };
 
 export type IGameClient = {
@@ -146,10 +146,10 @@ export type IGameClient = {
 	 */
 	receiveGameModeEvent(message: GameModeEvent): Promise<void>;
 	/**
-	 * @param results Transpiled from GeoBingo.Contracts.Lobbies.LobbyResultsView
+	 * @param results Transpiled from GeoBingo.Contracts.Lobbies.LobbyRoundResultsView
 	 * @returns Transpiled from System.Threading.Tasks.Task
 	 */
-	receiveResults(results: LobbyResultsView): Promise<void>;
+	receiveRoundResults(results: LobbyRoundResultsView): Promise<void>;
 	/**
 	 * @param message Transpiled from GeoBingo.Contracts.Lobbies.LobbyEnded
 	 * @returns Transpiled from System.Threading.Tasks.Task

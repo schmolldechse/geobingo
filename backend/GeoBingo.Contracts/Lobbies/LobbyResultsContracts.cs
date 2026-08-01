@@ -43,6 +43,15 @@ public sealed record PlayerRoundResult
     [JsonPropertyName("userId")]
     public required Guid UserId { get; init; }
 
+    [JsonPropertyName("handle")]
+    public required string Handle { get; init; }
+
+    [JsonPropertyName("displayName")]
+    public required string DisplayName { get; init; }
+
+    [JsonPropertyName("avatarUrl")]
+    public string? AvatarUrl { get; init; }
+
     [JsonPropertyName("score")]
     public required decimal Score { get; init; }
 
@@ -88,6 +97,15 @@ public sealed record CumulativePlayerResult
     [JsonPropertyName("userId")]
     public required Guid UserId { get; init; }
 
+    [JsonPropertyName("handle")]
+    public required string Handle { get; init; }
+
+    [JsonPropertyName("displayName")]
+    public required string DisplayName { get; init; }
+
+    [JsonPropertyName("avatarUrl")]
+    public string? AvatarUrl { get; init; }
+
     [JsonPropertyName("score")]
     public required decimal Score { get; init; }
 
@@ -96,8 +114,8 @@ public sealed record CumulativePlayerResult
 }
 
 [TranspilationSource]
-[Description("A member-authorized result projection for the active lobby runtime.")]
-public sealed record LobbyResultsView
+[Description("A member-authorized historical round result for the active lobby runtime.")]
+public sealed record LobbyRoundResultsView
 {
     [JsonPropertyName("lobbyId")]
     public required Guid LobbyId { get; init; }
@@ -105,21 +123,6 @@ public sealed record LobbyResultsView
     [JsonPropertyName("stateVersion")]
     public required long StateVersion { get; init; }
 
-    [JsonPropertyName("scope")]
-    public required ResultsScope Scope { get; init; }
-
-    [JsonPropertyName("roundId")]
-    public Guid? RoundId { get; init; }
-
-    [JsonPropertyName("roundNumber")]
-    public int? RoundNumber { get; init; }
-
-    [JsonPropertyName("completedAt")]
-    public DateTimeOffset? CompletedAt { get; init; }
-
-    [JsonPropertyName("roundResults")]
-    public CompletedRoundResults? RoundResults { get; init; }
-
-    [JsonPropertyName("cumulativeResults")]
-    public required IReadOnlyList<CumulativePlayerResult> CumulativeResults { get; init; }
+    [JsonPropertyName("results")]
+    public required CompletedRoundResults Results { get; init; }
 }

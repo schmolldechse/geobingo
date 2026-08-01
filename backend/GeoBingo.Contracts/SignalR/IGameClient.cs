@@ -10,7 +10,7 @@ public interface IGameClient
     Task ReceiveLobbySnapshot(LobbySnapshot snapshot);
     Task ReceivePersonalProjection(PersonalProjection projection);
     Task ReceiveGameModeEvent(GameModeEvent message);
-    Task ReceiveResults(LobbyResultsView results);
+    Task ReceiveRoundResults(LobbyRoundResultsView results);
     Task ReceiveLobbyEnded(LobbyEnded message);
     Task ReceiveError(SignalRError error);
 }

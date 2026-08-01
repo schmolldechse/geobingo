@@ -10,6 +10,7 @@ public sealed record GameModeParticipant(
     Guid UserId,
     string Handle,
     string DisplayName,
+    string? AvatarUrl,
     int JoinOrder);
 
 public sealed record GameModeRoundCreationContext(

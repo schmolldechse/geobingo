@@ -16,9 +16,8 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<LobbyConnectionRegistry>();
         services.AddSingleton<LobbyProjectionMapper>();
-        services.AddSingleton<LobbyResultsProjectionFactory>();
+        services.AddSingleton<LobbyRoundResultsProjectionFactory>();
         services.AddSingleton<LobbyProjectionPublisher>();
-        services.AddSingleton<LobbyResultsPublisher>();
         services.AddSingleton<
             ILobbyProjectionSink,
             SignalRLobbyProjectionSink>();

@@ -328,6 +328,7 @@ internal sealed class LobbyOperationDispatcher
                             member.UserId,
                             member.Handle,
                             member.DisplayName,
+                            member.AvatarUrl,
                             member.JoinOrder))
                     .ToArray();
                 var acceptedAt = timeProvider.GetUtcNow();
@@ -872,8 +873,7 @@ internal sealed class LobbyOperationDispatcher
                     ?? throw new InvalidOperationException(
                         "A completed game-mode outcome requires round results.");
                 state.CompleteRound(completedRoundResults);
-                return LobbyMutationOutcome.AppliedWithCompletedRound(
-                    completedRoundResults.RoundId);
+                return LobbyMutationOutcome.Applied;
             default:
                 throw new ArgumentOutOfRangeException(
                     nameof(advance),
