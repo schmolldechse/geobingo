@@ -1,4 +1,5 @@
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
+import { env } from "$env/dynamic/public";
 import { GoogleMapsError, type GoogleMapsLoadApi, type GoogleMapsLoaderOptions } from "./google-maps-types";
 
 export interface GoogleMapsLibraries {
@@ -102,11 +103,5 @@ export async function loadGoogleMaps(
 }
 
 async function readApiKey(): Promise<string | undefined> {
-	try {
-		const publicEnv = await import("$env/static/public");
-		const apiKey: unknown = Reflect.get(publicEnv, "PUBLIC_GOOGLE_MAPS_API_KEY");
-		return typeof apiKey === "string" ? apiKey.trim() || undefined : undefined;
-	} catch {
-		return undefined;
-	}
+	return env.PUBLIC_GOOGLE_MAPS_API_KEY?.trim() || undefined;
 }
