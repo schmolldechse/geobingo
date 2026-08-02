@@ -10,7 +10,7 @@ GeoBingo uses Release Please to maintain a shared version and changelog.
 
 ## One-time GitHub setup
 
-Create a fine-grained personal access token restricted to `schmolldechse/geobingo` with read/write access to **Contents**, **Pull requests**, and **Issues**. Use the default 90-day expiry, renew it before it expires, and save it as the `RELEASE_PLEASE_TOKEN` repository secret. If needed, enable **Allow GitHub Actions to create and approve pull requests** under the repository's Actions settings. Do not use the default `GITHUB_TOKEN` for this workflow.
+Create a fine-grained personal access token restricted to `schmolldechse/geobingo` with read/write access to **Contents**, **Pull requests**, and **Issues**. Select a 90-day expiry, renew it before it expires, and save it as the `RELEASE_PLEASE_TOKEN` repository secret. If needed, enable **Allow GitHub Actions to create and approve pull requests** under the repository's Actions settings. Do not use the default `GITHUB_TOKEN` for this workflow.
 
 ## Initial bootstrap
 
