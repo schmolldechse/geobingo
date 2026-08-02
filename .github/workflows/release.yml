@@ -12,7 +12,7 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-publication
   cancel-in-progress: false
 
 jobs:
