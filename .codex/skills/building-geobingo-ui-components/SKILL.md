@@ -14,8 +14,8 @@ Build semantic primitives with explicit APIs and predictable composition. Apply 
 1. Inspect existing primitives, tokens, and Storybook patterns before adding an abstraction.
 2. Choose the smallest valid file structure.
 3. Define semantics and API, then model source state once and derive the rest.
-4. Add accessibility, state hooks, styling, icons, and a documentation-only story.
-5. Run `bun run check` and `bun run build-storybook` from `frontend`.
+4. Add accessibility, state hooks, styling, icons, and documentation-only Storybook coverage under `frontend/src/stories`.
+5. Run `bun --bun run check` and `bun --bun run build-storybook` from `frontend`.
 
 ## Component Contract
 
@@ -34,7 +34,7 @@ Build semantic primitives with explicit APIs and predictable composition. Apply 
 | Accessibility | Add ARIA only for real names, states, or relationships. Avoid redundant roles; name icon-only controls and hide decorative icons. |
 | Icons | Import only direct Lucide modules, for example `import Camera from "@lucide/svelte/icons/camera";`. Never import from `@lucide/svelte`'s barrel. |
 | Styling | Use semantic tokens, both themes, and reduced motion. Separate consumer layout from semantic variants. |
-| Storybook | Co-locate `PascalCase.stories.svelte`. Document variants, sizes, meaningful states, composition, and theme behavior. Do not add `play` functions or test dependencies. |
+| Storybook | Put standalone stories at `frontend/src/stories/PascalCase.stories.svelte`. For component families with child components or story examples, fixtures, helpers, or other supporting files, group the story and all relevant files under `frontend/src/stories/<component-name>/`; follow `google-maps` and `tabs`. Cover every supported public variant, size, state, interaction, meaningful composition, and theme behavior. Do not add `play` functions or test dependencies. |
 
 ## Context Pattern
 
@@ -56,11 +56,11 @@ export function getAccordionContext(): AccordionContext {
 
 ## Common Mistakes
 
-- Omitting native prop forwarding or Storybook because a component is tiny.
+- Co-locating stories with UI production files, leaving compound story files ungrouped, or omitting supported Storybook options because a component is tiny.
 - Creating a folder, helper, Context, or barrel before the component actually needs one.
 - Mirroring derived values through chained effects instead of `$derived`.
 - Treating `data-state` as accessibility semantics or importing Lucide's central barrel.
 
 ## Completion Check
 
-Confirm structure, PascalCase, native semantics, prop forwarding, reactivity, direct icon imports, SSR safety, state attributes, ARIA, semantic tokens, themes, reduced motion, and the co-located documentation-only story before delivery.
+Confirm structure, PascalCase, native semantics, prop forwarding, reactivity, direct icon imports, SSR safety, state attributes, ARIA, semantic tokens, themes, reduced motion, and matching documentation-only Storybook coverage under `frontend/src/stories` before delivery.
