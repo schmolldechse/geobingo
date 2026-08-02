@@ -1,0 +1,7 @@
+{
+  "release-type": "simple",
+  "initial-version": "2.0.0",
+  "bootstrap-sha": "f694bef33e52f64cea337c06d82da455546a5395",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true
+}
