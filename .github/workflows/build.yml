@@ -9,12 +9,22 @@ on:
       - "frontend/**"
       - "deploy/**"
       - ".github/workflows/build.yml"
+      - ".github/workflows/release.yml"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "version.txt"
+      - "CHANGELOG.md"
   pull_request:
     paths:
       - "backend/**"
       - "frontend/**"
       - "deploy/**"
       - ".github/workflows/build.yml"
+      - ".github/workflows/release.yml"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "version.txt"
+      - "CHANGELOG.md"
 
 env:
   REGISTRY: ghcr.io
@@ -111,8 +121,17 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=sha,format=short
+
+      - name: Read snapshot version
+        id: version
+        shell: bash
+        run: |
+          base_version="$(tr -d '[:space:]' < version.txt 2>/dev/null || true)"
+          base_version="${base_version:-2.0.0}"
+          short_sha="${GITHUB_SHA::7}"
+          echo "base_version=$base_version" >> "$GITHUB_OUTPUT"
+          echo "informational_version=$base_version+sha.$short_sha" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Backend Image
         uses: docker/build-push-action@v6
@@ -123,6 +142,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.base_version }}
+            APP_INFORMATIONAL_VERSION=${{ steps.version.outputs.informational_version }}
 
   build-frontend-image:
     name: Build Frontend Docker Image
@@ -149,8 +171,16 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/geobingo-frontend
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=sha,format=short
+
+      - name: Read snapshot version
+        id: version
+        shell: bash
+        run: |
+          base_version="$(tr -d '[:space:]' < version.txt 2>/dev/null || true)"
+          base_version="${base_version:-2.0.0}"
+          short_sha="${GITHUB_SHA::7}"
+          echo "informational_version=v$base_version+sha.$short_sha" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Frontend Image
         uses: docker/build-push-action@v6
@@ -160,3 +190,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_INFORMATIONAL_VERSION=${{ steps.version.outputs.informational_version }}
