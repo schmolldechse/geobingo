@@ -43,9 +43,16 @@
 		{@render children()}
 	</main>
 
-	<footer class="border-border border-t">
-		<p class="text-muted-foreground mx-auto w-full max-w-7xl px-4 py-3 text-center text-xs sm:px-6">
-			GeoBingo {appVersion}
-		</p>
+	<footer class="border-border bg-surface text-foreground border-t">
+		<div
+			class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-7 text-xs md:flex-row md:items-center md:justify-between md:px-6 md:py-8"
+		>
+			<p class="m-0 opacity-70">
+				© 2026 GeoBingo {appVersion}
+			</p>
+			<a href="https://github.com/schmolldechse/geobingo" class="text-foreground w-fit font-bold no-underline hover:underline">
+				GitHub
+			</a>
+		</div>
 	</footer>
 </div>
