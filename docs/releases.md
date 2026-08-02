@@ -14,4 +14,4 @@ Create a fine-grained personal access token with read/write access to **Contents
 
 ## Initial bootstrap
 
-The first generated `v2.0.0` release notes must be amended once before publication to retain the V2 context. After `v2.0.0` is released, remove the bootstrap-only `initial-version` and `bootstrap-sha` settings from `release-please-config.json`.
+The initial `.release-please-manifest.json` deliberately starts empty so that `initial-version: 2.0.0` creates `v2.0.0` instead of treating it as already released. The first generated `v2.0.0` release notes must be amended once before publication to retain the V2 context. After `v2.0.0` is released, remove the bootstrap-only `initial-version` and `bootstrap-sha` settings from `release-please-config.json`.
