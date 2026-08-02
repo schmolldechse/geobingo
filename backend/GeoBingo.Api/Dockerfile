@@ -11,6 +11,8 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG APP_VERSION=0.0.0-dev
+ARG APP_INFORMATIONAL_VERSION=development
 WORKDIR /src
 
 COPY ["GeoBingo.Api/GeoBingo.Api.csproj", "GeoBingo.Api/"]
@@ -23,11 +25,17 @@ COPY [".config/dotnet-tools.json", ".config/dotnet-tools.json"]
 RUN dotnet restore "./GeoBingo.Api/GeoBingo.Api.csproj"
 COPY . .
 WORKDIR "/src/GeoBingo.Api"
-RUN dotnet build "./GeoBingo.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./GeoBingo.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build \
+    /p:Version=$APP_VERSION \
+    /p:InformationalVersion=$APP_INFORMATIONAL_VERSION
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./GeoBingo.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+ARG APP_VERSION
+ARG APP_INFORMATIONAL_VERSION
+RUN dotnet publish "./GeoBingo.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false \
+    /p:Version=$APP_VERSION \
+    /p:InformationalVersion=$APP_INFORMATIONAL_VERSION
 
 FROM build AS migrations-build
 ARG BUILD_CONFIGURATION=Release

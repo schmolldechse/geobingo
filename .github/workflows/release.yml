@@ -1,0 +1,256 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*.*.*"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Create Release
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+  validate-release:
+    name: Validate Release Tag
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Validate tag and version file
+        id: version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag: $tag" >&2
+            exit 1
+          fi
+
+          version="${tag#v}"
+          file_version="$(cat version.txt)"
+          file_version="${file_version%$'\r'}"
+          if [[ "$(grep -c '^' version.txt)" -ne 1 || "$file_version" != "$version" ]]; then
+            echo "Tag version $version does not match version.txt ($file_version)" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "version_tag=$tag" >> "$GITHUB_OUTPUT"
+
+  build-api:
+    name: Publish API Image
+    if: startsWith(github.ref, 'refs/tags/') && needs.validate-release.result == 'success'
+    needs: validate-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/GeoBingo.Api/Dockerfile
+          target: final
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/geobingo-api:${{ needs.validate-release.outputs.version }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          build-args: |
+            APP_VERSION=${{ needs.validate-release.outputs.version }}
+            APP_INFORMATIONAL_VERSION=${{ needs.validate-release.outputs.version }}
+
+  build-migrations:
+    name: Publish Migrations Image
+    if: startsWith(github.ref, 'refs/tags/') && needs.validate-release.result == 'success'
+    needs: validate-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push migrations image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/GeoBingo.Api/Dockerfile
+          target: migrations
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/geobingo-migrations:${{ needs.validate-release.outputs.version }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          build-args: |
+            APP_VERSION=${{ needs.validate-release.outputs.version }}
+            APP_INFORMATIONAL_VERSION=${{ needs.validate-release.outputs.version }}
+
+  build-frontend:
+    name: Publish Frontend Image
+    if: startsWith(github.ref, 'refs/tags/') && needs.validate-release.result == 'success'
+    needs: validate-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/geobingo-frontend:${{ needs.validate-release.outputs.version }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          build-args: |
+            APP_VERSION=${{ needs.validate-release.outputs.version }}
+            APP_INFORMATIONAL_VERSION=${{ needs.validate-release.outputs.version_tag }}
+
+  promote-latest:
+    name: Promote Release Images to Latest
+    if: startsWith(github.ref, 'refs/tags/') && needs.build-api.result == 'success' && needs.build-migrations.result == 'success' && needs.build-frontend.result == 'success'
+    needs:
+      - validate-release
+      - build-api
+      - build-migrations
+      - build-frontend
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-latest-promotion
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check current latest GitHub Release
+        id: latest-release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! latest_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.tag_name')"; then
+            echo "::error::Could not determine the current latest published GitHub Release; refusing to promote images."
+            exit 1
+          fi
+
+          if [[ ! "$latest_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The latest published GitHub Release tag is not an exact vMAJOR.MINOR.PATCH tag; refusing to promote images."
+            exit 1
+          fi
+
+          current_version="${latest_tag#v}"
+          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "Current latest published GitHub Release is $latest_tag."
+
+      - name: Verify current release images exist
+        shell: bash
+        env:
+          CURRENT_VERSION: ${{ steps.latest-release.outputs.current_version }}
+        run: |
+          for image in geobingo-api geobingo-migrations geobingo-frontend; do
+            source_image="${REGISTRY}/${IMAGE_PREFIX}/${image}:${CURRENT_VERSION}"
+            if ! docker buildx imagetools inspect "$source_image" >/dev/null; then
+              echo "::error::Current release image $source_image does not exist or could not be inspected; refusing to promote images."
+              exit 1
+            fi
+          done
+
+      - name: Promote current release images to latest
+        shell: bash
+        env:
+          CURRENT_VERSION: ${{ steps.latest-release.outputs.current_version }}
+        run: |
+          for image in geobingo-api geobingo-migrations geobingo-frontend; do
+            docker buildx imagetools create \
+              --tag "${REGISTRY}/${IMAGE_PREFIX}/${image}:latest" \
+              "${REGISTRY}/${IMAGE_PREFIX}/${image}:${CURRENT_VERSION}"
+          done
