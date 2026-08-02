@@ -180,6 +180,7 @@ jobs:
           base_version="$(tr -d '[:space:]' < version.txt 2>/dev/null || true)"
           base_version="${base_version:-2.0.0}"
           short_sha="${GITHUB_SHA::7}"
+          echo "base_version=$base_version" >> "$GITHUB_OUTPUT"
           echo "informational_version=v$base_version+sha.$short_sha" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Frontend Image
@@ -191,4 +192,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
+            APP_VERSION=${{ steps.version.outputs.base_version }}
             APP_INFORMATIONAL_VERSION=${{ steps.version.outputs.informational_version }}
