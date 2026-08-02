@@ -12,7 +12,7 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}
 
 concurrency:
-  group: release-publication
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -193,6 +193,9 @@ jobs:
       - build-migrations
       - build-frontend
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-latest-promotion
+      cancel-in-progress: false
     permissions:
       contents: read
       packages: write
@@ -212,34 +215,41 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           if ! latest_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.tag_name')"; then
             echo "::error::Could not determine the current latest published GitHub Release; refusing to promote images."
             exit 1
           fi
 
-          if [[ -z "$latest_tag" ]]; then
-            echo "::error::The latest published GitHub Release did not contain a tag; refusing to promote images."
+          if [[ ! "$latest_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The latest published GitHub Release tag is not an exact vMAJOR.MINOR.PATCH tag; refusing to promote images."
             exit 1
           fi
 
-          if [[ "$latest_tag" != "$RELEASE_TAG" ]]; then
-            echo "promote=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping latest promotion because the current latest published GitHub Release is $latest_tag, not $RELEASE_TAG. Exact-version images remain available."
-            exit 0
-          fi
+          current_version="${latest_tag#v}"
+          echo "current_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "Current latest published GitHub Release is $latest_tag."
 
-          echo "promote=true" >> "$GITHUB_OUTPUT"
-
-      - name: Promote exact versions to latest
-        if: steps.latest-release.outputs.promote == 'true'
+      - name: Verify current release images exist
         shell: bash
         env:
-          VERSION: ${{ needs.validate-release.outputs.version }}
+          CURRENT_VERSION: ${{ steps.latest-release.outputs.current_version }}
+        run: |
+          for image in geobingo-api geobingo-migrations geobingo-frontend; do
+            source_image="${REGISTRY}/${IMAGE_PREFIX}/${image}:${CURRENT_VERSION}"
+            if ! docker buildx imagetools inspect "$source_image" >/dev/null; then
+              echo "::error::Current release image $source_image does not exist or could not be inspected; refusing to promote images."
+              exit 1
+            fi
+          done
+
+      - name: Promote current release images to latest
+        shell: bash
+        env:
+          CURRENT_VERSION: ${{ steps.latest-release.outputs.current_version }}
         run: |
           for image in geobingo-api geobingo-migrations geobingo-frontend; do
             docker buildx imagetools create \
               --tag "${REGISTRY}/${IMAGE_PREFIX}/${image}:latest" \
-              "${REGISTRY}/${IMAGE_PREFIX}/${image}:${VERSION}"
+              "${REGISTRY}/${IMAGE_PREFIX}/${image}:${CURRENT_VERSION}"
           done
