@@ -4,9 +4,9 @@ GeoBingo uses Release Please to maintain a shared version and changelog.
 
 ## Contribution and release flow
 
-- Use Conventional Commit-formatted pull-request titles. Release Please derives the next version and release notes from the squash-merge commit title.
+- Use Conventional Commit-formatted pull-request titles. Release Please derives the next version and release notes from the squash-merge commit title: `fix` produces a patch release, `feat` a minor release, and `!` or `BREAKING CHANGE` a major release.
 - Squash merge pull requests into the default branch.
-- After eligible changes merge, Release Please opens or updates a release pull request. Merging that release PR publishes the release and creates the `v<version>` image tag; ordinary branch builds must not be treated as release image tags.
+- After eligible changes merge, Release Please opens or updates a release pull request. Merging that release PR publishes the release and creates the stable Docker image tag `MAJOR.MINOR.PATCH`. Builds from `master` use `sha-<short-commit>` tags. Publish `latest` only after all three exact release images succeed.
 
 ## One-time GitHub setup
 
