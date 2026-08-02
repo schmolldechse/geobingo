@@ -22,6 +22,9 @@ RUN bun --bun run build
 
 FROM base AS release
 
+ARG APP_INFORMATIONAL_VERSION=development
+ENV PUBLIC_APP_VERSION=$APP_INFORMATIONAL_VERSION
+
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /app/build .
 
