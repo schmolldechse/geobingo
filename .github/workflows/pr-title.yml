@@ -14,7 +14,9 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         shell: bash
         run: |
-          if [[ ! "$PR_TITLE" =~ ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([^)]+\))?!?:\ .+ ]]; then
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([^)]+\))?!?: .+'
+
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
             echo "PR title must use Conventional Commit format."
             exit 1
           fi
