@@ -180,22 +180,6 @@
 		{/if}
 
 		<div
-			class="border-foreground bg-surface/95 pointer-events-none absolute top-[11px] left-[11px] z-30 inline-flex min-h-[38px] items-center gap-2 rounded-[14px] border-2 px-2 py-1.5 shadow-[3px_3px_0_var(--foreground)] backdrop-blur-lg min-[621px]:top-[13px] min-[621px]:left-[13px] min-[901px]:top-[18px] min-[901px]:left-[18px] min-[901px]:min-h-[42px] min-[901px]:gap-2.5 min-[901px]:px-2.5"
-			aria-label="Capture Challenge voting phase"
-		>
-			<span
-				class="bg-secondary grid size-[22px] grid-cols-2 place-content-center gap-0.5 rounded-lg min-[901px]:size-[25px]"
-				aria-hidden="true"
-			>
-				<span class="bg-accent size-1.5 rounded-[2px]"></span><span class="bg-accent size-1.5 rounded-[2px]"></span>
-				<span class="bg-accent size-1.5 rounded-[2px]"></span><span class="bg-accent size-1.5 rounded-[2px]"></span>
-			</span>
-			<span class="text-[0.57rem] font-black tracking-[0.1em] uppercase max-[390px]:sr-only min-[901px]:text-[0.7rem]">
-				Capture Challenge · Voting
-			</span>
-		</div>
-
-		<div
 			class="border-foreground bg-primary text-primary-foreground pointer-events-none absolute top-[11px] right-[11px] z-30 grid min-w-[123px] grid-cols-[auto_auto] grid-rows-[auto_auto] items-center rounded-[15px] border-2 px-2.5 py-2 shadow-[3px_3px_0_var(--foreground)] min-[621px]:top-[13px] min-[621px]:right-[13px] min-[901px]:top-[18px] min-[901px]:right-[18px] min-[901px]:min-w-[158px] min-[901px]:rounded-[18px] min-[901px]:px-3.5 min-[901px]:py-2.5 min-[901px]:shadow-[4px_4px_0_var(--foreground)]"
 			role="timer"
 			aria-label={`${remainingSeconds} seconds left for the current capture`}
