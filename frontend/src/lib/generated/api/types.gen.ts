@@ -311,7 +311,7 @@ export type ResolveLobbyCodeData = {
 		code: string;
 	};
 	query?: never;
-	url: "/api/v1/lobbies/resolve/{code}";
+	url: "/api/v1/lobbies/{code}";
 };
 
 export type ResolveLobbyCodeErrors = {
