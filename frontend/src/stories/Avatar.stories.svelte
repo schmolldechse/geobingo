@@ -34,69 +34,69 @@
 	}
 </script>
 
-<Story name="Zustände" asChild>
+<Story name="States" asChild>
 	<section class="grid gap-6 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="text-foreground m-0 text-xl font-black">Bild- und Fallback-Zustände</h2>
-			<p class="text-muted m-0 text-sm">Geladenes Bild, fehlende Quelle, Leerwert und Ladefehler.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Image and fallback states</h2>
+			<p class="text-muted m-0 text-sm">Loaded image, missing source, empty value, and loading error.</p>
 		</header>
 
 		<div class="border-border bg-surface flex flex-wrap gap-7 rounded-2xl border-2 p-6">
 			<div class="grid justify-items-center gap-2">
-				<Avatar src={avatarImage} alt="Beispielprofil" class="border-foreground size-12 border-2 font-black" />
-				<span class="text-muted text-xs font-bold">Geladen</span>
+				<Avatar src={avatarImage} alt="Example profile" class="border-foreground size-12 border-2 font-black" />
+				<span class="text-muted text-xs font-bold">Loaded</span>
 			</div>
 			<div class="grid justify-items-center gap-2">
 				<Avatar src={undefined} alt="" class="border-foreground size-12 border-2 font-black" />
-				<span class="text-muted text-xs font-bold">Keine Quelle</span>
+				<span class="text-muted text-xs font-bold">Missing source</span>
 			</div>
 			<div class="grid justify-items-center gap-2">
 				<Avatar src="   " alt="" class="border-foreground size-12 border-2 font-black" />
-				<span class="text-muted text-xs font-bold">Leerwert</span>
+				<span class="text-muted text-xs font-bold">Empty value</span>
 			</div>
 			<div class="grid justify-items-center gap-2">
 				<Avatar src={brokenImage} alt="" class="border-foreground size-12 border-2 font-black">
 					{#snippet fallback()}<span aria-hidden="true">EF</span>{/snippet}
 				</Avatar>
-				<span class="text-muted text-xs font-bold">Fehler</span>
+				<span class="text-muted text-xs font-bold">Error</span>
 			</div>
 		</div>
 	</section>
 </Story>
 
-<Story name="Fallback-Snippet" asChild>
+<Story name="Fallback snippet" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="text-foreground m-0 text-xl font-black">Anpassbare Fallbacks</h2>
-			<p class="text-muted m-0 text-sm">Der Standard kann mit beliebigem Snippet-Inhalt ersetzt werden.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Customizable fallbacks</h2>
+			<p class="text-muted m-0 text-sm">The default fallback can be replaced with any snippet content.</p>
 		</header>
 
 		<div class="border-border bg-surface flex flex-wrap items-end gap-6 rounded-2xl border-2 p-6">
 			<div class="grid justify-items-center gap-2">
 				<Avatar src={null} alt="" class="border-foreground size-12 border-2 text-lg font-black" />
-				<span class="text-muted text-xs font-bold">Standard</span>
+				<span class="text-muted text-xs font-bold">Default</span>
 			</div>
 			<div class="grid justify-items-center gap-2">
 				<Avatar src={null} alt="" class="border-foreground size-12 border-2 font-[Fredoka_Variable] font-[650]">
 					{#snippet fallback()}<span aria-hidden="true">CD</span>{/snippet}
 				</Avatar>
-				<span class="text-muted text-xs font-bold">Initialen</span>
+				<span class="text-muted text-xs font-bold">Initials</span>
 			</div>
 			<div class="grid justify-items-center gap-2">
-				<Avatar src={null} alt="" aria-label="Anonymes Profil" class="bg-secondary text-secondary-foreground size-12">
+				<Avatar src={null} alt="" aria-label="Anonymous profile" class="bg-secondary text-secondary-foreground size-12">
 					{#snippet fallback()}<span aria-hidden="true">●</span>{/snippet}
 				</Avatar>
-				<span class="text-muted text-xs font-bold">Eigenes Symbol</span>
+				<span class="text-muted text-xs font-bold">Custom icon</span>
 			</div>
 		</div>
 	</section>
 </Story>
 
-<Story name="Größen und Responsive" asChild>
+<Story name="Sizes and responsiveness" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="text-foreground m-0 text-xl font-black">Consumer-gesteuerte Größen</h2>
-			<p class="text-muted m-0 text-sm">Die Fundstellen bestimmen Größe, Rahmen und responsive Breakpoints.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Consumer-controlled sizes</h2>
+			<p class="text-muted m-0 text-sm">Consumers control size, border, and responsive breakpoints.</p>
 		</header>
 
 		<div class="border-border bg-surface flex flex-wrap items-end gap-6 rounded-2xl border-2 p-6">
@@ -118,15 +118,15 @@
 	</section>
 </Story>
 
-<Story name="Laden und erneut versuchen" asChild>
+<Story name="Loading and retry" asChild>
 	<section class="grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
-			<h2 class="text-foreground m-0 text-xl font-black">Quellenwechsel</h2>
-			<p class="text-muted m-0 text-sm">Ein Wechsel der Quelle startet die Zustandsauflösung erneut.</p>
+			<h2 class="text-foreground m-0 text-xl font-black">Source changes</h2>
+			<p class="text-muted m-0 text-sm">Changing the source restarts state resolution.</p>
 		</header>
 
 		<div class="border-border bg-surface flex max-w-md items-center gap-4 rounded-2xl border-2 p-6">
-			<Avatar src={changingSource} alt="Wechselndes Beispielprofil" loading="eager" class="border-foreground size-14 border-2">
+			<Avatar src={changingSource} alt="Changing example profile" loading="eager" class="border-foreground size-14 border-2">
 				{#snippet fallback()}<span aria-hidden="true">LW</span>{/snippet}
 			</Avatar>
 			<div class="grid gap-2">
@@ -134,25 +134,25 @@
 					<button
 						type="button"
 						class="border-foreground bg-secondary text-secondary-foreground min-h-9 rounded-lg border-2 px-3 text-xs font-black"
-						onclick={showImage}>Bild laden</button
+						onclick={showImage}>Load image</button
 					>
 					<button
 						type="button"
 						class="border-foreground bg-surface min-h-9 rounded-lg border-2 px-3 text-xs font-black"
-						onclick={showError}>Fehler auslösen</button
+						onclick={showError}>Trigger error</button
 					>
 				</div>
-				<p class="text-muted m-0 text-xs">Eager Loading mit beschreibendem Alt-Text.</p>
+				<p class="text-muted m-0 text-xs">Eager loading with descriptive alt text.</p>
 			</div>
 		</div>
 	</section>
 </Story>
 
-<Story name="Dunkles Farbschema" asChild>
+<Story name="Dark color scheme" asChild>
 	<section data-theme="dark" class="bg-background text-foreground grid gap-5 p-6 sm:p-8">
 		<header class="grid gap-1">
 			<h2 class="m-0 text-xl font-black">GeoBingo Dark Theme</h2>
-			<p class="text-muted m-0 text-sm">Semantische Tokens passen Bildrahmen und Fallback automatisch an.</p>
+			<p class="text-muted m-0 text-sm">Semantic tokens automatically adapt the image border and fallback.</p>
 		</header>
 
 		<div class="border-border bg-surface flex flex-wrap gap-5 rounded-2xl border-2 p-6">
