@@ -298,7 +298,10 @@
 			</div>
 			<div class="border-foreground bg-background overflow-hidden rounded-2xl border-2 p-3 shadow-[var(--shadow-paper)]">
 				<Tabs.Root value="overview">
-					<Tabs.List aria-label="Mobile overflow example">
+					<Tabs.List
+						aria-label="Mobile overflow example"
+						class="overflow-x-auto overflow-y-hidden overscroll-x-contain px-[0.2rem]"
+					>
 						<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
 						<Tabs.Trigger value="recent">Recent activity</Tabs.Trigger>
 						<Tabs.Trigger value="documents">Shared documents</Tabs.Trigger>
