@@ -8,6 +8,7 @@
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
 	import UserRoundCheck from "@lucide/svelte/icons/user-round-check";
 	import { onMount } from "svelte";
+	import Avatar from "$lib/components/ui/Avatar.svelte";
 	import GoogleMaps, { type GoogleMapsController } from "$lib/components/ui/google-maps";
 	import {
 		VoteValue,
@@ -224,14 +225,14 @@
 				<div
 					class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 py-1 pr-2 pl-0.5 max-[390px]:flex max-[390px]:pb-2 min-[621px]:gap-3 min-[621px]:pr-3 min-[901px]:px-2 min-[901px]:pr-[18px]"
 				>
-					<div
-						class="border-foreground bg-accent relative grid size-[42px] shrink-0 place-items-center overflow-hidden rounded-full border-2 shadow-[2px_2px_0_var(--foreground)] min-[621px]:size-[54px] min-[901px]:size-[62px] min-[901px]:shadow-[3px_3px_0_var(--foreground)]"
-					>
-						{#if owner?.avatarUrl}
-							<img src={owner.avatarUrl} alt="" class="size-full object-cover" />
-						{:else}
-							<span class="font-[Fredoka_Variable] text-sm font-[650] min-[901px]:text-lg">{ownerInitials}</span>
-						{/if}
+					<div class="relative size-[42px] shrink-0 min-[621px]:size-[54px] min-[901px]:size-[62px]">
+						<Avatar
+							src={owner?.avatarUrl}
+							alt=""
+							class="border-foreground size-full border-2 font-[Fredoka_Variable] text-sm font-[650] min-[901px]:text-lg"
+						>
+							{#snippet fallback()}<span aria-hidden="true">{ownerInitials}</span>{/snippet}
+						</Avatar>
 						<span
 							class="border-surface bg-secondary absolute right-0 bottom-0 size-3 rounded-full border-2 min-[901px]:size-[15px]"
 							aria-hidden="true"

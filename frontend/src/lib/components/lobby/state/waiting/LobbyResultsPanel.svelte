@@ -6,6 +6,7 @@
 	import ThumbsDown from "@lucide/svelte/icons/thumbs-down";
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
 	import Trophy from "@lucide/svelte/icons/trophy";
+	import Avatar from "$lib/components/ui/Avatar.svelte";
 	import {
 		type CompletedRoundResults,
 		type CumulativePlayerResult,
@@ -27,9 +28,6 @@
 		results: ResultState;
 		actions: LobbyActions;
 	} = $props();
-	let failedAvatarKeys = $state<string[]>([]);
-	let loadedAvatarKeys = $state<string[]>([]);
-
 	const historicalView = $derived.by(() => {
 		if (results.selection.kind !== "round") return null;
 		return results.historicalRounds.get(results.selection.roundId) ?? null;
@@ -66,28 +64,6 @@
 		return roundResults?.players.find((player) => player.userId === userId) ?? null;
 	}
 
-	function avatarKey(player: ResultPlayer): string {
-		return `${player.userId}:${player.avatarUrl?.trim() ?? ""}`;
-	}
-
-	function hasAvatarSource(player: ResultPlayer): boolean {
-		return Boolean(player.avatarUrl?.trim()) && !failedAvatarKeys.includes(avatarKey(player));
-	}
-
-	function avatarIsLoaded(player: ResultPlayer): boolean {
-		return loadedAvatarKeys.includes(avatarKey(player));
-	}
-
-	function markAvatarLoaded(player: ResultPlayer): void {
-		const key = avatarKey(player);
-		if (!loadedAvatarKeys.includes(key)) loadedAvatarKeys = [...loadedAvatarKeys, key];
-	}
-
-	function markAvatarFailed(player: ResultPlayer): void {
-		const key = avatarKey(player);
-		if (!failedAvatarKeys.includes(key)) failedAvatarKeys = [...failedAvatarKeys, key];
-	}
-
 	function goalTitle(goalId: string): string {
 		return snapshot.gameMode.captureChallenge?.goals.find((goal) => goal.goalId === goalId)?.title ?? "Capture goal";
 	}
@@ -98,29 +74,18 @@
 </script>
 
 {#snippet playerAvatar(player: ResultPlayer | null, compact: boolean)}
-	<div
+	<Avatar
+		src={player?.avatarUrl}
+		alt=""
 		class={[
-			"border-foreground bg-accent text-accent-foreground relative grid shrink-0 place-items-center overflow-hidden rounded-full border-2 font-[Fredoka_Variable] font-[650]",
+			"border-foreground border-2 font-[Fredoka_Variable] font-[650]",
 			compact ? "size-8 text-[0.68rem]" : "size-10 text-xs sm:size-11 sm:text-sm"
 		]}
 	>
-		<span aria-hidden="true">{player ? getPlayerInitials(player.displayName, player.handle) : "?"}</span>
-		{#if player && hasAvatarSource(player)}
-			<img
-				src={player.avatarUrl}
-				alt=""
-				class={[
-					"absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-150 motion-reduce:transition-none",
-					avatarIsLoaded(player) && "opacity-100"
-				]}
-				loading="lazy"
-				decoding="async"
-				referrerpolicy="no-referrer"
-				onload={() => markAvatarLoaded(player)}
-				onerror={() => markAvatarFailed(player)}
-			/>
-		{/if}
-	</div>
+		{#snippet fallback()}
+			<span aria-hidden="true">{player ? getPlayerInitials(player.displayName, player.handle) : "?"}</span>
+		{/snippet}
+	</Avatar>
 {/snippet}
 
 <section
