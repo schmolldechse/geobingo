@@ -95,12 +95,11 @@
 			<p class="text-primary m-0 text-[0.64rem] font-black tracking-[0.14em] uppercase">Group</p>
 			<h2 id={titleId} class="mt-1 mb-0 flex flex-wrap items-center gap-2 text-lg leading-tight font-black">
 				Players
-				<span
-					class="bg-surface-muted inline-flex min-h-6 items-center rounded-full px-2 text-xs font-black"
-					aria-label={`${snapshot.members.length} of ${snapshot.settings.maxPlayers} player slots filled`}
-				>
-					{snapshot.members.length}/{snapshot.settings.maxPlayers}
-				</span>
+				<Badge
+					tone="neutral"
+					text={`${snapshot.members.length}/${snapshot.settings.maxPlayers}`}
+					class="shrink-0 text-xs! font-black"
+				/>
 			</h2>
 		</div>
 		<Users class="text-secondary shrink-0" size={22} aria-hidden="true" />

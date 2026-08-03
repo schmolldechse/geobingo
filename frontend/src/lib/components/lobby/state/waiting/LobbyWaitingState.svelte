@@ -25,6 +25,7 @@
 	import LobbyWaitingPlayerList from "./LobbyWaitingPlayerList.svelte";
 	import LobbyWaitingSettings from "./LobbyWaitingSettings.svelte";
 	import { getLobbyModeSummary } from "./lobby-waiting-presentation";
+	import Badge from "@/lib/components/ui/Badge.svelte";
 
 	type LobbyTab = "lobby" | "settings" | "results";
 	type InviteFeedback = "idle" | "code-copied" | "link-copied" | "shared";
@@ -262,11 +263,7 @@
 				<Tabs.Trigger value="results" class="max-sm:flex-1 max-sm:px-2 [&_svg]:max-sm:hidden">
 					<ChartNoAxesCombined size={18} aria-hidden="true" />
 					Results
-					<span
-						class="bg-surface-muted text-foreground inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[0.65rem] font-black"
-					>
-						{resultsCount}
-					</span>
+					<Badge tone="neutral" text={resultsCount.toLocaleString()} />
 				</Tabs.Trigger>
 			</Tabs.List>
 
