@@ -7,6 +7,7 @@
 	import UserRoundX from "@lucide/svelte/icons/user-round-x";
 	import Users from "@lucide/svelte/icons/users";
 	import Avatar from "$lib/components/ui/Avatar.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
@@ -137,20 +138,16 @@
 						<div class="flex min-w-0 flex-wrap items-center gap-1.5">
 							<p class="m-0 min-w-0 truncate text-sm font-black">{player.displayName}</p>
 							{#if isHost}
-								<span
-									class="bg-accent text-accent-foreground inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[0.62rem] leading-none font-black tracking-[0.04em] uppercase"
-								>
+								<Badge tone="accent" class="shrink-0 tracking-[0.04em] uppercase">
 									<Crown size={12} strokeWidth={2.5} aria-hidden="true" />
 									Host
-								</span>
+								</Badge>
 							{/if}
 							{#if isCurrentPlayer}
-								<span
-									class="bg-secondary text-secondary-foreground inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[0.62rem] leading-none font-black tracking-[0.04em] uppercase"
-								>
+								<Badge tone="secondary" class="shrink-0 tracking-[0.04em] uppercase">
 									<UserRound size={12} strokeWidth={2.5} aria-hidden="true" />
 									You
-								</span>
+								</Badge>
 							{/if}
 						</div>
 						<p class="text-muted mt-1 mb-0 truncate text-xs font-semibold">@{player.handle}</p>
