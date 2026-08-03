@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ fetch, params, parent }) => {
 	}).catch(() => null);
 
 	const [response, gameModeCatalogResponse] = await Promise.all([
-		fetch(apiUrl(`/api/v1/lobbies/resolve/${code}`), {
+		fetch(apiUrl(`/api/v1/lobbies/${code}`), {
 			credentials: "include",
 			headers: { accept: "application/json" }
 		}),

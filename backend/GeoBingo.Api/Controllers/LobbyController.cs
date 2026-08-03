@@ -42,10 +42,10 @@ public sealed class LobbyController(
                 new LobbySettings()));
         var response = lobbyRestMapper.MapCreated(runtime.ReadSummary());
 
-        return Created($"/api/lobbies/resolve/{response.Code}", response);
+        return Created($"/api/lobbies/{response.Code}", response);
     }
 
-    [HttpGet("resolve/{code}")]
+    [HttpGet("{code}")]
     [EndpointName("ResolveLobbyCode")]
     [EndpointSummary("Resolve an active lobby code")]
     [EndpointDescription("Returns only minimal, current-user-specific joinability information.")]
