@@ -1,5 +1,6 @@
 @import "@fontsource-variable/fredoka/wght.css";
 @import "@fontsource-variable/inter";
+@import "./styles/scrollbar.css";
 
 @import "tailwindcss";
 

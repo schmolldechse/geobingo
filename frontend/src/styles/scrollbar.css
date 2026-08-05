@@ -1,0 +1,90 @@
+:root {
+	--scrollbar-size: 0.75rem;
+	--scrollbar-track: color-mix(in srgb, var(--border) 42%, transparent);
+	--scrollbar-thumb: var(--secondary);
+	--scrollbar-thumb-hover: var(--primary);
+	--scrollbar-arrow: var(--secondary);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+	* {
+		scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+		scrollbar-width: auto;
+	}
+}
+
+*::-webkit-scrollbar {
+	width: var(--scrollbar-size);
+	height: var(--scrollbar-size);
+	background: transparent;
+}
+
+*::-webkit-scrollbar-track {
+	border-radius: 999px;
+	background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+	min-width: 2.5rem;
+	min-height: 2.5rem;
+	border: 2px solid var(--scrollbar-track);
+	border-radius: 999px;
+	background: var(--scrollbar-thumb);
+	background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background-color: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+	background-color: var(--foreground);
+}
+
+*::-webkit-scrollbar-button {
+	width: var(--scrollbar-size);
+	height: var(--scrollbar-size);
+	border-radius: 999px;
+	background-color: transparent;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 0.425rem 0.425rem;
+	color: var(--scrollbar-arrow);
+}
+
+*::-webkit-scrollbar-button:hover {
+	background-color: color-mix(in srgb, var(--primary) 16%, transparent);
+	color: var(--primary);
+}
+
+*::-webkit-scrollbar-button:active {
+	background-color: color-mix(in srgb, var(--foreground) 14%, transparent);
+	color: var(--foreground);
+}
+
+*::-webkit-scrollbar-button:horizontal:increment:start,
+*::-webkit-scrollbar-button:horizontal:decrement:end,
+*::-webkit-scrollbar-button:vertical:increment:start,
+*::-webkit-scrollbar-button:vertical:decrement:end {
+	display: none;
+}
+
+*::-webkit-scrollbar-button:horizontal:decrement {
+	background-image: conic-gradient(from 45deg at 30% 50%, currentColor 0 25%, transparent 0);
+}
+
+*::-webkit-scrollbar-button:horizontal:increment {
+	background-image: conic-gradient(from 225deg at 70% 50%, currentColor 0 25%, transparent 0);
+}
+
+*::-webkit-scrollbar-button:vertical:decrement {
+	background-image: conic-gradient(from 135deg at 50% 30%, currentColor 0 25%, transparent 0);
+}
+
+*::-webkit-scrollbar-button:vertical:increment {
+	background-image: conic-gradient(from 315deg at 50% 70%, currentColor 0 25%, transparent 0);
+}
+
+*::-webkit-scrollbar-corner {
+	background: transparent;
+}
