@@ -64,10 +64,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Round {preparation.roundNumber} starts soon - GeoBingo</title>
-</svelte:head>
-
 <main
 	class="preparing-screen bg-background text-foreground relative grid min-h-dvh place-items-center overflow-hidden px-4 py-7 text-center sm:h-dvh sm:min-h-0 sm:px-6 sm:py-8"
 	aria-label={`Preparing Round ${preparation.roundNumber} in ${preparation.modeDisplayName}`}
