@@ -5,14 +5,12 @@
 	let {
 		slots,
 		selectedGoalId,
-		roundNumber,
 		sheetOpen,
 		onselect,
 		ontoggle
 	}: {
 		slots: CaptureChallengeCaptureSlotProjection[];
 		selectedGoalId: string | null;
-		roundNumber: number;
 		sheetOpen: boolean;
 		onselect: (goalId: string) => void;
 		ontoggle: () => void;

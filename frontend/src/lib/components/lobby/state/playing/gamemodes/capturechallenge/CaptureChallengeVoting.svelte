@@ -2,7 +2,6 @@
 	import Camera from "@lucide/svelte/icons/camera";
 	import Check from "@lucide/svelte/icons/check";
 	import Clock3 from "@lucide/svelte/icons/clock-3";
-	import Eye from "@lucide/svelte/icons/eye";
 	import MapPinned from "@lucide/svelte/icons/map-pinned";
 	import ThumbsDown from "@lucide/svelte/icons/thumbs-down";
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
@@ -64,13 +63,6 @@
 		!currentCapture || currentCapture.isOwner || slotClosed || lobby.connectionStatus !== "connected" || mutationPending
 	);
 	const panoramaUnavailable = $derived(googleMaps?.streetViewState === "unavailable");
-	const voteAnnouncement = $derived.by(() => {
-		if (!currentCapture || currentCapture.isOwner) return "";
-		if (mutationPending) return "Saving your vote.";
-		if (currentCapture.selectedValue === VoteValue.GOOD) return "Good vote saved.";
-		if (currentCapture.selectedValue === VoteValue.BAD) return "Bad vote saved.";
-		return "No vote submitted for this capture yet.";
-	});
 
 	function formatCountdown(totalSeconds: number): string {
 		const minutes = Math.floor(totalSeconds / 60);
@@ -194,14 +186,6 @@
 		</div>
 
 		{#if currentCapture}
-			<div
-				class="pointer-events-none absolute top-[22px] left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-black/20 bg-white/90 px-3 py-2 text-[0.68rem] font-bold text-[#3c3933] shadow-[0_3px_12px_rgb(36_33_28/0.14)] max-[900px]:hidden"
-				aria-hidden="true"
-			>
-				<Eye size={14} />
-				Fixed Street View · pan and zoom only
-			</div>
-
 			<section
 				class="border-foreground bg-surface/96 absolute right-2.5 bottom-[calc(2rem+env(safe-area-inset-bottom,0px))] left-2.5 z-30 grid min-h-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-0 rounded-[18px] border-2 p-2.5 shadow-[3px_3px_0_var(--foreground),0_10px_32px_rgb(36_33_28/0.2)] backdrop-blur-xl max-[390px]:grid-cols-1 min-[621px]:right-3.5 min-[621px]:bottom-10 min-[621px]:left-3.5 min-[621px]:rounded-[20px] min-[621px]:p-3 min-[901px]:right-[clamp(18px,3vw,46px)] min-[901px]:bottom-12 min-[901px]:left-[clamp(18px,3vw,46px)] min-[901px]:mx-auto min-[901px]:max-w-[1140px] min-[901px]:grid-cols-[minmax(210px,0.8fr)_minmax(285px,1.35fr)_auto] min-[901px]:rounded-[23px] min-[901px]:shadow-[5px_5px_0_var(--foreground),0_16px_46px_rgb(36_33_28/0.22)]"
 				aria-labelledby="current-capture-heading"
@@ -226,7 +210,7 @@
 						<p
 							class="text-secondary m-0 text-[0.48rem] font-black tracking-[0.12em] uppercase min-[621px]:text-[0.58rem] min-[901px]:text-[0.61rem]"
 						>
-							{currentCapture.isOwner ? "Your submission" : "Submitted by"}
+							Submitted by
 						</p>
 						<h2
 							class="m-0 overflow-hidden font-[Fredoka_Variable] text-[0.88rem] font-[650] text-ellipsis whitespace-nowrap min-[621px]:text-base min-[901px]:text-lg"
@@ -324,17 +308,6 @@
 					</div>
 				{/if}
 			</section>
-
-			{#if !currentCapture.isOwner && currentCapture.selectedValue !== undefined && currentCapture.selectedValue !== null}
-				<div
-					class="border-foreground bg-accent text-accent-foreground absolute left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border-2 px-3 py-2 text-[0.65rem] font-black shadow-[3px_3px_0_var(--foreground)] max-[620px]:bottom-[calc(12rem+env(safe-area-inset-bottom,0px))] min-[621px]:bottom-[219px] min-[901px]:bottom-[184px]"
-				>
-					<Check size={16} strokeWidth={2.6} aria-hidden="true" />
-					{currentCapture.selectedValue === VoteValue.GOOD ? "Good" : "Bad"} vote saved
-				</div>
-			{/if}
 		{/if}
-
-		<p class="sr-only" aria-live="polite">{voteAnnouncement}</p>
 	</section>
 </main>

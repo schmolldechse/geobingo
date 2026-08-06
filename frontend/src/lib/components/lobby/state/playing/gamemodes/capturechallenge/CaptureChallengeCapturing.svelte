@@ -8,7 +8,6 @@
 		CaptureChallengePersonalProjection,
 		CaptureChallengePublicProjection
 	} from "$lib/generated/realtime/GeoBingo.Contracts.GameModes.CaptureChallenge";
-	import type { LobbySnapshot } from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 	import type { LobbyActions } from "$lib/lobbies/lobby-actions";
 	import type { LobbyState } from "$lib/lobbies/lobby-state.svelte";
 	import CaptureActionDock from "./CaptureActionDock.svelte";
@@ -16,13 +15,11 @@
 
 	let {
 		lobby,
-		snapshot,
 		capture,
 		personalCapture,
 		actions
 	}: {
 		lobby: LobbyState;
-		snapshot: LobbySnapshot;
 		capture: CaptureChallengePublicProjection;
 		personalCapture: CaptureChallengePersonalProjection;
 		actions: LobbyActions;
@@ -38,7 +35,6 @@
 		[...personalCapture.captureSlots].sort((left, right) => left.goal.displayOrder - right.goal.displayOrder)
 	);
 	const selectedSlot = $derived(slots.find((slot) => slot.goal.goalId === selectedGoalId) ?? slots[0] ?? null);
-	const roundNumber = $derived(snapshot.currentRound?.roundNumber ?? 0);
 	const captureEndsAtMs = $derived.by(() => {
 		const parsed = capture.captureEndsAt ? new Date(capture.captureEndsAt).getTime() : Number.NaN;
 		return Number.isFinite(parsed) ? parsed : null;
@@ -47,13 +43,6 @@
 	const remainingSeconds = $derived(captureEndsAtMs === null ? 0 : Math.max(0, Math.ceil((captureEndsAtMs - nowMs) / 1000)));
 	const countdown = $derived(formatCountdown(remainingSeconds));
 	const mapActive = $derived(googleMaps?.view !== "street-view");
-	const surfaceAnnouncement = $derived.by(() => {
-		if (!googleMaps || googleMaps.loadState === "idle" || googleMaps.loadState === "loading") return "Loading Google Maps.";
-		if (googleMaps.loadState === "error") return "Google Maps could not be loaded.";
-		if (googleMaps.streetViewState === "unavailable") return "Street View imagery is unavailable at this location.";
-		if (googleMaps.streetViewState === "loading") return "Loading the Street View position.";
-		return mapActive ? "Map active. Use Pegman to enter Street View." : "Street View active.";
-	});
 
 	function formatCountdown(totalSeconds: number): string {
 		const hours = Math.floor(totalSeconds / 3600);
@@ -158,7 +147,6 @@
 		<CaptureGoalsPanel
 			{slots}
 			selectedGoalId={selectedSlot?.goal.goalId ?? null}
-			{roundNumber}
 			{sheetOpen}
 			onselect={selectGoal}
 			ontoggle={() => (sheetOpen = !sheetOpen)}
@@ -167,7 +155,5 @@
 		{#if selectedSlot}
 			<CaptureActionDock {lobby} {actions} slot={selectedSlot} {googleMaps} {captureDeadlineReached} {sheetOpen} />
 		{/if}
-
-		<p class="sr-only" aria-live="polite">{surfaceAnnouncement}</p>
 	</section>
 </main>
