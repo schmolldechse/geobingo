@@ -15,14 +15,14 @@
 		slot,
 		googleMaps,
 		captureDeadlineReached,
-		sheetOpen
+		panelOpen
 	}: {
 		lobby: LobbyState;
 		actions: LobbyActions;
 		slot: CaptureChallengeCaptureSlotProjection;
 		googleMaps: GoogleMapsController | null;
 		captureDeadlineReached: boolean;
-		sheetOpen: boolean;
+		panelOpen: boolean;
 	} = $props();
 
 	const slotIncompatible = $derived(Boolean(slot.captureId) !== Boolean(slot.position));
@@ -67,11 +67,11 @@
 
 <section
 	class={[
-		"border-foreground bg-surface/95 pointer-events-auto absolute z-10 grid w-[min(520px,calc(100%_-_420px))] min-w-[380px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-[19px] border-2 px-3.5 py-3 shadow-[4px_4px_0_var(--foreground)] backdrop-blur-xl transition-[bottom,opacity] duration-200 motion-reduce:transition-none",
-		"bottom-[22px] left-[calc(50%_-_84px)] -translate-x-1/2",
-		"max-[980px]:left-[calc(50%_-_128px)] max-[980px]:w-[min(430px,calc(100%_-_360px))] max-[980px]:min-w-[330px]",
-		"max-[700px]:right-3 max-[700px]:bottom-[207px] max-[700px]:left-3 max-[700px]:w-auto max-[700px]:min-w-0 max-[700px]:translate-x-0 max-[700px]:gap-2.5 max-[700px]:rounded-[17px] max-[700px]:p-2.5 max-[700px]:shadow-[3px_3px_0_var(--foreground)]",
-		sheetOpen && "max-[700px]:pointer-events-none max-[700px]:opacity-0"
+		"border-border bg-surface/95 pointer-events-auto absolute bottom-[22px] left-1/2 z-10 grid min-h-[78px] w-[min(520px,calc(100%_-_36px))] -translate-x-1/2 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-[14px] border px-3.5 py-2.5 shadow-[0_18px_50px_rgb(0_0_0/0.18)] backdrop-blur-xl transition-[bottom] duration-200 motion-reduce:transition-none",
+		"max-[900px]:gap-2.5 max-[900px]:px-3",
+		"max-[700px]:right-3 max-[700px]:left-3 max-[700px]:min-h-[70px] max-[700px]:w-auto max-[700px]:translate-x-0 max-[700px]:gap-2.5 max-[700px]:rounded-xl max-[700px]:p-2 max-[700px]:pl-3",
+		"max-[420px]:right-2 max-[420px]:left-2",
+		panelOpen ? "max-[700px]:bottom-[188px] max-[420px]:bottom-[176px]" : "max-[700px]:bottom-[92px] max-[420px]:bottom-[84px]"
 	]}
 	aria-labelledby="active-capture-goal"
 	data-capture-dock
@@ -92,7 +92,7 @@
 	</div>
 
 	<Button
-		class="min-h-[46px] shrink-0 rounded-[13px] px-4 text-xs max-[700px]:min-h-[42px] max-[700px]:px-3 max-[700px]:text-[0.625rem]"
+		class="min-h-[50px] shrink-0 rounded-[10px] px-4 text-xs max-[700px]:min-h-12 max-[700px]:px-3 max-[700px]:text-[0.68rem]"
 		disabled={primaryDisabled}
 		onclick={() => void saveCapture()}
 	>
@@ -102,7 +102,8 @@
 			Capture unavailable
 		{:else if !streetViewReady}
 			<Save size={17} aria-hidden="true" />
-			<span><span class="max-[460px]:hidden">Enter Street View to </span>save</span>
+			<span class="max-[900px]:hidden">Enter Street View to save</span>
+			<span class="hidden max-[900px]:inline">Save</span>
 		{:else if acceptedCapture && !draftDiffersFromAccepted}
 			<Check size={17} aria-hidden="true" />
 			Saved

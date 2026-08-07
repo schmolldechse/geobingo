@@ -1,74 +1,89 @@
 <script lang="ts">
 	import Check from "@lucide/svelte/icons/check";
+	import ChevronRight from "@lucide/svelte/icons/chevron-right";
 	import type { CaptureChallengeCaptureSlotProjection } from "$lib/generated/realtime/GeoBingo.Contracts.GameModes.CaptureChallenge";
 
 	let {
 		slots,
 		selectedGoalId,
-		sheetOpen,
+		open,
 		onselect,
 		ontoggle
 	}: {
 		slots: CaptureChallengeCaptureSlotProjection[];
 		selectedGoalId: string | null;
-		sheetOpen: boolean;
+		open: boolean;
 		onselect: (goalId: string) => void;
 		ontoggle: () => void;
 	} = $props();
 
+	const factorFormatter = new Intl.NumberFormat("en-US", {
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1
+	});
 	const capturedCount = $derived(slots.filter(isCaptured).length);
 
 	function isCaptured(slot: CaptureChallengeCaptureSlotProjection): boolean {
 		return Boolean(slot.captureId && slot.position);
 	}
-
-	function stateLabel(slot: CaptureChallengeCaptureSlotProjection): string {
-		const selected = slot.goal.goalId === selectedGoalId;
-		const captured = isCaptured(slot);
-
-		if (selected) return captured ? "Current · submitted" : "Current goal";
-		return captured ? "Capture submitted" : "Not captured";
-	}
 </script>
 
 <aside
 	class={[
-		"border-foreground bg-surface/95 pointer-events-auto absolute z-20 grid border-2 p-4 shadow-[4px_4px_0_var(--foreground)] backdrop-blur-xl transition-[height] duration-200 motion-reduce:transition-none",
-		"top-[18px] right-[18px] bottom-[18px] w-[min(324px,calc(100vw-36px))] grid-rows-[auto_minmax(0,1fr)] rounded-[22px]",
-		"max-[700px]:top-auto max-[700px]:right-3 max-[700px]:bottom-3 max-[700px]:left-3 max-[700px]:w-auto max-[700px]:grid-rows-[auto_auto_minmax(0,1fr)] max-[700px]:rounded-[21px] max-[700px]:p-[8px_10px_10px] max-[700px]:shadow-[3px_3px_0_var(--foreground)]",
-		sheetOpen ? "max-[700px]:h-[min(54svh,430px)]" : "max-[700px]:h-[184px]"
+		"border-border bg-surface/95 border-t-secondary pointer-events-auto absolute z-20 grid overflow-hidden border shadow-[0_18px_50px_rgb(0_0_0/0.18)] backdrop-blur-xl transition-[top,right,bottom,width,height,transform,border-radius] duration-200 motion-reduce:transition-none",
+		"max-[700px]:top-auto max-[700px]:right-3 max-[700px]:bottom-3 max-[700px]:left-3 max-[700px]:w-auto max-[700px]:grid-rows-[auto_minmax(0,1fr)] max-[700px]:rounded-xl max-[700px]:border-t-4 max-[420px]:right-2 max-[420px]:bottom-2 max-[420px]:left-2",
+		open
+			? "max-[700px]:h-[166px] max-[420px]:h-[160px] min-[701px]:top-[18px] min-[701px]:right-[18px] min-[701px]:bottom-auto min-[701px]:h-[calc(100%_-_36px)] min-[701px]:w-[min(324px,calc(100vw-36px))] min-[701px]:grid-rows-[auto_minmax(0,1fr)] min-[701px]:rounded-[10px] min-[701px]:border-t-4"
+			: "max-[700px]:h-[68px] min-[701px]:top-1/2 min-[701px]:right-0 min-[701px]:bottom-auto min-[701px]:h-[198px] min-[701px]:w-[58px] min-[701px]:-translate-y-1/2 min-[701px]:grid-rows-1 min-[701px]:rounded-l-[10px] min-[701px]:border-r-0"
 	]}
-	aria-labelledby="capture-goals-heading"
+	aria-label="Goals panel"
 	data-capture-goals
-	data-sheet-open={sheetOpen}
+	data-panel-open={open}
 >
-	<button
-		type="button"
-		class="hidden h-[22px] w-full cursor-pointer place-items-center border-0 bg-transparent before:block before:h-1 before:w-[42px] before:rounded-full before:bg-[var(--border)] before:content-[''] max-[700px]:grid"
-		aria-label={sheetOpen ? "Collapse goals" : "Expand goals"}
-		aria-expanded={sheetOpen}
-		onclick={ontoggle}
-	></button>
+	<header
+		class={[
+			"border-border grid min-h-[76px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-3.5 py-3",
+			"max-[700px]:min-h-[62px] max-[700px]:px-3 max-[700px]:py-2",
+			!open && "max-[700px]:border-b-0 min-[701px]:hidden"
+		]}
+	>
+		<div class="min-w-0">
+			<h1
+				id="capture-goals-heading"
+				class="m-0 font-[Fredoka_Variable] text-[1.32rem] leading-none font-[650] tracking-[-0.035em] max-[700px]:text-lg"
+			>
+				Goals
+			</h1>
+			<p class="text-muted m-0 mt-1 text-[0.68rem] leading-none font-bold">
+				{capturedCount} of {slots.length} captured
+			</p>
+		</div>
 
-	<header class="flex items-end justify-between gap-3 px-0.5 pt-0.5 pb-3.5 max-[700px]:items-center max-[700px]:pb-2">
-		<h1
-			id="capture-goals-heading"
-			class="m-0 font-[Fredoka_Variable] text-[1.56rem] leading-none font-[650] tracking-[-0.035em] max-[700px]:text-xl"
+		<button
+			type="button"
+			class="border-border text-muted hover:bg-surface-muted hover:text-foreground focus-visible:outline-ring grid size-9 cursor-pointer place-items-center rounded-full border bg-transparent transition-colors focus-visible:outline-3 focus-visible:outline-offset-2"
+			aria-label={open ? "Collapse goals" : "Expand goals"}
+			aria-expanded={open}
+			aria-controls="capture-goals-list"
+			onclick={ontoggle}
 		>
-			Goals
-		</h1>
-		<span
-			class="border-foreground bg-accent text-accent-foreground inline-flex shrink-0 items-center gap-1 rounded-full border-2 px-2.5 py-1.5 text-[0.68rem] leading-none font-black"
-		>
-			{capturedCount}/{slots.length} captured
-		</span>
+			<ChevronRight
+				size={18}
+				class={[
+					"transition-transform duration-200 motion-reduce:transition-none",
+					open ? "max-[700px]:-rotate-90" : "max-[700px]:rotate-90"
+				]}
+				aria-hidden="true"
+			/>
+		</button>
 	</header>
 
 	<div
+		id="capture-goals-list"
 		class={[
-			"grid content-start gap-2.5 overflow-y-auto pt-0.5 pr-1.5 pb-2 pl-0.5",
-			"max-[700px]:flex max-[700px]:gap-2 max-[700px]:overflow-x-auto max-[700px]:overflow-y-hidden max-[700px]:scroll-smooth max-[700px]:pr-1 max-[700px]:pb-2",
-			sheetOpen && "max-[700px]:grid max-[700px]:overflow-x-hidden max-[700px]:overflow-y-auto"
+			"min-h-0 overflow-y-auto overscroll-contain",
+			"max-[700px]:flex max-[700px]:snap-x max-[700px]:snap-proximity max-[700px]:overflow-x-auto max-[700px]:overflow-y-hidden max-[700px]:scroll-smooth max-[700px]:pb-1",
+			!open && "hidden max-[700px]:hidden"
 		]}
 		role="list"
 		aria-label="Round goals"
@@ -76,29 +91,30 @@
 		{#each slots as slot, index (slot.goal.goalId)}
 			{@const selected = slot.goal.goalId === selectedGoalId}
 			{@const captured = isCaptured(slot)}
+			{@const formattedFactor = factorFormatter.format(slot.goal.scoreFactor)}
 			<button
 				type="button"
 				class={[
-					"text-foreground relative grid min-h-[68px] w-full cursor-pointer grid-cols-[34px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-[15px] border-2 p-2.5 text-left transition-[transform,background-color,border-color,box-shadow] duration-150 motion-reduce:transition-none",
-					"border-border bg-surface-muted hover:border-foreground hover:-translate-y-px",
-					selected && "border-foreground bg-secondary text-secondary-foreground shadow-[3px_3px_0_var(--foreground)]",
-					"max-[700px]:min-h-16 max-[700px]:w-[min(72vw,252px)] max-[700px]:min-w-[min(72vw,252px)] max-[700px]:flex-none",
-					sheetOpen && "max-[700px]:w-full max-[700px]:min-w-0"
+					"border-border text-foreground hover:bg-secondary/10 focus-visible:outline-ring relative grid min-h-[68px] w-full cursor-pointer grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-2.5 border-0 border-b bg-transparent px-3.5 py-2.5 text-left transition-colors last:border-b-0 focus-visible:z-10 focus-visible:outline-3 focus-visible:outline-offset-[-3px]",
+					selected && "bg-primary/10",
+					"max-[700px]:min-h-[92px] max-[700px]:w-[min(72vw,236px)] max-[700px]:min-w-[min(72vw,236px)] max-[700px]:flex-none max-[700px]:snap-start max-[700px]:border-r max-[700px]:border-b-0 max-[700px]:px-3 max-[700px]:last:border-r-0"
 				]}
+				data-goal-id={slot.goal.goalId}
 				data-submitted={captured}
 				aria-pressed={selected}
 				onclick={() => onselect(slot.goal.goalId)}
 			>
+				{#if selected}
+					<span class="bg-primary absolute top-2.5 bottom-2.5 left-0 w-[3px] rounded-r" aria-hidden="true"></span>
+				{/if}
+
 				{#if captured}
-					<span
-						class="border-foreground bg-accent text-accent-foreground grid size-8 place-items-center rounded-[10px] border-2"
-						aria-label="Capture submitted"
-					>
-						<Check size={17} strokeWidth={3} aria-hidden="true" />
+					<span class="bg-accent text-accent-foreground grid size-7 place-items-center rounded-full" aria-label="Captured">
+						<Check size={16} strokeWidth={3} aria-hidden="true" />
 					</span>
 				{:else}
 					<span
-						class="grid size-8 place-items-center rounded-[10px] border-2 border-current font-[Fredoka_Variable] text-sm font-[650]"
+						class="border-border text-muted grid size-7 place-items-center rounded-full border font-[Fredoka_Variable] text-xs font-[650]"
 						aria-hidden="true"
 					>
 						{index + 1}
@@ -106,22 +122,38 @@
 				{/if}
 
 				<span class="min-w-0">
-					<span class="block truncate text-[0.8rem] leading-tight font-black">{slot.goal.title}</span>
-					<span
-						class={[
-							"text-muted mt-1 block text-[0.625rem] leading-none font-bold tracking-[0.07em] uppercase",
-							selected && "text-secondary-foreground/70"
-						]}
-					>
-						{stateLabel(slot)}
-					</span>
+					<span class="block text-[0.78rem] leading-tight font-extrabold">{slot.goal.title}</span>
 				</span>
 
 				<span
-					class={["bg-border size-2 rounded-full", captured && "bg-accent shadow-[0_0_0_2px_var(--foreground)]"]}
-					aria-hidden="true"
-				></span>
+					class="border-border text-muted rounded-full border px-1.5 py-1 text-[0.6rem] leading-none font-extrabold tabular-nums"
+					aria-label={`Score factor ${formattedFactor}`}
+				>
+					× {formattedFactor}
+				</span>
 			</button>
 		{/each}
 	</div>
+
+	<button
+		type="button"
+		class={[
+			"text-foreground hover:bg-surface-muted focus-visible:outline-ring hidden h-full w-full cursor-pointer flex-col items-center justify-between gap-2 border-0 bg-transparent px-2 py-3 focus-visible:outline-3 focus-visible:outline-offset-[-4px]",
+			!open && "min-[701px]:flex"
+		]}
+		aria-label="Expand goals"
+		aria-expanded={open}
+		aria-controls="capture-goals-list"
+		onclick={ontoggle}
+	>
+		<span class="text-muted text-[0.58rem] leading-none font-extrabold tabular-nums">{capturedCount} / {slots.length}</span>
+		<span
+			class="rotate-180 font-[Fredoka_Variable] text-sm leading-none font-[650] tracking-[0.02em] [writing-mode:vertical-rl]"
+		>
+			Goals
+		</span>
+		<span class="border-border grid size-8 place-items-center rounded-full border" aria-hidden="true">
+			<ChevronRight size={17} class="rotate-180" />
+		</span>
+	</button>
 </aside>

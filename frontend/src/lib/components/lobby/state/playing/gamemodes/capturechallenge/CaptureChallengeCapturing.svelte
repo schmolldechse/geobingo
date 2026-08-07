@@ -28,8 +28,9 @@
 	// Assigned by Svelte's component binding; TypeScript cannot observe that assignment in script control flow.
 	let googleMaps = $state<GoogleMapsController | null>(null as GoogleMapsController | null);
 	let selectedGoalId = $state<string | null>(null);
-	let sheetOpen = $state(false);
+	let panelOpen = $state(true);
 	let nowMs = $state(Date.now());
+	const mobilePanelQuery = "(max-width: 700px)";
 
 	const slots = $derived(
 		[...personalCapture.captureSlots].sort((left, right) => left.goal.displayOrder - right.goal.displayOrder)
@@ -56,7 +57,7 @@
 
 	function selectGoal(goalId: string): void {
 		selectedGoalId = goalId;
-		sheetOpen = false;
+		if (window.matchMedia(mobilePanelQuery).matches) panelOpen = false;
 	}
 
 	$effect(() => {
@@ -71,6 +72,8 @@
 	});
 
 	onMount(() => {
+		if (window.matchMedia(mobilePanelQuery).matches) panelOpen = false;
+
 		const interval = window.setInterval(() => {
 			nowMs = Date.now();
 		}, 250);
@@ -147,13 +150,13 @@
 		<CaptureGoalsPanel
 			{slots}
 			selectedGoalId={selectedSlot?.goal.goalId ?? null}
-			{sheetOpen}
+			open={panelOpen}
 			onselect={selectGoal}
-			ontoggle={() => (sheetOpen = !sheetOpen)}
+			ontoggle={() => (panelOpen = !panelOpen)}
 		/>
 
 		{#if selectedSlot}
-			<CaptureActionDock {lobby} {actions} slot={selectedSlot} {googleMaps} {captureDeadlineReached} {sheetOpen} />
+			<CaptureActionDock {lobby} {actions} slot={selectedSlot} {googleMaps} {captureDeadlineReached} {panelOpen} />
 		{/if}
 	</section>
 </main>
