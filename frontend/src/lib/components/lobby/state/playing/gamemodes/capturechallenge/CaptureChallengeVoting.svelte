@@ -193,19 +193,15 @@
 				<div
 					class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 py-1 pr-2 pl-0.5 max-[390px]:flex max-[390px]:pb-2 min-[621px]:gap-3 min-[621px]:pr-3 min-[901px]:px-2 min-[901px]:pr-[18px]"
 				>
-					<div class="relative size-[42px] shrink-0 min-[621px]:size-[54px] min-[901px]:size-[62px]">
-						<Avatar
-							src={owner?.avatarUrl}
-							alt=""
-							class="border-foreground size-full border-2 font-[Fredoka_Variable] text-sm font-[650] min-[901px]:text-lg"
-						>
-							{#snippet fallback()}<span aria-hidden="true">{ownerInitials}</span>{/snippet}
-						</Avatar>
-						<span
-							class="border-surface bg-secondary absolute right-0 bottom-0 size-3 rounded-full border-2 min-[901px]:size-[15px]"
-							aria-hidden="true"
-						></span>
-					</div>
+					<Avatar
+						src={owner?.avatarUrl}
+						alt=""
+						class="border-foreground size-[42px] border-2 font-[Fredoka_Variable] text-sm font-[650] min-[621px]:size-[54px] min-[901px]:size-[62px] min-[901px]:text-lg"
+					>
+						{#snippet fallback()}
+							<span aria-hidden="true">{ownerInitials}</span>
+						{/snippet}
+					</Avatar>
 					<div class="min-w-0">
 						<p
 							class="text-secondary m-0 text-[0.48rem] font-black tracking-[0.12em] uppercase min-[621px]:text-[0.58rem] min-[901px]:text-[0.61rem]"
