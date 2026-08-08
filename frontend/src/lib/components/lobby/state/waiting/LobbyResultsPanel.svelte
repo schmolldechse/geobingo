@@ -16,6 +16,7 @@
 	} from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 	import type { LobbyActions } from "$lib/lobbies/lobby-actions";
 	import type { ResultState } from "$lib/lobbies/result-state.svelte";
+	import { getRoundSelection, isRoundSelected } from "./lobby-results-navigation";
 	import { getPlayerInitials } from "./lobby-waiting-presentation";
 
 	type ResultPlayer = PlayerRoundResult | CumulativePlayerResult;
@@ -103,50 +104,69 @@
 			<p class="text-muted mt-1 mb-0 text-sm">Review the overall standings or a completed round.</p>
 		</div>
 
-		<nav class="grid gap-2" aria-label="Result views">
+		<nav class="grid gap-3" aria-label="Result views">
 			<button
 				type="button"
-				class="border-border bg-surface-muted hover:border-foreground flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 text-left text-sm font-black transition-colors"
-				class:border-foreground={results.selection.kind === "cumulative"}
-				class:bg-accent={results.selection.kind === "cumulative"}
+				class={[
+					"flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left text-sm font-black transition-[transform,background-color,color,border-color,box-shadow] motion-reduce:transition-none",
+					results.selection.kind === "cumulative"
+						? "border-foreground bg-secondary text-secondary-foreground shadow-[2px_2px_0_var(--foreground)]"
+						: "border-border bg-surface hover:border-foreground hover:bg-secondary/10"
+				]}
+				aria-current={results.selection.kind === "cumulative" ? "page" : undefined}
 				onclick={() => void actions.selectResults({ kind: "cumulative" })}
 			>
-				<ChartNoAxesCombined size={18} aria-hidden="true" />
-				Overall standings
+				<span
+					class={[
+						"grid size-8 shrink-0 place-items-center rounded-lg",
+						results.selection.kind === "cumulative"
+							? "bg-secondary-foreground/15 text-secondary-foreground"
+							: "bg-secondary/15 text-secondary"
+					]}
+					aria-hidden="true"
+				>
+					<ChartNoAxesCombined size={18} />
+				</span>
+				<span class="min-w-0 flex-1">Overall standings</span>
 			</button>
-			<button
-				type="button"
-				class="border-border bg-surface-muted hover:border-foreground flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 text-left text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-				class:border-foreground={results.selection.kind === "latest"}
-				class:bg-accent={results.selection.kind === "latest"}
-				disabled={completedRounds.length === 0}
-				onclick={() => void actions.selectResults({ kind: "latest" })}
-			>
-				<Trophy size={18} aria-hidden="true" />
-				Latest round
-			</button>
-		</nav>
 
-		{#if completedRounds.length > 0}
-			<div class="border-border grid gap-2 border-t-2 border-dashed pt-3">
-				<p class="text-muted m-0 text-[0.62rem] font-black tracking-[0.12em] uppercase">Round history</p>
-				<div class="flex flex-wrap gap-2">
-					{#each completedRounds as round (round.roundId)}
-						<button
-							type="button"
-							class="border-border bg-surface hover:border-foreground min-h-9 cursor-pointer rounded-lg border-2 px-3 text-xs font-black"
-							class:border-foreground={results.selection.kind === "round" && results.selection.roundId === round.roundId}
-							class:bg-secondary={results.selection.kind === "round" && results.selection.roundId === round.roundId}
-							class:text-secondary-foreground={results.selection.kind === "round" &&
-								results.selection.roundId === round.roundId}
-							onclick={() => void actions.selectResults({ kind: "round", roundId: round.roundId })}
-						>
-							Round {round.roundNumber}
-						</button>
-					{/each}
+			{#if completedRounds.length > 0}
+				<div class="border-border grid gap-2 border-t-2 border-dashed pt-3">
+					<p class="text-muted m-0 text-[0.62rem] font-black tracking-[0.12em] uppercase">Completed rounds</p>
+					<div class="grid gap-2">
+						{#each completedRounds as round, index (round.roundId)}
+							{@const isLatest = index === 0}
+							{@const selected = isRoundSelected(results.selection, round.roundId, isLatest)}
+							<button
+								type="button"
+								class={[
+									"flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left text-sm font-black transition-[transform,background-color,color,border-color,box-shadow] motion-reduce:transition-none",
+									selected
+										? "border-foreground bg-secondary text-secondary-foreground shadow-[2px_2px_0_var(--foreground)]"
+										: "border-border bg-surface hover:border-foreground hover:bg-secondary/10"
+								]}
+								aria-current={selected ? "page" : undefined}
+								onclick={() => void actions.selectResults(getRoundSelection(round.roundId, isLatest))}
+							>
+								<span
+									class={[
+										"grid size-8 shrink-0 place-items-center rounded-lg font-[Fredoka_Variable] text-sm font-[650]",
+										selected ? "bg-secondary-foreground/15 text-secondary-foreground" : "bg-primary/10 text-primary"
+									]}
+									aria-hidden="true"
+								>
+									{round.roundNumber}
+								</span>
+								<span class="min-w-0 flex-1">Round {round.roundNumber}</span>
+								{#if isLatest}
+									<Badge tone="accent" text="Latest" class="shrink-0" />
+								{/if}
+							</button>
+						{/each}
+					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
+		</nav>
 	</aside>
 
 	<div class="border-border bg-surface min-h-0 rounded-2xl border-2 p-3.5 min-[900px]:overflow-y-auto sm:p-5">
