@@ -6,6 +6,8 @@
 	import ThumbsDown from "@lucide/svelte/icons/thumbs-down";
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
 	import Trophy from "@lucide/svelte/icons/trophy";
+	import Avatar from "$lib/components/ui/Avatar.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import {
 		type CompletedRoundResults,
 		type CumulativePlayerResult,
@@ -14,6 +16,7 @@
 	} from "$lib/generated/realtime/GeoBingo.Contracts.Lobbies";
 	import type { LobbyActions } from "$lib/lobbies/lobby-actions";
 	import type { ResultState } from "$lib/lobbies/result-state.svelte";
+	import { getRoundSelection, isRoundSelected } from "./lobby-results-navigation";
 	import { getPlayerInitials } from "./lobby-waiting-presentation";
 
 	type ResultPlayer = PlayerRoundResult | CumulativePlayerResult;
@@ -27,9 +30,6 @@
 		results: ResultState;
 		actions: LobbyActions;
 	} = $props();
-	let failedAvatarKeys = $state<string[]>([]);
-	let loadedAvatarKeys = $state<string[]>([]);
-
 	const historicalView = $derived.by(() => {
 		if (results.selection.kind !== "round") return null;
 		return results.historicalRounds.get(results.selection.roundId) ?? null;
@@ -66,28 +66,6 @@
 		return roundResults?.players.find((player) => player.userId === userId) ?? null;
 	}
 
-	function avatarKey(player: ResultPlayer): string {
-		return `${player.userId}:${player.avatarUrl?.trim() ?? ""}`;
-	}
-
-	function hasAvatarSource(player: ResultPlayer): boolean {
-		return Boolean(player.avatarUrl?.trim()) && !failedAvatarKeys.includes(avatarKey(player));
-	}
-
-	function avatarIsLoaded(player: ResultPlayer): boolean {
-		return loadedAvatarKeys.includes(avatarKey(player));
-	}
-
-	function markAvatarLoaded(player: ResultPlayer): void {
-		const key = avatarKey(player);
-		if (!loadedAvatarKeys.includes(key)) loadedAvatarKeys = [...loadedAvatarKeys, key];
-	}
-
-	function markAvatarFailed(player: ResultPlayer): void {
-		const key = avatarKey(player);
-		if (!failedAvatarKeys.includes(key)) failedAvatarKeys = [...failedAvatarKeys, key];
-	}
-
 	function goalTitle(goalId: string): string {
 		return snapshot.gameMode.captureChallenge?.goals.find((goal) => goal.goalId === goalId)?.title ?? "Capture goal";
 	}
@@ -98,29 +76,18 @@
 </script>
 
 {#snippet playerAvatar(player: ResultPlayer | null, compact: boolean)}
-	<div
+	<Avatar
+		src={player?.avatarUrl}
+		alt=""
 		class={[
-			"border-foreground bg-accent text-accent-foreground relative grid shrink-0 place-items-center overflow-hidden rounded-full border-2 font-[Fredoka_Variable] font-[650]",
+			"border-foreground border-2 font-[Fredoka_Variable] font-[650]",
 			compact ? "size-8 text-[0.68rem]" : "size-10 text-xs sm:size-11 sm:text-sm"
 		]}
 	>
-		<span aria-hidden="true">{player ? getPlayerInitials(player.displayName, player.handle) : "?"}</span>
-		{#if player && hasAvatarSource(player)}
-			<img
-				src={player.avatarUrl}
-				alt=""
-				class={[
-					"absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-150 motion-reduce:transition-none",
-					avatarIsLoaded(player) && "opacity-100"
-				]}
-				loading="lazy"
-				decoding="async"
-				referrerpolicy="no-referrer"
-				onload={() => markAvatarLoaded(player)}
-				onerror={() => markAvatarFailed(player)}
-			/>
-		{/if}
-	</div>
+		{#snippet fallback()}
+			<span aria-hidden="true">{player ? getPlayerInitials(player.displayName, player.handle) : "?"}</span>
+		{/snippet}
+	</Avatar>
 {/snippet}
 
 <section
@@ -137,50 +104,69 @@
 			<p class="text-muted mt-1 mb-0 text-sm">Review the overall standings or a completed round.</p>
 		</div>
 
-		<nav class="grid gap-2" aria-label="Result views">
+		<nav class="grid gap-3" aria-label="Result views">
 			<button
 				type="button"
-				class="border-border bg-surface-muted hover:border-foreground flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 text-left text-sm font-black transition-colors"
-				class:border-foreground={results.selection.kind === "cumulative"}
-				class:bg-accent={results.selection.kind === "cumulative"}
+				class={[
+					"flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left text-sm font-black transition-[transform,background-color,color,border-color,box-shadow] motion-reduce:transition-none",
+					results.selection.kind === "cumulative"
+						? "border-foreground bg-secondary text-secondary-foreground shadow-[2px_2px_0_var(--foreground)]"
+						: "border-border bg-surface hover:border-foreground hover:bg-secondary/10"
+				]}
+				aria-current={results.selection.kind === "cumulative" ? "page" : undefined}
 				onclick={() => void actions.selectResults({ kind: "cumulative" })}
 			>
-				<ChartNoAxesCombined size={18} aria-hidden="true" />
-				Overall standings
+				<span
+					class={[
+						"grid size-8 shrink-0 place-items-center rounded-lg",
+						results.selection.kind === "cumulative"
+							? "bg-secondary-foreground/15 text-secondary-foreground"
+							: "bg-secondary/15 text-secondary"
+					]}
+					aria-hidden="true"
+				>
+					<ChartNoAxesCombined size={18} />
+				</span>
+				<span class="min-w-0 flex-1">Overall standings</span>
 			</button>
-			<button
-				type="button"
-				class="border-border bg-surface-muted hover:border-foreground flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 text-left text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-				class:border-foreground={results.selection.kind === "latest"}
-				class:bg-accent={results.selection.kind === "latest"}
-				disabled={completedRounds.length === 0}
-				onclick={() => void actions.selectResults({ kind: "latest" })}
-			>
-				<Trophy size={18} aria-hidden="true" />
-				Latest round
-			</button>
-		</nav>
 
-		{#if completedRounds.length > 0}
-			<div class="border-border grid gap-2 border-t-2 border-dashed pt-3">
-				<p class="text-muted m-0 text-[0.62rem] font-black tracking-[0.12em] uppercase">Round history</p>
-				<div class="flex flex-wrap gap-2">
-					{#each completedRounds as round (round.roundId)}
-						<button
-							type="button"
-							class="border-border bg-surface hover:border-foreground min-h-9 cursor-pointer rounded-lg border-2 px-3 text-xs font-black"
-							class:border-foreground={results.selection.kind === "round" && results.selection.roundId === round.roundId}
-							class:bg-secondary={results.selection.kind === "round" && results.selection.roundId === round.roundId}
-							class:text-secondary-foreground={results.selection.kind === "round" &&
-								results.selection.roundId === round.roundId}
-							onclick={() => void actions.selectResults({ kind: "round", roundId: round.roundId })}
-						>
-							Round {round.roundNumber}
-						</button>
-					{/each}
+			{#if completedRounds.length > 0}
+				<div class="border-border grid gap-2 border-t-2 border-dashed pt-3">
+					<p class="text-muted m-0 text-[0.62rem] font-black tracking-[0.12em] uppercase">Completed rounds</p>
+					<div class="grid gap-2">
+						{#each completedRounds as round, index (round.roundId)}
+							{@const isLatest = index === 0}
+							{@const selected = isRoundSelected(results.selection, round.roundId, isLatest)}
+							<button
+								type="button"
+								class={[
+									"flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left text-sm font-black transition-[transform,background-color,color,border-color,box-shadow] motion-reduce:transition-none",
+									selected
+										? "border-foreground bg-secondary text-secondary-foreground shadow-[2px_2px_0_var(--foreground)]"
+										: "border-border bg-surface hover:border-foreground hover:bg-secondary/10"
+								]}
+								aria-current={selected ? "page" : undefined}
+								onclick={() => void actions.selectResults(getRoundSelection(round.roundId, isLatest))}
+							>
+								<span
+									class={[
+										"grid size-8 shrink-0 place-items-center rounded-lg font-[Fredoka_Variable] text-sm font-[650]",
+										selected ? "bg-secondary-foreground/15 text-secondary-foreground" : "bg-primary/10 text-primary"
+									]}
+									aria-hidden="true"
+								>
+									{round.roundNumber}
+								</span>
+								<span class="min-w-0 flex-1">Round {round.roundNumber}</span>
+								{#if isLatest}
+									<Badge tone="accent" text="Latest" class="shrink-0" />
+								{/if}
+							</button>
+						{/each}
+					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
+		</nav>
 	</aside>
 
 	<div class="border-border bg-surface min-h-0 rounded-2xl border-2 p-3.5 min-[900px]:overflow-y-auto sm:p-5">
@@ -260,9 +246,7 @@
 												</h5>
 											</div>
 										</div>
-										<span class="border-foreground bg-accent shrink-0 rounded-full border px-2 py-1 text-xs font-black"
-											>{formatScore(result.score)} pts</span
-										>
+										<Badge tone="accent" text={`${formatScore(result.score)} pts`} class="shrink-0 text-xs!" />
 									</div>
 									<div class="text-muted flex flex-wrap items-center gap-3 text-xs font-black">
 										<span class="inline-flex items-center gap-1"><ThumbsUp size={14} aria-hidden="true" /> {result.good}</span>

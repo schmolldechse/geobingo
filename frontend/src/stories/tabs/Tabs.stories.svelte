@@ -233,6 +233,52 @@
 	</section>
 </Story>
 
+<Story name="Looping" asChild>
+	<section class="grid gap-8 p-6 lg:grid-cols-2 lg:p-8">
+		<div class="grid content-start gap-3">
+			<div>
+				<h2 class="text-foreground m-0 text-xl font-black">Looping enabled</h2>
+				<p class="text-muted mt-1 mb-0 text-sm">Arrow-key navigation wraps between the first and last tab.</p>
+			</div>
+			<Tabs.Root value="first" loop>
+				<Tabs.List aria-label="Looping navigation example">
+					<Tabs.Trigger value="first">First</Tabs.Trigger>
+					<Tabs.Trigger value="second">Second</Tabs.Trigger>
+					<Tabs.Trigger value="last">Last</Tabs.Trigger>
+				</Tabs.List>
+				<Tabs.Content value="first">
+					{@render panel("First", "Press Left Arrow to wrap focus to the last tab.")}
+				</Tabs.Content>
+				<Tabs.Content value="second">{@render panel("Second", "Navigation continues in either direction.")}</Tabs.Content>
+				<Tabs.Content value="last">
+					{@render panel("Last", "Press Right Arrow to wrap focus to the first tab.")}
+				</Tabs.Content>
+			</Tabs.Root>
+		</div>
+
+		<div class="grid content-start gap-3">
+			<div>
+				<h2 class="text-foreground m-0 text-xl font-black">Looping disabled</h2>
+				<p class="text-muted mt-1 mb-0 text-sm">Arrow-key navigation stops when it reaches either edge.</p>
+			</div>
+			<Tabs.Root value="first" loop={false}>
+				<Tabs.List aria-label="Bounded navigation example">
+					<Tabs.Trigger value="first">First</Tabs.Trigger>
+					<Tabs.Trigger value="second">Second</Tabs.Trigger>
+					<Tabs.Trigger value="last">Last</Tabs.Trigger>
+				</Tabs.List>
+				<Tabs.Content value="first">
+					{@render panel("First", "Left Arrow keeps focus on the first tab.")}
+				</Tabs.Content>
+				<Tabs.Content value="second">{@render panel("Second", "Navigation continues in either direction.")}</Tabs.Content>
+				<Tabs.Content value="last">
+					{@render panel("Last", "Right Arrow keeps focus on the last tab.")}
+				</Tabs.Content>
+			</Tabs.Root>
+		</div>
+	</section>
+</Story>
+
 <Story name="Disabled States" asChild>
 	<section class="grid gap-8 p-6 lg:grid-cols-2 lg:p-8">
 		<div class="grid content-start gap-3">
@@ -289,25 +335,28 @@
 	</section>
 </Story>
 
-<Story name="Responsive Overflow" asChild>
+<Story name="Scroll Controls" asChild>
 	<section class="grid gap-8 p-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:p-8">
 		<div class="grid content-start gap-3">
 			<div>
-				<h2 class="text-foreground m-0 text-xl font-black">Mobile width</h2>
-				<p class="text-muted mt-1 mb-0 text-sm">Swipe or scroll horizontally without squeezing the labels.</p>
+				<h2 class="text-foreground m-0 text-xl font-black">Overflowing list</h2>
+				<p class="text-muted mt-1 mb-0 text-sm">
+					Only the directions with additional hidden tabs display a scroll control. The native scrollbar stays hidden.
+				</p>
 			</div>
 			<div class="border-foreground bg-background overflow-hidden rounded-2xl border-2 p-3 shadow-[var(--shadow-paper)]">
 				<Tabs.Root value="overview">
-					<Tabs.List aria-label="Mobile overflow example">
+					<Tabs.List aria-label="Overflow controls example">
 						<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
 						<Tabs.Trigger value="recent">Recent activity</Tabs.Trigger>
 						<Tabs.Trigger value="documents">Shared documents</Tabs.Trigger>
 						<Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
 						<Tabs.Trigger value="members">Team members</Tabs.Trigger>
 						<Tabs.Trigger value="settings">Workspace settings</Tabs.Trigger>
+						<Tabs.Trigger value="integrations">Integrations</Tabs.Trigger>
 					</Tabs.List>
 					<Tabs.Content value="overview">
-						{@render panel("Overview", "The tab list remains a single scrollable row at mobile width.")}
+						{@render panel("Overview", "At the starting edge, only the right scroll control is available.")}
 					</Tabs.Content>
 					<Tabs.Content value="recent">{@render panel("Recent activity", "Recent updates appear here.")}</Tabs.Content>
 					<Tabs.Content value="documents">
@@ -318,34 +367,29 @@
 					<Tabs.Content value="settings">
 						{@render panel("Workspace settings", "Workspace preferences appear here.")}
 					</Tabs.Content>
+					<Tabs.Content value="integrations">
+						{@render panel("Integrations", "At the ending edge, only the left scroll control remains.")}
+					</Tabs.Content>
 				</Tabs.Root>
 			</div>
 		</div>
 
 		<div class="grid content-start gap-3">
 			<div>
-				<h2 class="text-foreground m-0 text-xl font-black">Desktop width</h2>
-				<p class="text-muted mt-1 mb-0 text-sm">The same component expands naturally when more space is available.</p>
+				<h2 class="text-foreground m-0 text-xl font-black">List without overflow</h2>
+				<p class="text-muted mt-1 mb-0 text-sm">No scroll controls are rendered when every trigger already fits.</p>
 			</div>
 			<Tabs.Root value="overview">
-				<Tabs.List aria-label="Desktop overflow example">
+				<Tabs.List aria-label="Tabs without overflow example">
 					<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
-					<Tabs.Trigger value="recent">Recent activity</Tabs.Trigger>
-					<Tabs.Trigger value="documents">Shared documents</Tabs.Trigger>
-					<Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
-					<Tabs.Trigger value="members">Team members</Tabs.Trigger>
-					<Tabs.Trigger value="settings">Workspace settings</Tabs.Trigger>
+					<Tabs.Trigger value="activity">Activity</Tabs.Trigger>
+					<Tabs.Trigger value="settings">Settings</Tabs.Trigger>
 				</Tabs.List>
 				<Tabs.Content value="overview">
-					{@render panel("Overview", "The full-width list preserves the same interaction and visual hierarchy.")}
+					{@render panel("Overview", "All three triggers fit, so the list needs no scroll controls.")}
 				</Tabs.Content>
-				<Tabs.Content value="recent">{@render panel("Recent activity", "Recent updates appear here.")}</Tabs.Content>
-				<Tabs.Content value="documents">{@render panel("Shared documents", "Shared files appear here.")}</Tabs.Content>
-				<Tabs.Content value="analytics">{@render panel("Analytics", "Metrics appear here.")}</Tabs.Content>
-				<Tabs.Content value="members">{@render panel("Team members", "Member details appear here.")}</Tabs.Content>
-				<Tabs.Content value="settings">
-					{@render panel("Workspace settings", "Workspace preferences appear here.")}
-				</Tabs.Content>
+				<Tabs.Content value="activity">{@render panel("Activity", "Recent updates appear here.")}</Tabs.Content>
+				<Tabs.Content value="settings">{@render panel("Settings", "Workspace preferences appear here.")}</Tabs.Content>
 			</Tabs.Root>
 		</div>
 	</section>

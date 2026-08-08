@@ -2,12 +2,13 @@
 	import Camera from "@lucide/svelte/icons/camera";
 	import Check from "@lucide/svelte/icons/check";
 	import Clock3 from "@lucide/svelte/icons/clock-3";
-	import Eye from "@lucide/svelte/icons/eye";
 	import MapPinned from "@lucide/svelte/icons/map-pinned";
 	import ThumbsDown from "@lucide/svelte/icons/thumbs-down";
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
 	import UserRoundCheck from "@lucide/svelte/icons/user-round-check";
 	import { onMount } from "svelte";
+	import Avatar from "$lib/components/ui/Avatar.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import GoogleMaps, { type GoogleMapsController } from "$lib/components/ui/google-maps";
 	import {
 		VoteValue,
@@ -63,13 +64,6 @@
 		!currentCapture || currentCapture.isOwner || slotClosed || lobby.connectionStatus !== "connected" || mutationPending
 	);
 	const panoramaUnavailable = $derived(googleMaps?.streetViewState === "unavailable");
-	const voteAnnouncement = $derived.by(() => {
-		if (!currentCapture || currentCapture.isOwner) return "";
-		if (mutationPending) return "Saving your vote.";
-		if (currentCapture.selectedValue === VoteValue.GOOD) return "Good vote saved.";
-		if (currentCapture.selectedValue === VoteValue.BAD) return "Bad vote saved.";
-		return "No vote submitted for this capture yet.";
-	});
 
 	function formatCountdown(totalSeconds: number): string {
 		const minutes = Math.floor(totalSeconds / 60);
@@ -179,22 +173,6 @@
 		{/if}
 
 		<div
-			class="border-foreground bg-surface/95 pointer-events-none absolute top-[11px] left-[11px] z-30 inline-flex min-h-[38px] items-center gap-2 rounded-[14px] border-2 px-2 py-1.5 shadow-[3px_3px_0_var(--foreground)] backdrop-blur-lg min-[621px]:top-[13px] min-[621px]:left-[13px] min-[901px]:top-[18px] min-[901px]:left-[18px] min-[901px]:min-h-[42px] min-[901px]:gap-2.5 min-[901px]:px-2.5"
-			aria-label="Capture Challenge voting phase"
-		>
-			<span
-				class="bg-secondary grid size-[22px] grid-cols-2 place-content-center gap-0.5 rounded-lg min-[901px]:size-[25px]"
-				aria-hidden="true"
-			>
-				<span class="bg-accent size-1.5 rounded-[2px]"></span><span class="bg-accent size-1.5 rounded-[2px]"></span>
-				<span class="bg-accent size-1.5 rounded-[2px]"></span><span class="bg-accent size-1.5 rounded-[2px]"></span>
-			</span>
-			<span class="text-[0.57rem] font-black tracking-[0.1em] uppercase max-[390px]:sr-only min-[901px]:text-[0.7rem]">
-				Capture Challenge · Voting
-			</span>
-		</div>
-
-		<div
 			class="border-foreground bg-primary text-primary-foreground pointer-events-none absolute top-[11px] right-[11px] z-30 grid min-w-[123px] grid-cols-[auto_auto] grid-rows-[auto_auto] items-center rounded-[15px] border-2 px-2.5 py-2 shadow-[3px_3px_0_var(--foreground)] min-[621px]:top-[13px] min-[621px]:right-[13px] min-[901px]:top-[18px] min-[901px]:right-[18px] min-[901px]:min-w-[158px] min-[901px]:rounded-[18px] min-[901px]:px-3.5 min-[901px]:py-2.5 min-[901px]:shadow-[4px_4px_0_var(--foreground)]"
 			role="timer"
 			aria-label={`${remainingSeconds} seconds left for the current capture`}
@@ -209,14 +187,6 @@
 		</div>
 
 		{#if currentCapture}
-			<div
-				class="pointer-events-none absolute top-[22px] left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-black/20 bg-white/90 px-3 py-2 text-[0.68rem] font-bold text-[#3c3933] shadow-[0_3px_12px_rgb(36_33_28/0.14)] max-[900px]:hidden"
-				aria-hidden="true"
-			>
-				<Eye size={14} />
-				Fixed Street View · pan and zoom only
-			</div>
-
 			<section
 				class="border-foreground bg-surface/96 absolute right-2.5 bottom-[calc(2rem+env(safe-area-inset-bottom,0px))] left-2.5 z-30 grid min-h-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-0 rounded-[18px] border-2 p-2.5 shadow-[3px_3px_0_var(--foreground),0_10px_32px_rgb(36_33_28/0.2)] backdrop-blur-xl max-[390px]:grid-cols-1 min-[621px]:right-3.5 min-[621px]:bottom-10 min-[621px]:left-3.5 min-[621px]:rounded-[20px] min-[621px]:p-3 min-[901px]:right-[clamp(18px,3vw,46px)] min-[901px]:bottom-12 min-[901px]:left-[clamp(18px,3vw,46px)] min-[901px]:mx-auto min-[901px]:max-w-[1140px] min-[901px]:grid-cols-[minmax(210px,0.8fr)_minmax(285px,1.35fr)_auto] min-[901px]:rounded-[23px] min-[901px]:shadow-[5px_5px_0_var(--foreground),0_16px_46px_rgb(36_33_28/0.22)]"
 				aria-labelledby="current-capture-heading"
@@ -224,24 +194,20 @@
 				<div
 					class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 py-1 pr-2 pl-0.5 max-[390px]:flex max-[390px]:pb-2 min-[621px]:gap-3 min-[621px]:pr-3 min-[901px]:px-2 min-[901px]:pr-[18px]"
 				>
-					<div
-						class="border-foreground bg-accent relative grid size-[42px] shrink-0 place-items-center overflow-hidden rounded-full border-2 shadow-[2px_2px_0_var(--foreground)] min-[621px]:size-[54px] min-[901px]:size-[62px] min-[901px]:shadow-[3px_3px_0_var(--foreground)]"
+					<Avatar
+						src={owner?.avatarUrl}
+						alt=""
+						class="border-foreground size-[42px] border-2 font-[Fredoka_Variable] text-sm font-[650] min-[621px]:size-[54px] min-[901px]:size-[62px] min-[901px]:text-lg"
 					>
-						{#if owner?.avatarUrl}
-							<img src={owner.avatarUrl} alt="" class="size-full object-cover" />
-						{:else}
-							<span class="font-[Fredoka_Variable] text-sm font-[650] min-[901px]:text-lg">{ownerInitials}</span>
-						{/if}
-						<span
-							class="border-surface bg-secondary absolute right-0 bottom-0 size-3 rounded-full border-2 min-[901px]:size-[15px]"
-							aria-hidden="true"
-						></span>
-					</div>
+						{#snippet fallback()}
+							<span aria-hidden="true">{ownerInitials}</span>
+						{/snippet}
+					</Avatar>
 					<div class="min-w-0">
 						<p
 							class="text-secondary m-0 text-[0.48rem] font-black tracking-[0.12em] uppercase min-[621px]:text-[0.58rem] min-[901px]:text-[0.61rem]"
 						>
-							{currentCapture.isOwner ? "Your submission" : "Submitted by"}
+							Submitted by
 						</p>
 						<h2
 							class="m-0 overflow-hidden font-[Fredoka_Variable] text-[0.88rem] font-[650] text-ellipsis whitespace-nowrap min-[621px]:text-base min-[901px]:text-lg"
@@ -266,11 +232,11 @@
 							<Camera class="text-primary max-[620px]:hidden" size={14} aria-hidden="true" />
 							Capture {currentCapture.sequence} of {totalCaptures}
 						</span>
-						<span
-							class="border-foreground bg-accent text-accent-foreground rounded-full border px-2 py-0.5 text-[0.58rem] font-black max-[620px]:hidden"
-						>
-							{formatScoreFactor(currentCapture.goal.scoreFactor)}
-						</span>
+						<Badge
+							tone="accent"
+							text={formatScoreFactor(currentCapture.goal.scoreFactor)}
+							class="py-0.5! text-[0.58rem]! max-[620px]:hidden"
+						/>
 					</div>
 					<h1
 						id="current-capture-heading"
@@ -339,17 +305,6 @@
 					</div>
 				{/if}
 			</section>
-
-			{#if !currentCapture.isOwner && currentCapture.selectedValue !== undefined && currentCapture.selectedValue !== null}
-				<div
-					class="border-foreground bg-accent text-accent-foreground absolute left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border-2 px-3 py-2 text-[0.65rem] font-black shadow-[3px_3px_0_var(--foreground)] max-[620px]:bottom-[calc(12rem+env(safe-area-inset-bottom,0px))] min-[621px]:bottom-[219px] min-[901px]:bottom-[184px]"
-				>
-					<Check size={16} strokeWidth={2.6} aria-hidden="true" />
-					{currentCapture.selectedValue === VoteValue.GOOD ? "Good" : "Bad"} vote saved
-				</div>
-			{/if}
 		{/if}
-
-		<p class="sr-only" aria-live="polite">{voteAnnouncement}</p>
 	</section>
 </main>

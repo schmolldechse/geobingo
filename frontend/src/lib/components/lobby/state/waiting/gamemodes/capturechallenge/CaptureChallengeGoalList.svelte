@@ -6,6 +6,7 @@
 	import Target from "@lucide/svelte/icons/target";
 	import Trash2 from "@lucide/svelte/icons/trash-2";
 	import GoalEditorDialog from "@/lib/components/lobby/state/waiting/gamemodes/capturechallenge/GoalEditorDialog.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import type {
@@ -84,11 +85,7 @@
 		<div class="min-w-0">
 			<div class="flex flex-wrap items-center gap-2">
 				<h3 class="m-0 text-base font-black">Goals</h3>
-				<span
-					class="bg-surface-muted inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-black"
-				>
-					{goals.length}
-				</span>
+				<Badge tone="neutral" text={goals.length.toLocaleString()} class="min-w-6 justify-center py-0.5! text-xs!" />
 			</div>
 			<p class="text-muted mt-1 mb-0 text-xs leading-5" data-goals-subtitle>Capture Challenge content for the next round.</p>
 		</div>

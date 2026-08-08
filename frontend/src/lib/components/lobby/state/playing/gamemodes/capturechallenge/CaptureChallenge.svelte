@@ -29,7 +29,7 @@
 </script>
 
 {#if status === CaptureChallengeStatus.CAPTURING && personalCapture}
-	<CaptureChallengeCapturing {lobby} {snapshot} {capture} {personalCapture} {actions} />
+	<CaptureChallengeCapturing {lobby} {capture} {personalCapture} {actions} />
 {:else if status === CaptureChallengeStatus.VOTING && personalCapture}
 	<CaptureChallengeVoting {lobby} {snapshot} {capture} {personalCapture} {actions} />
 {:else}

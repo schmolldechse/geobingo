@@ -6,6 +6,8 @@
 	import UserRound from "@lucide/svelte/icons/user-round";
 	import UserRoundX from "@lucide/svelte/icons/user-round-x";
 	import Users from "@lucide/svelte/icons/users";
+	import Avatar from "$lib/components/ui/Avatar.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 	import Dialog from "$lib/components/ui/Dialog.svelte";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
@@ -26,8 +28,6 @@
 		actions: LobbyActions;
 	} = $props();
 
-	let failedAvatarKeys = $state<string[]>([]);
-	let loadedAvatarKeys = $state<string[]>([]);
 	let selectedPlayer = $state<LobbyMemberView | null>(null);
 	let selectedAction = $state<PlayerAction | null>(null);
 	let confirmationVisible = $state(false);
@@ -63,19 +63,6 @@
 	);
 	const confirmationPending = $derived(pendingOperationName.length > 0 && lobby.isPending(pendingOperationName));
 
-	const avatarKey = (player: LobbyMemberView): string => `${player.userId}:${player.avatarUrl?.trim() ?? ""}`;
-	const hasAvatarSource = (player: LobbyMemberView): boolean =>
-		Boolean(player.avatarUrl?.trim()) && !failedAvatarKeys.includes(avatarKey(player));
-	const avatarIsLoaded = (player: LobbyMemberView): boolean => loadedAvatarKeys.includes(avatarKey(player));
-	const markAvatarLoaded = (player: LobbyMemberView): void => {
-		const key = avatarKey(player);
-		if (!loadedAvatarKeys.includes(key)) loadedAvatarKeys = [...loadedAvatarKeys, key];
-	};
-	const markAvatarFailed = (player: LobbyMemberView): void => {
-		const key = avatarKey(player);
-		if (!failedAvatarKeys.includes(key)) failedAvatarKeys = [...failedAvatarKeys, key];
-	};
-
 	function requestAction(player: LobbyMemberView, action: PlayerAction): void {
 		selectedPlayer = player;
 		selectedAction = action;
@@ -108,12 +95,11 @@
 			<p class="text-primary m-0 text-[0.64rem] font-black tracking-[0.14em] uppercase">Group</p>
 			<h2 id={titleId} class="mt-1 mb-0 flex flex-wrap items-center gap-2 text-lg leading-tight font-black">
 				Players
-				<span
-					class="bg-surface-muted inline-flex min-h-6 items-center rounded-full px-2 text-xs font-black"
-					aria-label={`${snapshot.members.length} of ${snapshot.settings.maxPlayers} player slots filled`}
-				>
-					{snapshot.members.length}/{snapshot.settings.maxPlayers}
-				</span>
+				<Badge
+					tone="neutral"
+					text={`${snapshot.members.length}/${snapshot.settings.maxPlayers}`}
+					class="shrink-0 text-xs! font-black"
+				/>
 			</h2>
 		</div>
 		<Users class="text-secondary shrink-0" size={22} aria-hidden="true" />
@@ -128,26 +114,15 @@
 					class="border-border hover:bg-surface-muted/45 grid min-h-[4.75rem] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b px-3 py-2.5 last:border-b-0 sm:px-4"
 				>
 					<div class="relative size-11 shrink-0">
-						<div
-							class="border-foreground bg-accent text-accent-foreground relative grid size-11 place-items-center overflow-hidden rounded-full border-2 font-[Fredoka_Variable] text-sm font-[650]"
+						<Avatar
+							src={player.avatarUrl}
+							alt=""
+							class="border-foreground size-11 border-2 font-[Fredoka_Variable] text-sm font-[650]"
 						>
-							<span aria-hidden="true">{getPlayerInitials(player.displayName, player.handle)}</span>
-							{#if hasAvatarSource(player)}
-								<img
-									src={player.avatarUrl}
-									alt=""
-									class={[
-										"absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-150 motion-reduce:transition-none",
-										avatarIsLoaded(player) && "opacity-100"
-									]}
-									loading="lazy"
-									decoding="async"
-									referrerpolicy="no-referrer"
-									onload={() => markAvatarLoaded(player)}
-									onerror={() => markAvatarFailed(player)}
-								/>
-							{/if}
-						</div>
+							{#snippet fallback()}
+								<span aria-hidden="true">{getPlayerInitials(player.displayName, player.handle)}</span>
+							{/snippet}
+						</Avatar>
 						<span
 							class={[
 								"border-surface absolute right-0 bottom-0 size-3 rounded-full border-2",
@@ -162,20 +137,16 @@
 						<div class="flex min-w-0 flex-wrap items-center gap-1.5">
 							<p class="m-0 min-w-0 truncate text-sm font-black">{player.displayName}</p>
 							{#if isHost}
-								<span
-									class="bg-accent text-accent-foreground inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[0.62rem] leading-none font-black tracking-[0.04em] uppercase"
-								>
+								<Badge tone="accent" class="shrink-0 tracking-[0.04em] uppercase">
 									<Crown size={12} strokeWidth={2.5} aria-hidden="true" />
 									Host
-								</span>
+								</Badge>
 							{/if}
 							{#if isCurrentPlayer}
-								<span
-									class="bg-secondary text-secondary-foreground inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[0.62rem] leading-none font-black tracking-[0.04em] uppercase"
-								>
+								<Badge tone="secondary" class="shrink-0 tracking-[0.04em] uppercase">
 									<UserRound size={12} strokeWidth={2.5} aria-hidden="true" />
 									You
-								</span>
+								</Badge>
 							{/if}
 						</div>
 						<p class="text-muted mt-1 mb-0 truncate text-xs font-semibold">@{player.handle}</p>

@@ -4,6 +4,7 @@
 	import LogIn from "@lucide/svelte/icons/log-in";
 	import LogOut from "@lucide/svelte/icons/log-out";
 	import { getAuthState } from "$lib/auth/session.svelte";
+	import Avatar from "$lib/components/ui/Avatar.svelte";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import Button from "@/lib/components/ui/Button.svelte";
 	import Dialog from "@/lib/components/ui/Dialog.svelte";
@@ -32,27 +33,20 @@
 <div class="min-w-0">
 	{#if auth.session.authenticated && auth.session.user}
 		{@const user = auth.session.user}
-		{@const hasAvatar = user.avatarUrl && user.avatarUrl.trim().length > 0}
 
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger
 				aria-label={`Konto von ${user.displayName}`}
 				class="h-11! min-h-11! min-w-0 rounded-xl! px-2! py-0!"
 			>
-				{#if hasAvatar}
-					<img
-						class="size-8 shrink-0 rounded-full object-cover"
-						src={user.avatarUrl}
-						alt={`Profilbild von ${user.displayName}`}
-						width="32"
-						height="32"
-					/>
-				{:else}
-					<span
-						class="bg-secondary text-secondary-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold"
-						aria-hidden="true">{initials}</span
-					>
-				{/if}
+				<Avatar
+					src={user.avatarUrl}
+					alt=""
+					loading="eager"
+					class="bg-secondary text-secondary-foreground size-8 text-xs font-extrabold"
+				>
+					{#snippet fallback()}<span aria-hidden="true">{initials}</span>{/snippet}
+				</Avatar>
 
 				<span class="hidden max-w-32 truncate text-sm font-semibold sm:inline" title={user.displayName}>
 					{user.displayName}
