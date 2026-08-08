@@ -7,6 +7,7 @@
 	import ThumbsUp from "@lucide/svelte/icons/thumbs-up";
 	import Trophy from "@lucide/svelte/icons/trophy";
 	import Avatar from "$lib/components/ui/Avatar.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import {
 		type CompletedRoundResults,
 		type CumulativePlayerResult,
@@ -225,9 +226,7 @@
 												</h5>
 											</div>
 										</div>
-										<span class="border-foreground bg-accent shrink-0 rounded-full border px-2 py-1 text-xs font-black"
-											>{formatScore(result.score)} pts</span
-										>
+										<Badge tone="accent" text={`${formatScore(result.score)} pts`} class="shrink-0 text-xs!" />
 									</div>
 									<div class="text-muted flex flex-wrap items-center gap-3 text-xs font-black">
 										<span class="inline-flex items-center gap-1"><ThumbsUp size={14} aria-hidden="true" /> {result.good}</span>

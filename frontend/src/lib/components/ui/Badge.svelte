@@ -30,7 +30,7 @@
 	data-badge-root
 	data-tone={tone}
 	class={[
-		"inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-[0.62rem] leading-none font-black",
+		"border-foreground inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-1 text-[0.62rem] leading-none font-black",
 		toneClasses[tone],
 		className
 	]}

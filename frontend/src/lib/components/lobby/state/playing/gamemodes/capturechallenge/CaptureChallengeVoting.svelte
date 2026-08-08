@@ -8,6 +8,7 @@
 	import UserRoundCheck from "@lucide/svelte/icons/user-round-check";
 	import { onMount } from "svelte";
 	import Avatar from "$lib/components/ui/Avatar.svelte";
+	import Badge from "$lib/components/ui/Badge.svelte";
 	import GoogleMaps, { type GoogleMapsController } from "$lib/components/ui/google-maps";
 	import {
 		VoteValue,
@@ -231,11 +232,11 @@
 							<Camera class="text-primary max-[620px]:hidden" size={14} aria-hidden="true" />
 							Capture {currentCapture.sequence} of {totalCaptures}
 						</span>
-						<span
-							class="border-foreground bg-accent text-accent-foreground rounded-full border px-2 py-0.5 text-[0.58rem] font-black max-[620px]:hidden"
-						>
-							{formatScoreFactor(currentCapture.goal.scoreFactor)}
-						</span>
+						<Badge
+							tone="accent"
+							text={formatScoreFactor(currentCapture.goal.scoreFactor)}
+							class="py-0.5! text-[0.58rem]! max-[620px]:hidden"
+						/>
 					</div>
 					<h1
 						id="current-capture-heading"
